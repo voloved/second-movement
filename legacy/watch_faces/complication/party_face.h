@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 Joey Castillo
+ * Copyright (c) 2024 <#author_name#>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,45 @@
  * SOFTWARE.
  */
 
-#pragma once
+#ifndef PARTY_FACE_H_
+#define PARTY_FACE_H_
 
-#include "clock_face.h"
-#include "beats_face.h"
-#include "world_clock_face.h"
-#include "alarm_face.h"
-#include "advanced_alarm_face.h"
-#include "countdown_face.h"
-#include "stopwatch_face.h"
-#include "fast_stopwatch_face.h"
-#include "sunrise_sunset_face.h"
-#include "moon_phase_face.h"
-#include "days_since_face.h"
-#include "character_set_face.h"
-#include "accelerometer_status_face.h"
-#include "all_segments_face.h"
-#include "temperature_display_face.h"
-#include "temperature_logging_face.h"
-#include "activity_logging_face.h"
-#include "voltage_face.h"
-#include "set_time_face.h"
-#include "settings_face.h"
-#include "light_sensor_face.h"
-#include "irda_upload_face.h"
-#include "chirpy_demo_face.h"
-#include "finetune_face.h"
-#include "nanosec_face.h"
-#include "mars_time_face.h"
-#include "peek_memory_face.h"
-#include "tally_face.h"
-#include "party_face.h"
-#include "festival_schedule_face.h"
-// New includes go above this line.
+#include "movement.h"
+
+/*
+ * A DESCRIPTION OF YOUR WATCH FACE
+ *
+ * and a description of how use it
+ *
+ */
+
+typedef struct {
+    bool blink;
+    bool fast;
+    uint8_t led : 2; // 0 = None; 1 = Green only; 2 = All
+    uint8_t text : 2;
+    uint8_t color : 2;
+    uint8_t party_text : 2;
+    uint8_t curr_day : 5;
+    bool unused;
+    int8_t prev_text;
+} party_state_t;
+
+void party_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr);
+void party_face_activate(movement_settings_t *settings, void *context);
+bool party_face_loop(movement_event_t event, movement_settings_t *settings, void *context);
+void party_face_resign(movement_settings_t *settings, void *context);
+
+#define party_face ((const watch_face_t){ \
+    party_face_setup, \
+    party_face_activate, \
+    party_face_loop, \
+    party_face_resign, \
+    NULL, \
+})
+#define MAX_TEXT  2
+// 0 - Party
+// 1 - Prom
+
+#endif // PARTY_FACE_H_
+

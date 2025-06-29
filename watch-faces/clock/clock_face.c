@@ -277,7 +277,7 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
 
     if (state->time_signal_enabled) {
         watch_date_time_t date_time = movement_get_local_date_time();
-        retval.wants_background_task = date_time.unit.minute == 0;
+        retval.wants_background_task = date_time.unit.minute == 0 && date_time.unit.hour >= 8 && date_time.unit.hour <= 20;
     }
 
     return retval;

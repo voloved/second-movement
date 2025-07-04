@@ -29,6 +29,7 @@
 
 #define TALLY_FACE_MAX 9999
 #define TALLY_FACE_MIN -99
+#define TALLY_FACE_PRESETS_MTG
 
 static bool _init_val;
 static bool _quick_ticks_running;
@@ -104,7 +105,7 @@ static void tally_face_decrement(tally_state_t *state, bool sound_on) {
 }
 
 static bool tally_face_should_move_back(tally_state_t *state) {
-    if (TALLY_FACE_PRESETS_SIZE() <= 1) { return false; }
+    if (TALLY_FACE_PRESETS_SIZE() <= 1) { return true; }
     return state->tally_idx == _tally_default[state->tally_default_idx];
 }
 

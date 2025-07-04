@@ -46,10 +46,10 @@ typedef struct {
     int8_t prev_text;
 } party_state_t;
 
-void party_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr);
-void party_face_activate(movement_settings_t *settings, void *context);
-bool party_face_loop(movement_event_t event, movement_settings_t *settings, void *context);
-void party_face_resign(movement_settings_t *settings, void *context);
+void party_face_setup(uint8_t watch_face_index, void ** context_ptr);
+void party_face_activate(void *context);
+bool party_face_loop(movement_event_t event, void *context);
+void party_face_resign(void *context);
 
 #define party_face ((const watch_face_t){ \
     party_face_setup, \

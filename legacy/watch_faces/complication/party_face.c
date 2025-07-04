@@ -31,8 +31,7 @@
 #define HRS_BLINK_BEFORE_SLEEP_LED 3
 
 
-void party_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr) {
-    (void) settings;
+void party_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(party_state_t));
@@ -40,8 +39,7 @@ void party_face_setup(movement_settings_t *settings, uint8_t watch_face_index, v
     }
 }
 
-void party_face_activate(movement_settings_t *settings, void *context) {
-    (void) settings;
+void party_face_activate(void *context) {
     party_state_t *state = (party_state_t *)context;
     state->blink = false;
     state->led = false;
@@ -106,7 +104,7 @@ static void offset_allow_sleep(bool blinking, bool led_on) {
     movement_schedule_background_task(watch_utility_date_time_from_unix_time(ts, 0));
 }
 
-bool party_face_loop(movement_event_t event, movement_settings_t *settings, void *context) {
+bool party_face_loop(movement_event_t event, void *context) {
     party_state_t *state = (party_state_t *)context;
 
     switch (event.event_type) {
@@ -192,8 +190,7 @@ bool party_face_loop(movement_event_t event, movement_settings_t *settings, void
     return true;
 }
 
-void party_face_resign(movement_settings_t *settings, void *context) {
-    (void) settings;
+void party_face_resign(void *context) {
     (void) context;
     watch_set_led_off();
     movement_cancel_background_task();

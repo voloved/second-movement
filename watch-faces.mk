@@ -28,6 +28,7 @@ SRCS += \
   ./watch-faces/io/irda_upload_face.c \
   ./legacy/watch_faces/complication/tally_face.c \
   ./legacy/watch_faces/complication/party_face.c \
+  ./legacy/watch_faces/complication/festival_schedule_face.c \
   ./legacy/watch_faces/complication/endless_runner_face.c \
   ./legacy/watch_faces/complication/wordle_face.c \
 # New watch faces go above this line.

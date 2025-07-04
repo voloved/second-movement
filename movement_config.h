@@ -37,7 +37,7 @@ const watch_face_t watch_faces[] = {
     alarm_face,
     tally_face,
     party_face,
-//  festival_schedule_face,
+    festival_schedule_face,
     endless_runner_face,
     wordle_face,
     temperature_display_face,

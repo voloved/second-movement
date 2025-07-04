@@ -107,10 +107,10 @@ typedef struct {
     
 } festival_schedule_state_t;
 
-void festival_schedule_face_setup(movement_settings_t *settings, uint8_t watch_face_index, void ** context_ptr);
-void festival_schedule_face_activate(movement_settings_t *settings, void *context);
-bool festival_schedule_face_loop(movement_event_t event, movement_settings_t *settings, void *context);
-void festival_schedule_face_resign(movement_settings_t *settings, void *context);
+void festival_schedule_face_setup(uint8_t watch_face_index, void ** context_ptr);
+void festival_schedule_face_activate(void *context);
+bool festival_schedule_face_loop(movement_event_t event, void *context);
+void festival_schedule_face_resign(void *context);
 
 #define festival_schedule_face ((const watch_face_t){ \
     festival_schedule_face_setup, \

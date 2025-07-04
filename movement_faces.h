@@ -53,7 +53,7 @@
 #include "peek_memory_face.h"
 #include "tally_face.h"
 #include "party_face.h"
-//#include "festival_schedule_face.h"
+#include "festival_schedule_face.h"
 #include "endless_runner_face.h"
 #include "wordle_face.h"
 // New includes go above this line.

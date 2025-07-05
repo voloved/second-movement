@@ -56,4 +56,5 @@
 #include "festival_schedule_face.h"
 #include "endless_runner_face.h"
 #include "wordle_face.h"
+#include "totp_face.h"
 // New includes go above this line.

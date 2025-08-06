@@ -163,4 +163,3 @@ void wordle_face_resign(void *context);
 })
 
 #endif // WORDLE_FACE_H_
-

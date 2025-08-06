@@ -30,11 +30,11 @@ SRCS += \
   ./watch-faces/settings/nanosec_face.c \
   ./watch-faces/io/chirpy_demo_face.c \
   ./watch-faces/io/irda_upload_face.c \
-  ./legacy/watch_faces/complication/tally_face.c \
+  ./watch-faces/complication/tally_face.c \
   ./legacy/watch_faces/complication/party_face.c \
   ./legacy/watch_faces/complication/festival_schedule_face.c \
   ./legacy/watch_faces/complication/endless_runner_face.c \
-  ./legacy/watch_faces/complication/wordle_face.c \
+  ./watch-faces/complication/wordle_face.c \
   ./watch-faces/complication/probability_face.c \
   ./watch-faces/clock/close_enough_face.c \
   ./watch-faces/complication/tarot_face.c \

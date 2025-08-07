@@ -24,6 +24,7 @@
  */
 
 #define MOVEMENT_LONG_PRESS_TICKS 64
+#define MOVEMENT_DEBOUNCE_TICKS 4
 
 #include <stdio.h>
 #include <string.h>
@@ -69,6 +70,7 @@ typedef struct {
     movement_timeout_index_t timeout_index;
     volatile bool is_down;
     volatile rtc_counter_t down_timestamp;
+    volatile rtc_counter_t up_timestamp;
 } movement_button_t;
 
 /* Pieces of state that can be modified by the various interrupt callbacks.
@@ -1256,13 +1258,14 @@ bool app_loop(void) {
 
 static movement_event_type_t _process_button_event(bool pin_level, movement_button_t* button) {
     movement_event_type_t event_type = EVENT_NONE;
+    uint32_t counter = watch_rtc_get_counter();
 
-    // This shouldn't happen normally
-    if (pin_level == button->is_down) {
+    if (
+        (counter - button->up_timestamp) <= MOVEMENT_DEBOUNCE_TICKS &&
+        (counter - button->down_timestamp) <= MOVEMENT_DEBOUNCE_TICKS
+    ) {
         return event_type;
     }
-
-    uint32_t counter = watch_rtc_get_counter();
 
     button->is_down = pin_level;
 
@@ -1270,6 +1273,7 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
         button->down_timestamp = counter;
         event_type = button->down_event;
     } else {
+        button->up_timestamp = counter;
         if ((counter - button->down_timestamp) >= MOVEMENT_LONG_PRESS_TICKS) {
             event_type = button->down_event + 3;
         } else {

@@ -254,10 +254,22 @@ void movement_force_led_off(void) {
     _movement_disable_fast_tick_if_possible();
 }
 
+bool can_go_to_teriary_face(void) {
+    return (MOVEMENT_TERIARY_FACE_INDEX && MOVEMENT_TERIARY_FACE_INDEX < MOVEMENT_NUM_FACES);
+}
+
+void go_to_teriary_face(void) {
+    movement_move_to_face(MOVEMENT_TERIARY_FACE_INDEX);
+}
+
 bool movement_default_loop_handler(movement_event_t event) {
     switch (event.event_type) {
         case EVENT_MODE_BUTTON_UP:
-            movement_move_to_next_face();
+            if (movement_state.current_face_idx == MOVEMENT_TERIARY_FACE_INDEX - 1) {
+                movement_move_to_face(0);
+            } else {
+                movement_move_to_next_face();
+            }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             movement_illuminate_led();
@@ -1050,9 +1062,12 @@ void cb_fast_tick(void) {
     if (movement_state.mode_down_timestamp > 0)
         if (movement_state.fast_ticks - movement_state.mode_down_timestamp == MOVEMENT_LONG_PRESS_TICKS + 1)
             event.event_type = EVENT_MODE_LONG_PRESS;
-    if (movement_state.alarm_down_timestamp > 0)
-        if (movement_state.fast_ticks - movement_state.alarm_down_timestamp == MOVEMENT_LONG_PRESS_TICKS + 1)
+    if (movement_state.alarm_down_timestamp > 0) {
+        if (movement_state.fast_ticks - movement_state.alarm_down_timestamp == (3 * MOVEMENT_LONG_PRESS_TICKS) + 1)
+            event.event_type = EVENT_ALARM_LONGER_PRESS;
+        else if (movement_state.fast_ticks - movement_state.alarm_down_timestamp == MOVEMENT_LONG_PRESS_TICKS + 1)
             event.event_type = EVENT_ALARM_LONG_PRESS;
+    }
     // this is just a fail-safe; fast tick should be disabled as soon as the button is up, the LED times out, and/or the alarm finishes.
     // but if for whatever reason it isn't, this forces the fast tick off after 20 seconds.
     if (movement_state.fast_ticks >= 128 * 20) {

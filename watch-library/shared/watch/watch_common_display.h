@@ -73,22 +73,22 @@ static const uint8_t Custom_LCD_Character_Set[] =
     0b00000111, // 7
     0b01111111, // 8
     0b01101111, // 9
-    0b00000000, // : (unused)
-    0b00000000, // ; (unused)
+    0b01011101, // ö (: is unused, so this is taking over)
+    0b00011101, // ü (; is unused, so this is taking over)
     0b01011000, // <
     0b01001000, // =
     0b01001100, // >
     0b01010011, // ?
     0b11111111, // @ (all segments on)
     0b01110111, // A
-    0b11001111, // B (with downstroke, only in weekday / seconds)
+    0b01111111, // B
     0b00111001, // C
     0b10001111, // D (with downstroke, only in weekday / seconds)
     0b01111001, // E
     0b01110001, // F
     0b00111101, // G
     0b01110110, // H
-    0b10001001, // I (only works in position 0)
+    0b00000110, // I
     0b00011110, // J
     0b01110101, // K
     0b00111000, // L
@@ -309,8 +309,8 @@ static const uint8_t Classic_LCD_Character_Set[] =
     0b00000111, // 7
     0b01111111, // 8
     0b01101111, // 9
-    0b00000000, // : (unused)
-    0b00000000, // ; (unused)
+    0b01011101, // ö (: is unused, so this is taking over)
+    0b00011101, // ü (; is unused, so this is taking over)
     0b01011000, // <
     0b01001000, // =
     0b01001100, // >

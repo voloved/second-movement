@@ -128,6 +128,7 @@ typedef enum {
     EVENT_ALARM_BUTTON_UP,      // The alarm button was pressed for less than half a second, and released.
     EVENT_ALARM_LONG_PRESS,     // The alarm button was held for over half a second, but not yet released.
     EVENT_ALARM_LONG_UP,        // The alarm button was held for over half a second, and released.
+    EVENT_ALARM_LONGER_PRESS,   // The alarm button was held for over 3 seconds, but not yet released.
 
     EVENT_ACCELEROMETER_WAKE,   // The accelerometer has detected motion and woken up.
     EVENT_SINGLE_TAP,           // Accelerometer detected a single tap. This event is not yet implemented.
@@ -300,6 +301,8 @@ typedef struct {
 
 void movement_move_to_face(uint8_t watch_face_index);
 void movement_move_to_next_face(void);
+bool can_go_to_teriary_face(void);
+void go_to_teriary_face(void);
 
 bool movement_default_loop_handler(movement_event_t event);
 

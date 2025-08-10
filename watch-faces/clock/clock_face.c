@@ -252,6 +252,12 @@ bool clock_face_loop(movement_event_t event, void *context) {
             state->date_time.previous = current;
 
             break;
+        case EVENT_ALARM_LONGER_PRESS:
+            if (can_go_to_teriary_face()) {
+                clock_toggle_time_signal(state);
+                go_to_teriary_face();
+            }
+            break;
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
             break;

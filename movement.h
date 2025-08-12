@@ -119,10 +119,12 @@ typedef enum {
     EVENT_LIGHT_BUTTON_DOWN,    // The light button has been pressed, but not yet released.
     EVENT_LIGHT_BUTTON_UP,      // The light button was pressed for less than half a second, and released.
     EVENT_LIGHT_LONG_PRESS,     // The light button was held for over half a second, but not yet released.
+    EVENT_LIGHT_LONGER_PRESS,   // The light button was held for over 3 seconds, but not yet released.
     EVENT_LIGHT_LONG_UP,        // The light button was held for over half a second, and released.
     EVENT_MODE_BUTTON_DOWN,     // The mode button has been pressed, but not yet released.
     EVENT_MODE_BUTTON_UP,       // The mode button was pressed for less than half a second, and released.
     EVENT_MODE_LONG_PRESS,      // The mode button was held for over half a second, but not yet released.
+    EVENT_MODE_LONGER_PRESS,    // The mode button was held for over 3 seconds, but not yet released.
     EVENT_MODE_LONG_UP,         // The mode button was held for over half a second, and released. NOTE: your watch face will resign immediately after receiving this event.
     EVENT_ALARM_BUTTON_DOWN,    // The alarm button has been pressed, but not yet released.
     EVENT_ALARM_BUTTON_UP,      // The alarm button was pressed for less than half a second, and released.
@@ -134,6 +136,17 @@ typedef enum {
     EVENT_SINGLE_TAP,           // Accelerometer detected a single tap. This event is not yet implemented.
     EVENT_DOUBLE_TAP,           // Accelerometer detected a double tap. This event is not yet implemented.
 } movement_event_type_t;
+
+// Each different timeout type will use a different index when invoking watch_rtc_register_comp_callback
+typedef enum {
+    LIGHT_BUTTON_TIMEOUT = 0,   // Light button longpress timeout
+    MODE_BUTTON_TIMEOUT,        // Mode button longpress timeout
+    ALARM_BUTTON_TIMEOUT,       // Alarm button longpress timeout
+    LED_TIMEOUT,                // LED off timeout
+    RESIGN_TIMEOUT,             // Resign active face timeout
+    SLEEP_TIMEOUT,              // Low-energy begin timeout
+    MINUTE_TIMEOUT,             // Top of the Minute timeout
+} movement_timeout_index_t;
 
 typedef struct {
     uint8_t event_type;
@@ -250,37 +263,16 @@ typedef struct {
     int16_t current_face_idx;
     int16_t next_face_idx;
     bool watch_face_changed;
-    bool fast_tick_enabled;
-    int16_t fast_ticks;
 
     // LED stuff
-    int16_t light_ticks;
-
-    // alarm stuff
-    int16_t alarm_ticks;
-    bool is_buzzing;
-    watch_buzzer_note_t alarm_note;
-
-    // button tracking for long press
-    uint16_t light_down_timestamp;
-    uint16_t mode_down_timestamp;
-    uint16_t alarm_down_timestamp;
+    bool light_on;
 
     // background task handling
-    bool woke_from_alarm_handler;
     bool has_scheduled_background_task;
-    bool needs_wake;
-
-    // low energy mode countdown
-    int32_t le_mode_ticks;
-
-    // app resignation countdown (TODO: consolidate with LE countdown?)
-    int16_t timeout_ticks;
 
     // stuff for subsecond tracking
     uint8_t tick_frequency;
-    uint8_t last_second;
-    uint8_t subsecond;
+    uint8_t tick_pern;
 
     // backup register stuff
     uint8_t next_available_backup_register;
@@ -327,9 +319,11 @@ void movement_cancel_background_task_for_face(uint8_t watch_face_index);
 void movement_request_sleep(void);
 void movement_request_wake(void);
 
+void movement_play_note(watch_buzzer_note_t note, uint16_t duration_ms);
 void movement_play_signal(void);
 void movement_play_alarm(void);
 void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note);
+void movement_play_sequence(int8_t *note_sequence, uint8_t priority);
 
 uint8_t movement_claim_backup_register(void);
 
@@ -342,8 +336,11 @@ void movement_set_timezone_index(uint8_t value);
 watch_date_time_t movement_get_utc_date_time(void);
 watch_date_time_t movement_get_local_date_time(void);
 watch_date_time_t movement_get_date_time_in_zone(uint8_t zone_index);
+uint32_t movement_get_utc_timestamp(void);
 
+void movement_set_utc_date_time(watch_date_time_t date_time);
 void movement_set_local_date_time(watch_date_time_t date_time);
+void movement_set_utc_timestamp(uint32_t timestamp);
 
 bool movement_button_should_sound(void);
 void movement_set_button_should_sound(bool value);

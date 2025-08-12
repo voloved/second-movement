@@ -76,4 +76,5 @@
 #include "lis2dw_monitor_face.h"
 #include "wareki_face.h"
 #include "deadline_face.h"
+#include "endless_runner_face.h"
 // New includes go above this line.

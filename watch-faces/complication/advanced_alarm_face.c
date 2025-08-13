@@ -32,17 +32,17 @@
 #include "delay.h"
 
 typedef enum {
-    alarm_setting_idx_alarm,
-    alarm_setting_idx_day,
     alarm_setting_idx_hour,
     alarm_setting_idx_minute,
+    alarm_setting_idx_day,
     alarm_setting_idx_pitch,
-    alarm_setting_idx_beeps
+    alarm_setting_idx_beeps,
+    alarm_setting_idx_count,
 } alarm_setting_idx_t;
 
-static const char _dow_strings[ALARM_DAY_STATES + 1][2] ={"AL", "MO", "TU", "WE", "TH", "FR", "SA", "SO", "ED", "1t", "MF", "WN"};
-static const uint8_t _blink_idx[ALARM_SETTING_STATES] = {2, 0, 4, 6, 8, 9};
-static const uint8_t _blink_idx2[ALARM_SETTING_STATES] = {3, 1, 5, 7, 8, 9};
+static const char _dow_strings[ALARM_DAY_STATES + 1][2] ={"AL", "MO", "TU", "WE", "TH", "FR", "SA", "SU", "ED", "1t", "MF", "WN", "WD"};
+static const uint8_t _blink_idx[alarm_setting_idx_count] = {4, 6, 0, 8, 9};
+static const uint8_t _blink_idx2[alarm_setting_idx_count] = {5, 7, 1, 8, 9};
 static const watch_buzzer_note_t _buzzer_notes[3] = {BUZZER_NOTE_B6, BUZZER_NOTE_C8, BUZZER_NOTE_A8};
 
 // Volume is indicated by the three segments 5D, 5G and 5A
@@ -60,11 +60,39 @@ static uint8_t _get_weekday_idx(watch_date_time_t date_time) {
     return (date_time.unit.day + 13 * (date_time.unit.month + 1) / 5 + date_time.unit.year + date_time.unit.year / 4 + 525 - 2) % 7;
 }
 
+static bool is_holiday(watch_date_time_t time, uint8_t weekday_idx) {
+    if (time.unit.month == 1 && time.unit.day == 1)  // New Year's Day
+        return true;
+    if (time.unit.month == 1 && weekday_idx == 0 && time.unit.day > 14 && time.unit.day <= 21)  // MLK Day
+        return true;
+    if (time.unit.month == 2 && weekday_idx == 0 && time.unit.day > 14 && time.unit.day <= 21)  // President's Day
+        return true;
+    if (time.unit.month == 5 && weekday_idx == 0 && time.unit.day > 24)  // Memorial Day
+        return true;
+    if (time.unit.month == 6 && time.unit.day == 19)  // Juneteenth
+        return true;
+    if (time.unit.month == 7 && time.unit.day == 4)  // Independence Day
+        return true;
+    if (time.unit.month == 9 && weekday_idx == 0 && time.unit.day <= 7)  // Labor Day
+        return true;
+    if (time.unit.month == 11 && time.unit.day == 11)  // Veterans Day
+        return true;
+    if (time.unit.month == 11 && weekday_idx == 3 && time.unit.day > 21 && time.unit.day <= 28)  // Thanksgiving
+        return true;
+    if (time.unit.month == 12 && time.unit.day == 25)  // Christmas
+        return true;
+    return false;
+}
+
 static void _alarm_set_signal(alarm_state_t *state) {
-    if (state->alarm[state->alarm_idx].enabled)
+    if (state->alarm[state->alarm_idx].enabled) {
         watch_set_indicator(WATCH_INDICATOR_SIGNAL);
-    else
+        if (!state->is_setting) watch_display_text(WATCH_POSITION_SECONDS, "on");
+    }
+    else {
         watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
+        if (!state->is_setting) watch_display_text(WATCH_POSITION_SECONDS, "--");
+    }
 }
 
 static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
@@ -141,10 +169,12 @@ static void _alarm_update_alarm_enabled(alarm_state_t *state) {
     // save indication for active alarms to movement settings
     bool active_alarms = false;
     watch_date_time_t now;
+    watch_date_time_t tmrw;
     bool now_init = false;
     uint8_t weekday_idx;
     uint16_t now_minutes_of_day;
     uint16_t alarm_minutes_of_day;
+    bool alarming_today;
     for (uint8_t i = 0; i < ALARM_ALARMS; i++) {
         if (state->alarm[i].enabled) {
             // figure out if alarm is to go off in the next 24 h
@@ -154,20 +184,26 @@ static void _alarm_update_alarm_enabled(alarm_state_t *state) {
             } else {
                 if (!now_init) {
                     now = movement_get_local_date_time();
+                    tmrw = watch_utility_date_time_from_unix_time(watch_utility_date_time_to_unix_time(now, 0) + 86400, 0);
                     now_init = true;
                     weekday_idx = _get_weekday_idx(now);
                     now_minutes_of_day = now.unit.hour * 60 + now.unit.minute;
                 }
                 alarm_minutes_of_day = state->alarm[i].hour * 60 + state->alarm[i].minute;
+                alarming_today = alarm_minutes_of_day >= now_minutes_of_day;
                 // no more shortcuts: check days and times for all possible cases...
-                if ((state->alarm[i].day == weekday_idx && alarm_minutes_of_day >= now_minutes_of_day)
-                    || ((weekday_idx + 1) % 7 == state->alarm[i].day && alarm_minutes_of_day <= now_minutes_of_day) 
-                    || (state->alarm[i].day == ALARM_DAY_WORKDAY && (weekday_idx < 4
-                        || (weekday_idx == 4 && alarm_minutes_of_day >= now_minutes_of_day)
-                        || (weekday_idx == 6 && alarm_minutes_of_day <= now_minutes_of_day)))
+                if ((state->alarm[i].day == weekday_idx && alarming_today)
+                    || ((weekday_idx + 1) % 7 == state->alarm[i].day && !alarming_today)
+                    || ((state->alarm[i].day == ALARM_DAY_WORKDAY
+                        || (state->alarm[i].day == ALARM_DAY_WORKDAY_NO_HOLIDAYS 
+                        && ((alarming_today && !is_holiday(now, weekday_idx))
+                        || (!alarming_today && !is_holiday(tmrw, weekday_idx)))))
+                        && (weekday_idx < 4
+                        || (weekday_idx == 4 && alarming_today)
+                        || (weekday_idx == 6 && !alarming_today)))
                     || (state->alarm[i].day == ALARM_DAY_WEEKEND && (weekday_idx == 5
-                        || (weekday_idx == 6 && alarm_minutes_of_day >= now_minutes_of_day)
-                        || (weekday_idx == 4 && alarm_minutes_of_day <= now_minutes_of_day)))) {
+                        || (weekday_idx == 6 && alarming_today)
+                        || (weekday_idx == 4 && !alarming_today)))) {
                     active_alarms = true;
                     break;
                 }
@@ -217,6 +253,11 @@ void advanced_alarm_face_setup(uint8_t watch_face_index, void **context_ptr) {
             state->alarm[i].beeps = 5;
             state->alarm[i].pitch = 1;
         }
+        state->alarm[0].hour = 8;
+        state->alarm[0].minute = 30;
+        state->alarm[0].day = ALARM_DAY_WORKDAY_NO_HOLIDAYS;
+        state->alarm[0].enabled = false;
+
         state->alarm_handled_minute = -1;
         _wait_ticks = -1;
 
@@ -263,8 +304,11 @@ movement_watch_face_advisory_t advanced_alarm_face_advise(void *context) {
                     if (state->alarm[i].day == ALARM_DAY_EACH_DAY || state->alarm[i].day == ALARM_DAY_ONE_TIME) retval.wants_background_task = true;
                     uint8_t weekday_idx = _get_weekday_idx(now);
                     if (state->alarm[i].day == weekday_idx) retval.wants_background_task = true;
-                    if (state->alarm[i].day == ALARM_DAY_WORKDAY && weekday_idx < 5) retval.wants_background_task = true;
                     if (state->alarm[i].day == ALARM_DAY_WEEKEND && weekday_idx >= 5) retval.wants_background_task = true;
+                    if (weekday_idx < 5) {
+                        if (state->alarm[i].day == ALARM_DAY_WORKDAY) retval.wants_background_task = true;
+                        if (state->alarm[i].day == ALARM_DAY_WORKDAY_NO_HOLIDAYS && !is_holiday(now, weekday_idx)) retval.wants_background_task = true;
+                    }
                 }
             }
         }
@@ -314,12 +358,15 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         break;
     case EVENT_LIGHT_BUTTON_UP:
         if (!state->is_setting) {
-            movement_illuminate_led();
-            _alarm_initiate_setting(state, event.subsecond);
+            // stop wait ticks counter
+            _wait_ticks = -1;
+            // cycle through the alarms
+            state->alarm_idx = (state->alarm_idx + ALARM_ALARMS - 1) % (ALARM_ALARMS);
+            _advanced_alarm_face_draw(state, event.subsecond);
             break;
         }
         state->setting_state += 1;
-        if (state->setting_state >= ALARM_SETTING_STATES) {
+        if (state->setting_state >= alarm_setting_idx_count) {
             // we have done a full settings cycle, so resume to normal
             _alarm_resume_setting(state, event.subsecond);
         }
@@ -340,10 +387,6 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         } else {
             // handle the settings behaviour
             switch (state->setting_state) {
-            case alarm_setting_idx_alarm:
-                // alarm selection
-                state->alarm_idx = (state->alarm_idx + 1) % (ALARM_ALARMS);
-                break;
             case alarm_setting_idx_day:
                 // day selection
                 state->alarm[state->alarm_idx].day = (state->alarm[state->alarm_idx].day + 1) % (ALARM_DAY_STATES);
@@ -374,7 +417,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
                 break;
             }
             // auto enable an alarm if user sets anything
-            if (state->setting_state > alarm_setting_idx_alarm) state->alarm[state->alarm_idx].enabled = true;
+            state->alarm[state->alarm_idx].enabled = true;
         }
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
@@ -387,10 +430,6 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         } else {
             // handle the long press settings behaviour
             switch (state->setting_state) {
-            case alarm_setting_idx_alarm:
-                // alarm selection
-                state->alarm_idx = 0;
-                break;
             case alarm_setting_idx_minute:
             case alarm_setting_idx_hour:
                 // initiate fast cycling for hour or minute settings

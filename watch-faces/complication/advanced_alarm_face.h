@@ -56,14 +56,14 @@
 
 #include "movement.h"
 
-#define ALARM_ALARMS 16     // no of available alarm slots (be aware: only 4 bits reserved for this value in struct below)
-#define ALARM_DAY_STATES 11 // no of different day settings
+#define ALARM_ALARMS 5     // no of available alarm slots (be aware: only 4 bits reserved for this value in struct below)
+#define ALARM_DAY_STATES 12 // no of different day settings
 #define ALARM_DAY_EACH_DAY 7
 #define ALARM_DAY_ONE_TIME 8
 #define ALARM_DAY_WORKDAY 9
 #define ALARM_DAY_WEEKEND 10
+#define ALARM_DAY_WORKDAY_NO_HOLIDAYS 11  // M-F; Ignore bank holidays
 #define ALARM_MAX_BEEP_ROUNDS 11 // maximum number of beeping rounds for an alarm slot (including short and long alarms)
-#define ALARM_SETTING_STATES 6
 
 typedef struct {
     uint8_t day : 4;    // day of week: 0=MO, 1=TU, 2=WE, 3=TH, 4=FR, 5=SA, 6=SU, 7=each day, 8=one time alarm, 9=Weekdays, 10=Weekend

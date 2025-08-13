@@ -30,7 +30,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "higher_lower_game_face.h"
-#include "watch_private_display.h"
+#include "watch_common_display.h"
+
+
+#define KING   12
+#define QUEEN  11
+#define JACK   10
 
 #define TITLE_TEXT "Hi-Lo"
 #define GAME_BOARD_SIZE 6
@@ -42,7 +47,7 @@
 #define BOARD_DISPLAY_START 4
 #define BOARD_DISPLAY_END 9
 #define MIN_CARD_VALUE 2
-#define MAX_CARD_VALUE 14
+#define MAX_CARD_VALUE KING
 #define CARD_RANK_COUNT (MAX_CARD_VALUE - MIN_CARD_VALUE + 1)
 #define CARD_SUIT_COUNT 4
 #define DECK_SIZE (CARD_SUIT_COUNT * CARD_RANK_COUNT)
@@ -157,10 +162,12 @@ static void set_segment_at_position(segment_t segment, uint8_t position) {
     watch_set_pixel(com_pin, seg);
 }
 
+static inline size_t get_display_position(size_t board_position) {
+    return FLIP_BOARD_DIRECTION ? BOARD_DISPLAY_START + board_position : BOARD_DISPLAY_END - board_position;
+}
+
 static void render_board_position(size_t board_position) {
-    const size_t display_position = FLIP_BOARD_DIRECTION
-                                    ? BOARD_DISPLAY_START + board_position
-                                    : BOARD_DISPLAY_END - board_position;
+    const size_t display_position = get_display_position(board_position);
     const bool revealed = game_board[board_position].revealed;
 
     //// Current position indicator spot
@@ -178,18 +185,18 @@ static void render_board_position(size_t board_position) {
 
     const uint8_t value = game_board[board_position].value;
     switch (value) {
-        case 14: // A (≡)
+        case KING: // K (≡)
             watch_display_character(' ', display_position);
             set_segment_at_position(A, display_position);
             set_segment_at_position(D, display_position);
             set_segment_at_position(G, display_position);
             break;
-        case 13: // K (=)
+        case QUEEN: // Q (=)
             watch_display_character(' ', display_position);
             set_segment_at_position(A, display_position);
             set_segment_at_position(D, display_position);
             break;
-        case 12: // Q (-)
+        case JACK: // J (-)
             watch_display_character('-', display_position);
             break;
         default: {
@@ -213,7 +220,7 @@ static void render_board_count(void) {
 }
 
 static void render_final_score(void) {
-    watch_display_string("SC", STATUS_DISPLAY_START);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "SCORE", "SC  ");
     char buf[7] = {0};
     const uint8_t complete_boards = score / GUESSES_PER_SCREEN;
     snprintf(buf, sizeof(buf), "%2hu %03hu", complete_boards, score);
@@ -270,16 +277,20 @@ static void do_game_loop(guess_t user_guess) {
                 // Incorrect guess, game over
                 watch_display_string("GO", STATUS_DISPLAY_START);
                 game_board[guess_position].revealed = true;
+                watch_display_text(WATCH_POSITION_BOTTOM, "------");
+                render_board_position(guess_position - 1);
                 render_board_position(guess_position);
+                if (game_board[guess_position].value == JACK && guess_position < GAME_BOARD_SIZE) // Adds a space in case the revealed option is '-'
+                    watch_display_character(' ', get_display_position(guess_position + 1));
                 game_state = HL_GS_LOSE;
                 return;
             }
 
             if (score >= WIN_SCORE) {
                 // Win, perhaps some kind of animation sequence?
-                watch_display_string("WI", STATUS_DISPLAY_START);
-                watch_display_string("  ", BOARD_SCORE_DISPLAY_START);
-                watch_display_string("------", BOARD_DISPLAY_START);
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WIN", "WI");
+                watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                watch_display_text(WATCH_POSITION_BOTTOM, "------");
                 game_state = HL_GS_WIN;
                 return;
             }

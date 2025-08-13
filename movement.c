@@ -24,6 +24,7 @@
  */
 
 #define MOVEMENT_LONG_PRESS_TICKS 64
+#define MOVEMENT_LONGER_PRESS_TICKS (3 * MOVEMENT_LONG_PRESS_TICKS)
 #define MOVEMENT_DEBOUNCE_TICKS 4
 
 #include <stdio.h>
@@ -275,10 +276,17 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
             any_down = true;
         }
 
+        // If a long press occurred
+        if (pending_events & (1 << (button->down_event + 2))) {
+            watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONGER_PRESS_TICKS, button->timeout_index);
+            any_down = true;
+        }
+
         // If a button up or button long up occurred
         if (pending_events & (
             (1 << (button->down_event + 1)) |
-            (1 << (button->down_event + 3))
+            (1 << (button->down_event + 3)) |
+            (1 << (button->down_event + 4))
         )) {
             // We cancel the timeout if it hasn't fired yet
             watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);
@@ -1344,13 +1352,14 @@ static movement_event_type_t _process_button_longpress_timeout(movement_button_t
     //     return EVENT_NONE;
     // }
 
-    // uint32_t counter = watch_rtc_get_counter();
-    // if ((counter - button->down_timestamp) < MOVEMENT_LONG_PRESS_TICKS) {
-    //     return EVENT_NONE;
-    // }
+    uint32_t counter = watch_rtc_get_counter();
+    movement_event_type_t longpress_event;
 
-    movement_event_type_t longpress_event = button->down_event + 2;
-
+    if ((counter - button->down_timestamp) >= MOVEMENT_LONGER_PRESS_TICKS) {
+        longpress_event = button->down_event + 4;
+    } else {
+        longpress_event = button->down_event + 2;
+    }
     return longpress_event;
 }
 

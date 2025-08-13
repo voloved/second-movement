@@ -269,10 +269,8 @@ static void do_game_loop(guess_t user_guess) {
             }
 
             // Scoring
-            if (answer == user_guess) {
+            if (answer == user_guess || answer == HL_GUESS_EQUAL) {
                 score++;
-            } else if (answer == HL_GUESS_EQUAL) {
-                // No score for two consecutive identical cards
             } else {
                 // Incorrect guess, game over
                 watch_display_string("GO", STATUS_DISPLAY_START);

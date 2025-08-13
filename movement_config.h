@@ -32,9 +32,8 @@ const watch_face_t watch_faces[] = {
     stopwatch_face,
     countdown_face,
     alarm_face,
-    sunrise_sunset_face,
-    moon_phase_face,
     tally_face,
+    sunrise_sunset_face,
     activity_logging_face,
 // Start of Secondary Faces
     settings_face,
@@ -43,7 +42,9 @@ const watch_face_t watch_faces[] = {
     voltage_face,
     accelerometer_status_face,
 // Start of Teriary Faces
+    endless_runner_face,
     wordle_face,
+    higher_lower_game_face,
     party_face,
     festival_schedule_face
 };

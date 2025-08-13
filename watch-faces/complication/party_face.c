@@ -56,7 +56,6 @@ static void _party_face_init_lcd(party_state_t *state) {
     const char (*textArray)[7];
     int textArrayNum;
     watch_date_time_t date_time;
-    uint8_t disp_loc = 0;
     switch (state->text)
     {
     case 1:
@@ -78,20 +77,18 @@ static void _party_face_init_lcd(party_state_t *state) {
         watch_set_indicator(WATCH_INDICATOR_BELL);
     }
     date_time = movement_get_local_date_time();
-    if (state->prev_text == state->text && date_time.unit.day == state->curr_day){
-        disp_loc = 5;
-        sprintf(text, "%s",textArray[state->party_text]);
-    }
-    else if (state->text == 1) {
-        disp_loc = 5;
-        sprintf(text, "%s",textArray[state->party_text]);
+    if (state->text == 1) {
         watch_clear_display();
     }
-    else {
-        sprintf(text, "%s%2d %s", watch_utility_get_weekday(date_time), date_time.unit.day, textArray[state->party_text]);
+    else if (state->prev_text != state->text || date_time.unit.day != state->curr_day){
         state->curr_day = date_time.unit.day;
+        sprintf(text, "%s", watch_utility_get_weekday(date_time));
+        watch_display_text(WATCH_POSITION_TOP_LEFT, text);
+        sprintf(text, "%2d", date_time.unit.day);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
     }
-    watch_display_string(text, disp_loc);
+    sprintf(text, " %s",textArray[state->party_text]);
+    watch_display_text(WATCH_POSITION_BOTTOM, text);
     state->prev_text = state->text;
 }
 
@@ -142,7 +139,7 @@ bool party_face_loop(movement_event_t event, void *context) {
                 if (event.subsecond % 2 == 0)
                     _party_face_init_lcd(state);
                 else if (state->text == 0){  // Clear only the bottom row when the party text is occurring
-                    watch_display_string("      ", 4);
+                    watch_display_text(WATCH_POSITION_BOTTOM, "      ");
                     watch_clear_indicator(WATCH_INDICATOR_BELL);
                 }
                 else
@@ -195,4 +192,3 @@ void party_face_resign(void *context) {
     watch_set_led_off();
     movement_cancel_background_task();
 }
-

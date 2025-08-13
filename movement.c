@@ -285,8 +285,7 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         // If a button up or button long up occurred
         if (pending_events & (
             (1 << (button->down_event + 1)) |
-            (1 << (button->down_event + 3)) |
-            (1 << (button->down_event + 4))
+            (1 << (button->down_event + 3))
         )) {
             // We cancel the timeout if it hasn't fired yet
             watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);

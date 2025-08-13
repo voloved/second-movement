@@ -42,6 +42,9 @@
 #define CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD 2400
 #endif
 
+#define HOURLY_CHIME_START 8
+#define HOURLY_CHIME_END 20
+
 static void clock_indicate(watch_indicator_t indicator, bool on) {
     if (on) {
         watch_set_indicator(indicator);
@@ -283,7 +286,7 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
 
     if (state->time_signal_enabled) {
         watch_date_time_t date_time = movement_get_local_date_time();
-        retval.wants_background_task = date_time.unit.minute == 0 && date_time.unit.hour >= 8 && date_time.unit.hour <= 20;
+        retval.wants_background_task = date_time.unit.minute == 0 && date_time.unit.hour >= HOURLY_CHIME_START && date_time.unit.hour <= HOURLY_CHIME_END;
     }
 
     return retval;

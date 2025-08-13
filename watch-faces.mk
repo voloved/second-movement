@@ -32,7 +32,7 @@ SRCS += \
   ./watch-faces/io/chirpy_demo_face.c \
   ./watch-faces/io/irda_upload_face.c \
   ./watch-faces/complication/tally_face.c \
-  ./legacy/watch_faces/complication/party_face.c \
+  ./watch-faces/complication/party_face.c \
   ./legacy/watch_faces/complication/festival_schedule_face.c \
   ./watch-faces/complication/wordle_face.c \
   ./watch-faces/complication/probability_face.c \

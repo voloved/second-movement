@@ -30,7 +30,7 @@
 static bool skip = false;
 
 static void _temperature_logging_face_log_data(temperature_logging_state_t *logger_state) {
-    watch_date_time_t date_time = watch_rtc_get_date_time();
+    watch_date_time_t date_time = movement_get_local_date_time();
     size_t pos = logger_state->data_points % TEMPERATURE_LOGGING_NUM_DATA_POINTS;
 
     logger_state->data[pos].timestamp.reg = date_time.reg;
@@ -150,7 +150,7 @@ movement_watch_face_advisory_t temperature_logging_face_advise(void *context) {
 
     // this will get called at the top of each minute, so all we check is if we're at the top of the hour as well.
     // if we are, we ask for a background task.
-    retval.wants_background_task = watch_rtc_get_date_time().unit.minute == 0;
+    retval.wants_background_task = movement_get_local_date_time().unit.minute == 0;
 
     return retval;
 }

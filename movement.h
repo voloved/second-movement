@@ -155,8 +155,6 @@ typedef struct {
     uint8_t subsecond;
 } movement_event_t;
 
-extern const int16_t movement_timezone_offsets[];
-
 /** @brief Perform setup for your watch face.
   * @details It's tempting to say this is 'one-time' setup, but technically this function is called more than
   *          once. When the watch first boots, this function is called with a NULL context_ptr, indicating

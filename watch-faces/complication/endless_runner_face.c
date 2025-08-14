@@ -261,7 +261,7 @@ static void display_fuel(uint8_t subsecond, uint8_t difficulty) {
 
 static void check_and_reset_hi_score(endless_runner_state_t *state) {
     // Resets the hi score at the beginning of each month.
-    watch_date_time_t date_time = watch_rtc_get_date_time();
+    watch_date_time_t date_time = movement_get_local_date_time();
     if ((state -> year_last_hi_score != date_time.unit.year) || 
         (state -> month_last_hi_score != date_time.unit.month))
     {

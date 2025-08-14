@@ -116,6 +116,7 @@ int8_t alarm_tune[] = {
     0
 };
 
+static watch_date_time_t _dst_last_cache;
 int8_t _movement_dst_offset_cache[NUM_ZONE_NAMES] = {0};
 #define TIMEZONE_DOES_NOT_OBSERVE (-127)
 
@@ -194,11 +195,21 @@ static void _movement_set_top_of_minute_alarm() {
     movement_volatile_state.schedule_next_comp = true;
 }
 
-static bool _movement_update_dst_offset_cache(void) {
+static watch_date_time_t _movement_convert_udate_to_date_time(udatetime_t date_time) {
+    return (watch_date_time_t) {
+        .unit.day = date_time.date.dayofmonth,
+        .unit.month = date_time.date.month,
+        .unit.year = date_time.date.year - (WATCH_RTC_REFERENCE_YEAR - UYEAR_OFFSET),
+        .unit.hour = date_time.time.hour,
+        .unit.minute = date_time.time.minute,
+        .unit.second = date_time.time.second
+    };
+}
+
+static bool _movement_update_dst_offset_cache(watch_date_time_t system_date_time) {
     uzone_t local_zone;
     udatetime_t udate_time;
     bool dst_changed = false;
-    watch_date_time_t system_date_time = watch_rtc_get_date_time();
 
     for (uint8_t i = 0; i < NUM_ZONE_NAMES; i++) {
         unpack_zone(&zone_defns[i], "", &local_zone);
@@ -209,7 +220,7 @@ static bool _movement_update_dst_offset_cache(void) {
             udate_time = _movement_convert_date_time_to_udate(date_time);
             uoffset_t offset;
             get_current_offset(&local_zone, &udate_time, &offset);
-            int8_t new_offset = (offset.hours * 60 + offset.minutes) / 15;
+            int8_t new_offset = (offset.hours * 60 + offset.minutes) / OFFSET_INCREMENT;
             if (_movement_dst_offset_cache[i] != new_offset) {
                 _movement_dst_offset_cache[i] = new_offset;
                 dst_changed = true;
@@ -219,8 +230,47 @@ static bool _movement_update_dst_offset_cache(void) {
             _movement_dst_offset_cache[i] = TIMEZONE_DOES_NOT_OBSERVE;
         }
     }
-
+    _dst_last_cache.reg = system_date_time.reg;
     return dst_changed;
+}
+
+static bool _movement_check_dst_changeover_occurring_now(watch_date_time_t date_time) {
+    static watch_date_time_t dst_occur_date[2];  // Same length as the maximum of zone_defns[].rules_len
+    static uint8_t year_prev = 0;
+    static uint8_t tz_idx_prev = 0;
+    uint8_t tz_idx_curr = movement_get_timezone_index();
+    uint8_t rules_idx = zone_defns[tz_idx_curr].rules_idx;
+    uint8_t rules_len = zone_defns[tz_idx_curr].rules_len;
+    if (rules_len == 0) return false;
+    // Get the DST dates if we don't already have them or they're outdated
+    if (dst_occur_date[0].reg == 0 || tz_idx_curr != tz_idx_prev || date_time.unit.year != year_prev) {
+        uzone_t local_zone;
+        year_prev = date_time.unit.year;
+        tz_idx_prev = tz_idx_curr;
+        unpack_zone(&zone_defns[tz_idx_curr], "", &local_zone);
+        for(uint8_t i = 0; i < rules_len; i++) {
+            urule_t unpacked_rule;
+            uoffset_t offset;
+            unpack_rule(&zone_rules[rules_idx + i], date_time.unit.year + (WATCH_RTC_REFERENCE_YEAR - 2000), &unpacked_rule);
+            dst_occur_date[i] = _movement_convert_udate_to_date_time(unpacked_rule.datetime);
+            get_current_offset(&local_zone, &unpacked_rule.datetime, &offset);
+            int32_t sec_offset = (offset.hours * 60 + offset.minutes) * 60;
+            if (unpacked_rule.is_local_time == 0) {
+                int32_t offset_non_dst = zone_defns[tz_idx_curr].offset_inc_minutes * OFFSET_INCREMENT * 60;
+                dst_occur_date[i] = watch_utility_date_time_convert_zone(dst_occur_date[i], 0, offset_non_dst);
+            }
+            dst_occur_date[i] = watch_utility_date_time_convert_zone(dst_occur_date[i], sec_offset, movement_get_current_timezone_offset());
+        }
+    }
+    // See if the current time is during DST
+    for(uint8_t i = 0; i < rules_len; i++) {
+        if (date_time.unit.month != dst_occur_date[i].unit.month) continue;
+        if (date_time.unit.day != dst_occur_date[i].unit.day) continue;
+        if (date_time.unit.hour != dst_occur_date[i].unit.hour) continue;
+        if (date_time.unit.minute != dst_occur_date[i].unit.minute) continue;
+        return true;
+    }
+    return false;
 }
 
 static inline void _movement_reset_inactivity_countdown(void) {
@@ -310,11 +360,12 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
 }
 
 static void _movement_handle_top_of_minute(void) {
-    watch_date_time_t date_time = watch_rtc_get_date_time();
+    watch_date_time_t utc_now = movement_get_utc_date_time();
+    watch_date_time_t date_time = watch_utility_date_time_convert_zone(utc_now, 0, movement_get_current_timezone_offset());
 
-    // update the DST offset cache every 30 minutes, since someplace in the world could change.
-    if (date_time.unit.minute % 30 == 0) {
-        _movement_update_dst_offset_cache();
+    // update the DST offset cache if the current time matches the DST minute, hour, and month
+    if (_movement_check_dst_changeover_occurring_now(date_time)) {
+        _movement_update_dst_offset_cache(utc_now);
     }
 
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
@@ -640,10 +691,36 @@ watch_date_time_t movement_get_utc_date_time(void) {
     return watch_rtc_get_date_time();
 }
 
+bool movement_update_dst_offset_cache(void) {
+    return _movement_update_dst_offset_cache(movement_get_utc_date_time());
+}
+
+static bool dst_cache_may_be_stale(watch_date_time_t utc_now) {
+    // If _dst_last_cache was never set, default to recalculating
+    if (_dst_last_cache.reg == 0) return true;
+    // If we time-travelled, assume it's stale
+    if(_dst_last_cache.reg > utc_now.reg) return true;
+    // Checks if the yr, mo, day, and hr are all the same and says the data may be stale if not.
+    if(((utc_now.reg ^ _dst_last_cache.reg) >> 12) != 0) return true;
+    const uint8_t min_to_trigger = 30;  // We want to check every half-hour, but no need to cache more than once in a half-hour.
+    int8_t delta_actual = utc_now.unit.minute - _dst_last_cache.unit.minute;
+    if (delta_actual == 0) return false;
+    int8_t delta_min = min_to_trigger - (_dst_last_cache.unit.minute % min_to_trigger);
+    if (delta_actual >= delta_min || delta_actual < 0) return true;
+    return false;  
+}
+
+bool movement_update_dst_offset_cache_if_needed(watch_date_time_t utc_now) {
+    if (dst_cache_may_be_stale(utc_now))
+        return _movement_update_dst_offset_cache(utc_now);
+    return false;
+}
+
 watch_date_time_t movement_get_date_time_in_zone(uint8_t zone_index) {
+    watch_date_time_t date_time = movement_get_utc_date_time();
     int32_t offset = movement_get_current_timezone_offset_for_zone(zone_index);
-    unix_timestamp_t timestamp = watch_rtc_get_unix_time();
-    return watch_utility_date_time_from_unix_time(timestamp, offset);
+    movement_update_dst_offset_cache_if_needed(date_time);
+    return watch_utility_date_time_convert_zone(date_time, 0, offset);
 }
 
 watch_date_time_t movement_get_local_date_time(void) {
@@ -674,7 +751,7 @@ void movement_set_utc_timestamp(uint32_t timestamp) {
     // this may seem wasteful, but if the user's local time is in a zone that observes DST,
     // they may have just crossed a DST boundary, which means the next call to this function
     // could require a different offset to force local time back to UTC. Quelle horreur!
-    _movement_update_dst_offset_cache();
+    _movement_update_dst_offset_cache(watch_rtc_get_date_time());
 }
 
 
@@ -970,7 +1047,7 @@ void app_init(void) {
     watch_buzzer_register_global_callbacks(cb_buzzer_start, cb_buzzer_stop);
 
     // populate the DST offset cache
-    _movement_update_dst_offset_cache();
+    _movement_update_dst_offset_cache(watch_rtc_get_date_time());
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 
@@ -1001,6 +1078,9 @@ void app_setup(void) {
             is_first_launch = false;
         }
 
+        // populate the DST offset cache
+        _movement_update_dst_offset_cache(movement_get_utc_date_time());
+
 #if __EMSCRIPTEN__
         int32_t time_zone_offset = EM_ASM_INT({
             return -new Date().getTimezoneOffset();
@@ -1018,6 +1098,7 @@ void app_setup(void) {
     watch_enable_display();
 
     if (!movement_volatile_state.is_sleeping) {
+        movement_update_dst_offset_cache_if_needed(movement_get_utc_date_time());
         watch_disable_extwake_interrupt(HAL_GPIO_BTN_ALARM_pin());
 
         watch_enable_external_interrupts();

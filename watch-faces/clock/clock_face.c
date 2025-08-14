@@ -264,6 +264,19 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
             break;
+        case EVENT_ALARM_BUTTON_UP:
+            if (movement_clock_mode_toggle()) {
+                char buf[2 + 1];
+                movement_set_clock_mode_24h(((movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES));
+                current = movement_get_local_date_time();
+                bool indicate_pm = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H && clock_is_pm(current);
+                if (indicate_pm) current = clock_24h_to_12h(current);
+                clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
+                clock_indicate_24h();
+                snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d", current.unit.hour);
+                watch_display_text(WATCH_POSITION_HOURS, buf);
+            }
+            break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:
             // movement_move_to_face(state->watch_face_index);

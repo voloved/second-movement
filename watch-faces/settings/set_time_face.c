@@ -30,17 +30,17 @@
 #include "zones.h"
 
 #define SET_TIME_FACE_NUM_SETTINGS (7)
-const char set_time_face_titles[SET_TIME_FACE_NUM_SETTINGS][6] = {"Year ", "Month", "Day  ", "     ", "Hour ", "Minut", "Secnd"};
-const char set_time_face_fallback_titles[SET_TIME_FACE_NUM_SETTINGS][3] = {"YR", "MO", "DA", "  ", "HR", "M1", "SE"};
+const char set_time_face_titles[SET_TIME_FACE_NUM_SETTINGS][6] = {"Hour ", "Minut", "Secnd", "Year ", "Month", "Day  ", "     "};
+const char set_time_face_fallback_titles[SET_TIME_FACE_NUM_SETTINGS][3] = {"HR", "M1", "SE", "YR", "MO", "DA", "  "};
 
 typedef enum {
-    SET_TIME_YEAR = 0,
+    SET_TIME_HOUR = 0,
+    SET_TIME_MIN,
+    SET_TIME_SEC,
+    SET_TIME_YEAR,
     SET_TIME_MONTH,
     SET_TIME_DAY,
     SET_TIME_TZ,
-    SET_TIME_HOUR,
-    SET_TIME_MIN,
-    SET_TIME_SEC
 } set_time_pages;
 
 static bool _quick_ticks_running;
@@ -50,10 +50,14 @@ static void _handle_alarm_button(watch_date_time_t date_time, uint8_t current_pa
     // handles short or long pressing of the alarm button
 
     switch (current_page) {
-        case SET_TIME_TZ:
-            movement_set_timezone_index(movement_get_timezone_index() + 1);
-            if (movement_get_timezone_index() >= NUM_ZONE_NAMES) movement_set_timezone_index(0);
-            current_offset = movement_get_current_timezone_offset_for_zone(movement_get_timezone_index());
+        case SET_TIME_HOUR:
+            date_time.unit.hour = (date_time.unit.hour + 1) % 24;
+            break;
+        case SET_TIME_MIN:
+            date_time.unit.minute = (date_time.unit.minute + 1) % 60;
+            break;
+        case SET_TIME_SEC:
+            date_time.unit.second = 0;
             break;
         case SET_TIME_YEAR:
             date_time.unit.year = ((date_time.unit.year % 60) + 1);
@@ -64,14 +68,10 @@ static void _handle_alarm_button(watch_date_time_t date_time, uint8_t current_pa
         case SET_TIME_DAY:
             date_time.unit.day = date_time.unit.day + 1;
             break;
-        case SET_TIME_HOUR:
-            date_time.unit.hour = (date_time.unit.hour + 1) % 24;
-            break;
-        case SET_TIME_MIN:
-            date_time.unit.minute = (date_time.unit.minute + 1) % 60;
-            break;
-        case SET_TIME_SEC:
-            date_time.unit.second = 0;
+        case SET_TIME_TZ:
+            movement_set_timezone_index(movement_get_timezone_index() + 1);
+            if (movement_get_timezone_index() >= NUM_ZONE_NAMES) movement_set_timezone_index(0);
+            current_offset = movement_get_current_timezone_offset_for_zone(movement_get_timezone_index());
             break;
     }
     if (date_time.unit.day > watch_utility_days_in_month(date_time.unit.month, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR))
@@ -154,7 +154,7 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             sprintf(buf, "%s", watch_utility_time_zone_name_at_index(movement_get_timezone_index()));
             watch_clear_colon();
         }
-    } else if (current_page < SET_TIME_TZ) {
+    } else if (current_page >= SET_TIME_YEAR && current_page <= SET_TIME_DAY) {
         watch_clear_colon();
         watch_clear_indicator(WATCH_INDICATOR_24H);
         watch_clear_indicator(WATCH_INDICATOR_PM);

@@ -391,12 +391,16 @@ void movement_request_tick_frequency(uint8_t freq) {
     watch_rtc_register_periodic_callback(cb_tick, freq);
 }
 
+static inline uint8_t watch_get_color_val(uint8_t led_color) {
+    return led_color | (led_color << 3) | (led_color << 6);
+}
+
 void movement_illuminate_led(void) {
     if (movement_state.settings.bit.led_duration != 0b111) {
         movement_state.light_on = true;
-        watch_set_led_color_rgb(movement_state.settings.bit.led_red_color | movement_state.settings.bit.led_red_color << 4,
-                                movement_state.settings.bit.led_green_color | movement_state.settings.bit.led_green_color << 4,
-                                movement_state.settings.bit.led_blue_color | movement_state.settings.bit.led_blue_color << 4);
+        watch_set_led_color_rgb(watch_get_color_val(movement_state.settings.bit.led_red_color),
+                                watch_get_color_val(movement_state.settings.bit.led_green_color),
+                                watch_get_color_val(movement_state.settings.bit.led_blue_color));
         if (movement_state.settings.bit.led_duration == 0) {
             // Do nothing it'll be turned off on button release
         } else {

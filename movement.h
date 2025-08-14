@@ -71,10 +71,11 @@ typedef union {
         bool button_should_sound : 1;       // if true, pressing a button emits a sound.
         uint8_t to_interval : 2;            // an inactivity interval for asking the active face to resign.
         uint8_t le_interval : 3;            // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
+        bool screen_off_after_le : 1;       // If true and we're in LE mode and it's the top of the hour and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
         uint8_t led_duration : 3;           // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
-        uint8_t led_red_color : 4;          // for general purpose illumination, the red LED value (0-15)
-        uint8_t led_green_color : 4;        // for general purpose illumination, the green LED value (0-15)
-        uint8_t led_blue_color : 4;         // for general purpose illumination, the green LED value (0-15)
+        uint8_t led_red_color : 3;          // for general purpose illumination, the red LED value (0-7)
+        uint8_t led_green_color : 3;        // for general purpose illumination, the green LED value (0-7)
+        uint8_t led_blue_color : 3;         // for general purpose illumination, the green LED value (0-7)
         uint8_t time_zone : 6;              // an integer representing an index in the time zone table.
 
         // while Movement itself doesn't implement a clock or display units, it may make sense to include some
@@ -82,6 +83,7 @@ typedef union {
         // time-oriented complication like a sunrise/sunset timer, and a simple locale preference could tell an
         // altimeter to display feet or meters as easily as it tells a thermometer to display degrees in F or C.
         bool clock_mode_24h : 1;            // indicates whether clock should use 12 or 24 hour mode.
+        bool clock_mode_toggle : 1;         // If true, then pressing the alarm button toggles 24H mode
         bool use_imperial_units : 1;        // indicates whether to use metric units (the default) or imperial.
         
         bool button_volume : 1;             // 0 for soft beep, 1 for loud beep. If button_should_sound (above) is false, this is ignored.

@@ -27,7 +27,33 @@
 #include "temperature_logging_face.h"
 #include "watch.h"
 
+#define THERMISTOR_LOGGING_CYC (TEMPERATURE_LOGGING_NUM_DATA_POINTS + 1)
+
 static bool skip = false;
+
+static void _temperature_display_face_update_display(bool in_fahrenheit) {
+    float temperature_c = movement_get_temperature();
+    if (in_fahrenheit) {
+        watch_display_float_with_best_effort(temperature_c * 1.8 + 32.0, "#F");
+    } else {
+        watch_display_float_with_best_effort(temperature_c, "#C");
+    }
+}
+
+static void _temperature_logging_face_blink_display(bool in_fahrenheit, bool update_now) {
+    watch_date_time_t date_time = movement_get_local_date_time();
+    if (date_time.unit.second % 5 == 0 || update_now) {
+        _temperature_display_face_update_display(in_fahrenheit);
+        watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
+    }
+    else if (date_time.unit.second % 5 == 4) {
+        // Not 100% on this, but I like the idea of using the signal indicator to indicate that we're sensing data.
+        // In this case we turn the indicator on a second before the reading is taken, and clear it when we're done.
+        // In reality the measurement takes a fraction of a second, but this is just to show something is happening.
+        watch_set_indicator(WATCH_INDICATOR_SIGNAL);
+        return;
+    }
+}
 
 static void _temperature_logging_face_log_data(temperature_logging_state_t *logger_state) {
     watch_date_time_t date_time = movement_get_local_date_time();
@@ -38,13 +64,20 @@ static void _temperature_logging_face_log_data(temperature_logging_state_t *logg
     logger_state->data_points++;
 }
 
-static void _temperature_logging_face_update_display(temperature_logging_state_t *logger_state, bool in_fahrenheit, bool clock_mode_24h) {
+static void _temperature_logging_face_update_display(temperature_logging_state_t *logger_state, bool in_fahrenheit, bool clock_mode_24h, bool from_btn) {
     int8_t pos = (logger_state->data_points - 1 - logger_state->display_index) % TEMPERATURE_LOGGING_NUM_DATA_POINTS;
     char buf[7];
 
     watch_clear_indicator(WATCH_INDICATOR_24H);
     watch_clear_indicator(WATCH_INDICATOR_PM);
     watch_clear_colon();
+
+    if (logger_state->display_index == TEMPERATURE_LOGGING_NUM_DATA_POINTS){
+        _temperature_logging_face_blink_display(in_fahrenheit, from_btn);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP ", "TE  ");
+        return;
+    }
+    watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
 
     if (pos < 0) {
         // no data at this index
@@ -95,38 +128,46 @@ void temperature_logging_face_setup(uint8_t watch_face_index, void ** context_pt
 
 void temperature_logging_face_activate(void *context) {
     temperature_logging_state_t *logger_state = (temperature_logging_state_t *)context;
-    logger_state->display_index = 0;
+    logger_state->display_index = TEMPERATURE_LOGGING_NUM_DATA_POINTS;
     logger_state->ts_ticks = 0;
 }
 
 bool temperature_logging_face_loop(movement_event_t event, void *context) {
     temperature_logging_state_t *logger_state = (temperature_logging_state_t *)context;
+    bool displaying_curr_temp = logger_state->display_index == TEMPERATURE_LOGGING_NUM_DATA_POINTS;
     switch (event.event_type) {
-        case EVENT_TIMEOUT:
-            movement_move_to_face(0);
-            break;
         case EVENT_LIGHT_LONG_PRESS:
             // light button shows the timestamp, but if you need the light, long press it.
             movement_illuminate_led();
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
-            logger_state->ts_ticks = 2;
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h());
             break;
-        case EVENT_ALARM_BUTTON_DOWN:
-            logger_state->display_index = (logger_state->display_index + 1) % TEMPERATURE_LOGGING_NUM_DATA_POINTS;
+        case EVENT_LIGHT_BUTTON_UP:
+            logger_state->display_index = (logger_state->display_index + THERMISTOR_LOGGING_CYC - 1) % THERMISTOR_LOGGING_CYC;
             logger_state->ts_ticks = 0;
-            // fall through
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            break;
+        case EVENT_ALARM_BUTTON_UP:
+            logger_state->display_index = (logger_state->display_index + 1) % THERMISTOR_LOGGING_CYC;
+            logger_state->ts_ticks = 0;
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            break;
+        case EVENT_ALARM_LONG_PRESS:
+            if (displaying_curr_temp) movement_set_use_imperial_units(!movement_use_imperial_units());
+            else logger_state->ts_ticks = 2;
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            break;
         case EVENT_ACTIVATE:
             if (skip) {
                 movement_move_to_next_face();
                 return false;
             }
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h());
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
             break;
         case EVENT_TICK:
-            if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
-                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h());
+            if(displaying_curr_temp) _temperature_display_face_update_display(movement_use_imperial_units());
+            else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
+                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), false);
             }
             break;
         case EVENT_BACKGROUND_TASK:

@@ -229,15 +229,17 @@ void movement_request_tick_frequency(uint8_t freq) {
     watch_rtc_register_periodic_callback(cb_tick, freq);
 }
 
-static inline uint8_t watch_get_color_val(uint8_t led_color) {
-    return led_color | (led_color << 3) | (led_color << 6);
+uint8_t movement_get_color_val(uint8_t led_color) {
+    // this bitwise math turns #000 into #000000, #111 into #11111111, etc.
+    if (led_color == 0x07) return 0xFF;
+    return led_color | (led_color << 2) | (led_color << 5);
 }
 
 void movement_illuminate_led(void) {
     if (movement_state.settings.bit.led_duration != 0b111) {
-        watch_set_led_color_rgb(watch_get_color_val(movement_state.settings.bit.led_red_color),
-                                watch_get_color_val(movement_state.settings.bit.led_green_color),
-                                watch_get_color_val(movement_state.settings.bit.led_blue_color));
+        watch_set_led_color_rgb(movement_get_color_val(movement_state.settings.bit.led_red_color),
+                                movement_get_color_val(movement_state.settings.bit.led_green_color),
+                                movement_get_color_val(movement_state.settings.bit.led_blue_color));
         if (movement_state.settings.bit.led_duration == 0) {
             movement_state.light_ticks = 1;
         } else {
@@ -473,6 +475,14 @@ movement_clock_mode_t movement_clock_mode_24h(void) {
 
 void movement_set_clock_mode_24h(movement_clock_mode_t value) {
     movement_state.settings.bit.clock_mode_24h = (value == MOVEMENT_CLOCK_MODE_24H);
+}
+
+bool movement_clock_mode_toggle(void) {
+    return movement_state.settings.bit.clock_mode_toggle;
+}
+
+void movement_set_clock_mode_toggle(bool value) {
+    movement_state.settings.bit.clock_mode_toggle = value;
 }
 
 bool movement_use_imperial_units(void) {

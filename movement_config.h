@@ -65,14 +65,18 @@ const watch_face_t watch_faces[] = {
 #define SIGNAL_TUNE_SONG_OF_THE_STORMS
 
 /* Determines the intensity of the led colors
- * Set a hex value 0-15 with 0x0 being off and 0xF being max intensity
+ * Set a hex value 0-7 with 0x0 being off and 0x7 being max intensity
  */
 #define MOVEMENT_DEFAULT_RED_COLOR 0x0
 #define MOVEMENT_DEFAULT_GREEN_COLOR 0xF
 #define MOVEMENT_DEFAULT_BLUE_COLOR 0x0
 
-/* Set to true for 24h mode or false for 12h mode */
-#define MOVEMENT_DEFAULT_24H_MODE false
+/* Set to true for 24h mode or false for 12h mode
+ * 0: 12Hr
+ * 1: 24Hr
+ * 2: Toggle with Alarm Btn
+ */
+#define MOVEMENT_DEFAULT_24H_MODE 0
 
 /* Enable or disable the sound on mode button press */
 #define MOVEMENT_DEFAULT_BUTTON_SOUND true
@@ -101,6 +105,14 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
 
+/*
+ * If true and we're in LE mode and it's the top of the hour
+ * and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero,
+ * then turn off the screen and other tasks.
+ * Only runs if Temperature Logging Face is installed.
+*/
+#define MOVEMENT_DEFAULT_LE_DEEP_SLEEP true
+
 /* Set the led duration
  * Valid values are:
  * 0: No LED
@@ -117,5 +129,7 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LATITUDE 3578
 #define MOVEMENT_DEFAULT_LONGITUDE -7864
+
+#define TEMPERATURE_ASSUME_WEARING 27 //C
 
 #endif // MOVEMENT_CONFIG_H_

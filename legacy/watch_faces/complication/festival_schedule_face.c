@@ -28,10 +28,6 @@
 #include "festival_schedule_arr.h"
 #include "watch_utility.h"
 
-#ifndef min
-#define min(x, y) ((x) > (y) ? (y) : (x))
-#endif
-
 const char festival_name[2] = "LO";
 
 const char festival_stage[FESTIVAL_SCHEDULE_STAGE_COUNT + 1][2] =
@@ -90,6 +86,7 @@ const char festival_genre[FESTIVAL_SCHEDULE_GENRE_COUNT + 1][6] =
 
 static int16_t _text_pos;
 static const char* _text_looping;
+static uint8_t _text_looping_len;
 static bool _is_text_looping;
 static uint8_t loops_occurred;
 static watch_date_time_t _starting_time;
@@ -180,6 +177,7 @@ static void _display_act(festival_schedule_state_t *state){
     uint8_t popularity = festival_acts[state->curr_act].popularity;
     state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
     _text_looping = festival_acts[state->curr_act].artist;
+    _text_looping_len = strlen(_text_looping);
     _text_pos = FREQ * -1;
     if (popularity > 0 && popularity < 40)
         sprintf(buf, "%.2s%2d%.6s", festival_stage[state->curr_stage], festival_acts[state->curr_act].popularity, festival_acts[state->curr_act].artist);
@@ -394,30 +392,38 @@ static void start_quick_cyc(void){
     movement_request_tick_frequency(FREQ_FAST);
 }
 
-static int16_t _loop_text(const char* text, int8_t curr_loc, uint8_t char_len){
-    // if curr_loc is negative, then use that many ticks as a delay before looping
-    char buf[16];
+static int16_t _loop_text(const char *text, uint8_t text_len, int8_t curr_loc) {
+    char buf[7]; // 6 chars + null terminator
     const uint8_t num_spaces = 2;
-    uint8_t spaces = num_spaces;
-    uint8_t text_len = strlen(text);
-    uint8_t pos = 10 - char_len;
-    if (curr_loc == -1) curr_loc = 0;  // To avoid double-showing the 0
-    if (char_len >= text_len || curr_loc < 0) {
-        sprintf(buf, "%s", text);
-        watch_display_string(buf, pos);
-        if (curr_loc < 0) return ++curr_loc;
-        return 0;
+    if (curr_loc == -1) curr_loc = 0; // avoid double-showing at 0
+    // No scrolling needed or in delay phase
+    if (MAX_LENGTH >= text_len || curr_loc < 0) {
+        watch_display_text(WATCH_POSITION_BOTTOM, text);
+        return (curr_loc < 0) ? curr_loc + 1 : 0;
     }
-    else if (curr_loc >= (text_len + num_spaces))
+    if (curr_loc >= text_len + num_spaces)
         curr_loc = 0;
-    sprintf(buf, "%.6s", text + curr_loc);
+
+    uint8_t spaces = num_spaces;
     if (curr_loc > text_len)
-        spaces = min(num_spaces, curr_loc - text_len);
-    for (int i = 0; i < spaces; i++)
-        strcat(buf, " ");
-    strncat(buf, text, 7-spaces);
-    watch_display_string(buf, pos);
-    return ++curr_loc;
+        spaces = (curr_loc - text_len < num_spaces) ? curr_loc - text_len : num_spaces;
+    
+    uint8_t idx = 0;
+    const char *src = text + curr_loc;
+    while (idx < MAX_LENGTH && curr_loc + idx < text_len) {
+        buf[idx++] = *src++;
+    }
+    while (idx < MAX_LENGTH && spaces > 0) {
+        buf[idx++] = ' ';
+        spaces--;
+    }
+    src = text; // wrap to start
+    while (idx < MAX_LENGTH) {
+        buf[idx++] = *src++;
+    }
+    buf[MAX_LENGTH] = '\0';
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    return curr_loc + 1;
 }
 
 static void handle_ts_ticks(festival_schedule_state_t *state, bool clock_mode_24h){
@@ -534,7 +540,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
             if (!changed_from_handle_ticks && state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT
                 && !_quick_ticks_running && _is_text_looping) {
                     int16_t prev_text_pos = _text_pos;
-                    _text_pos = _loop_text(_text_looping, _text_pos, MAX_LENGTH);
+                    _text_pos = _loop_text(_text_looping, _text_looping_len, _text_pos);
                     if (prev_text_pos > _text_pos) loops_occurred++;
                     if (loops_occurred >= LOOP_AMOUNT) {
                         loops_occurred = 0;

@@ -145,11 +145,6 @@ static bool _act_is_playing(uint8_t act_num, watch_date_time_t curr_time){
     return _compare_dates_times(festival_acts[act_num].start_time, curr_time) <= 0 && _compare_dates_times(curr_time, festival_acts[act_num].end_time) < 0;
 }
 
-static bool _text_can_loop(const char* text, uint8_t char_len) {
-    uint8_t text_len = strlen(text);
-    return char_len < text_len;
-}
-
 static uint8_t _act_performing_on_stage(uint8_t stage, watch_date_time_t curr_time)
 {
     for (int i = 0; i < FESTIVAL_SCHEDULE_NUM_ACTS; i++) {
@@ -173,39 +168,45 @@ static uint8_t _find_first_available_act(uint8_t first_stage_to_check, watch_dat
 }
 
 static void _display_act(festival_schedule_state_t *state){
-    char buf[11];
+    char buf[MAX_LENGTH + 1];
+    uint8_t max_pop_display = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 99 : 39;
     uint8_t popularity = festival_acts[state->curr_act].popularity;
     state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
     _text_looping = festival_acts[state->curr_act].artist;
     _text_looping_len = strlen(_text_looping);
+    _is_text_looping = MAX_LENGTH < _text_looping_len;
     _text_pos = FREQ * -1;
-    if (popularity > 0 && popularity < 40)
-        sprintf(buf, "%.2s%2d%.6s", festival_stage[state->curr_stage], festival_acts[state->curr_act].popularity, festival_acts[state->curr_act].artist);
-    else
-        sprintf(buf, "%.2s  %.6s", festival_stage[state->curr_stage], festival_acts[state->curr_act].artist);
-    watch_display_string(buf , 0);
-    _is_text_looping = _text_can_loop(_text_looping, MAX_LENGTH);
+    watch_clear_display();
+    watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
+    sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    if (popularity <= max_pop_display && popularity > 0) {
+        sprintf(buf, "%2d", festival_acts[state->curr_act].popularity);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+    }
     loops_occurred = 0;
 }
 
 static void _display_act_genre(uint8_t act_num, bool show_weekday){
-    char buf[11];
+    char buf[MAX_LENGTH + 1];
+    watch_clear_display();
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, " G");
+    sprintf(buf, "%.6s", festival_genre[festival_acts[act_num].genre]);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (show_weekday){
         watch_date_time_t start_time = festival_acts[act_num].start_time;
         if (start_time.unit.hour < 5)
             start_time.reg = start_time.reg - (1<<17); // Subtract a day if the act starts before 5am.
-        sprintf(buf, "%s G%.6s", watch_utility_get_weekday(start_time), festival_genre[festival_acts[act_num].genre]);
-        watch_display_string(buf , 0);
-    }
-    else{
-        sprintf(buf, " G%.6s", festival_genre[festival_acts[act_num].genre]);
-        watch_display_string(buf , 2);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(start_time), watch_utility_get_weekday(start_time));
     }
 }
 
 static void _display_act_time(uint8_t act_num, bool clock_mode_24h, bool display_end){
     char buf[11];
     watch_date_time_t disp_time = display_end ? festival_acts[act_num].end_time : festival_acts[act_num].start_time;
+    watch_clear_display();
     watch_set_colon();
     if (clock_mode_24h){
         watch_set_indicator(WATCH_INDICATOR_24H);
@@ -222,8 +223,11 @@ static void _display_act_time(uint8_t act_num, bool clock_mode_24h, bool display
         disp_time.unit.hour %= 12;
         if (disp_time.unit.hour == 0) disp_time.unit.hour = 12;
     }
-    sprintf(buf, "%s%2d%2d%.2d%s", watch_utility_get_weekday(disp_time), disp_time.unit.day, disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
-    watch_display_string(buf, 0);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time), watch_utility_get_weekday(disp_time));
+    sprintf(buf, "%2d", disp_time.unit.day);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    sprintf(buf, "%2d%.2d%s", disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 static watch_date_time_t _get_starting_time(void){
@@ -247,25 +251,36 @@ static watch_date_time_t _get_ending_time(void){
     return date_newest;
 }
 
+static void _display_festival_name_and_year() {
+    char buf[3];
+    sprintf(buf, "%.2s", festival_name);
+    watch_display_text(WATCH_POSITION_TOP_LEFT, buf);
+    sprintf(buf, "%02d", _starting_time.unit.year + 20);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+}
+
 static bool _festival_occurring(watch_date_time_t curr_time, bool update_display){
-    char buf[15];
+    char buf[MAX_LENGTH + 1];
     if (_compare_dates_times(_starting_time, curr_time) > 0){
+        _display_festival_name_and_year();
         int16_t days_until = _get_days_until(_starting_time, curr_time);
         if (update_display){
             if (days_until == 0) return true;
             if (days_until <= 999){
-                if (days_until > 99) sprintf(buf, "%.2s%02d%3dday", festival_name, _starting_time.unit.year + 20, days_until);
-                else sprintf(buf, "%.2s%02d%2d day", festival_name, _starting_time.unit.year + 20, days_until);
+                if (days_until > 99) sprintf(buf, "%3dday", days_until);
+                else sprintf(buf, "%2d day", days_until);
+                watch_display_text(WATCH_POSITION_BOTTOM, buf);
             }
-            else sprintf(buf, "%.2s%02dWAIT  ", festival_name, _starting_time.unit.year + 20);
-            watch_display_string(buf , 0);
+            else {
+                watch_display_text(WATCH_POSITION_BOTTOM, "WAIT  ");
+            }
         }
         return days_until == 0;
     }
     else if (_compare_dates_times(_ending_time, curr_time) <= 0){
         if (update_display){
-            sprintf(buf, "%.2s%02dOVER  ", festival_name, _starting_time.unit.year + 20);
-            watch_display_string(buf , 0);
+            _display_festival_name_and_year();
+            watch_display_text(WATCH_POSITION_BOTTOM, "OVER  ");
         }
         return false;
     }
@@ -273,13 +288,16 @@ static bool _festival_occurring(watch_date_time_t curr_time, bool update_display
 }
 
 static void _display_curr_day(watch_date_time_t curr_time){  // Assumes festival_occurring function was run before it.
-    char buf[13];
+    char buf[MAX_LENGTH + 1];
     int16_t days_until = _get_days_until(curr_time, _starting_time) + 1;
-    if (days_until < 100 && days_until >= 0)
-        sprintf(buf, "%.2s%02d day%2d", festival_name, _starting_time.unit.year + 20, days_until);
-    else
-        sprintf(buf, "%.2s%02d LONg ", festival_name, _starting_time.unit.year + 20);
-    watch_display_string(buf , 0);
+    _display_festival_name_and_year();
+    if (days_until < 100 && days_until >= 0) {
+        sprintf(buf, " day%2d", days_until);
+        watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    }
+    else {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Long ", " LONg ");
+    }
     return;
 }
 
@@ -393,12 +411,12 @@ static void start_quick_cyc(void){
 }
 
 static int16_t _loop_text(const char *text, uint8_t text_len, int8_t curr_loc) {
-    char buf[7]; // 6 chars + null terminator
+    char buf[MAX_LENGTH + 1];
     const uint8_t num_spaces = 2;
     if (curr_loc == -1) curr_loc = 0; // avoid double-showing at 0
     // No scrolling needed or in delay phase
     if (MAX_LENGTH >= text_len || curr_loc < 0) {
-        watch_display_text(WATCH_POSITION_BOTTOM, text);
+        // Assume the text is already at the 0th position; no need to rewrite
         return (curr_loc < 0) ? curr_loc + 1 : 0;
     }
     if (curr_loc >= text_len + num_spaces)
@@ -536,7 +554,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             changed_from_handle_ticks = handle_tick(state);
-            if (changed_from_handle_ticks) _is_text_looping = _text_can_loop(_text_looping, MAX_LENGTH);
+            if (changed_from_handle_ticks) _is_text_looping = MAX_LENGTH < _text_looping_len;
             if (!changed_from_handle_ticks && state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT
                 && !_quick_ticks_running && _is_text_looping) {
                     int16_t prev_text_pos = _text_pos;
@@ -602,7 +620,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
         case EVENT_MODE_BUTTON_UP:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) movement_move_to_next_face();
             else if (state->curr_act == FESTIVAL_SCHEDULE_NUM_ACTS) _display_title(state);
-            else if (!_is_text_looping && _text_can_loop(_text_looping, MAX_LENGTH)) _is_text_looping = true;
+            else if (!_is_text_looping && MAX_LENGTH < _text_looping_len) _is_text_looping = true;
             else {
                 do
                 {

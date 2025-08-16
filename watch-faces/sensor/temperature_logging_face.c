@@ -118,7 +118,7 @@ void temperature_logging_face_setup(uint8_t watch_face_index, void ** context_pt
     (void) watch_face_index;
 
     // if temperature is invalid, we don't have a temperature sensor which means we shouldn't be here.
-    if (movement_get_temperature() == 0xFFFFFFFF) skip = true;
+    if (movement_get_temperature() == (float)0xFFFFFFFF) skip = true;
 
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(temperature_logging_state_t));

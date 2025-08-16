@@ -598,13 +598,6 @@ bool wordle_face_loop(movement_event_t event, void *context) {
             if (act_on_btn(state, BTN_ALARM)) break;
             display_letter(state, true);
             if (state->word_elements[state->position] == WORDLE_NUM_VALID_LETTERS) break;
-#if (WORDLE_USE_RANDOM_GUESS != 0)
-            if (HAL_GPIO_BTN_LIGHT_read() &&
-            (state->using_random_guess || (state->attempt == 0 && state->position == 0))) {
-                insert_random_guess(state);
-                break;
-            }
-#endif
             state->position = get_next_pos(state->position, state->word_elements_result);
             if (state->position >= WORDLE_LENGTH) {
                 get_result(state);
@@ -616,6 +609,13 @@ bool wordle_face_loop(movement_event_t event, void *context) {
             display_letter(state, true);
             state->position = get_prev_pos(state->position, state->word_elements_result);
             break;
+#if (WORDLE_USE_RANDOM_GUESS != 0)
+        case EVENT_ALARM_LONGER_PRESS:
+            if (state->curr_screen != WORDLE_SCREEN_PLAYING) break;
+            if (state->using_random_guess || (state->attempt == 0 && state->position == 0))
+                insert_random_guess(state);
+            break;
+#endif
         case EVENT_LIGHT_BUTTON_DOWN:
         case EVENT_ACTIVATE:
             break;

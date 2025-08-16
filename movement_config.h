@@ -34,6 +34,7 @@ const watch_face_t watch_faces[] = {
     advanced_alarm_face,
     tally_face,
     sunrise_sunset_face,
+    moon_phase_face,
     activity_logging_face,
 // Start of Secondary Faces
     settings_face,

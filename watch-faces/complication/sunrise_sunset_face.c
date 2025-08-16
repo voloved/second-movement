@@ -69,8 +69,10 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     bool show_next_match = false;
     movement_location_t movement_location;
     int32_t tz;
-    if (state->longLatToUse == 0 || _location_count <= 1)
+    if (state->longLatToUse == 0 || _location_count <= 1) {
         movement_location = load_location_from_filesystem();
+        tz = movement_get_current_timezone_offset();
+    }
     else{
         movement_location.bit.latitude = longLatPresets[state->longLatToUse].latitude;
         movement_location.bit.longitude = longLatPresets[state->longLatToUse].longitude;

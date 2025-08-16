@@ -1082,8 +1082,10 @@ void app_init(void) {
         movement_state.settings.bit.to_interval = MOVEMENT_DEFAULT_TIMEOUT_INTERVAL;
 #ifdef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
         movement_state.settings.bit.le_interval = 0;
+        movement_state.settings.bit.screen_off_after_le = MOVEMENT_LE_SCREEN_OFF_DISABLE;
 #else
         movement_state.settings.bit.le_interval = MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL;
+        movement_state.settings.bit.screen_off_after_le = MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE;
 #endif
         movement_state.settings.bit.led_duration = MOVEMENT_DEFAULT_LED_DURATION;
 

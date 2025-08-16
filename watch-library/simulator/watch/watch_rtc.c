@@ -71,6 +71,9 @@ bool _watch_rtc_is_enabled(void) {
 }
 
 void _watch_rtc_init(void) {
+#ifdef MAKEFILE_TIMEZONE
+    int32_t time_zone_offset = MAKEFILE_TIMEZONE * 60;
+#else
     for (uint8_t index = 0; index < 8; ++index) {
         tick_callbacks[index] = NULL;
     }

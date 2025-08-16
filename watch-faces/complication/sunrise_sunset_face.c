@@ -69,8 +69,10 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     bool show_next_match = false;
     movement_location_t movement_location;
     int32_t tz;
-    if (state->longLatToUse == 0 || _location_count <= 1)
+    if (state->longLatToUse == 0 || _location_count <= 1) {
         movement_location = load_location_from_filesystem();
+        tz = movement_get_current_timezone_offset();
+    }
     else{
         movement_location.bit.latitude = longLatPresets[state->longLatToUse].latitude;
         movement_location.bit.longitude = longLatPresets[state->longLatToUse].longitude;
@@ -102,7 +104,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     // sunriset returns the rise/set times as signed decimal hours in UTC.
     // this can mean hours below 0 or above 31, which won't fit into a watch_date_time_t struct.
     // to deal with this, we set aside the offset in hours, and add it back before converting it to a watch_date_time_t.
-    double hours_from_utc = ((double)tz) / 3600.0;
+    double hours_from_utc = ((double)movement_get_current_timezone_offset()) / 3600.0;
 
     // we loop twice because if it's after sunset today, we need to recalculate to display values for tomorrow.
     for(int i = 0; i < 2; i++) {
@@ -486,7 +488,6 @@ void sunrise_sunset_face_activate(void *context) {
     movement_location_t movement_location = load_location_from_filesystem();
     state->working_latitude = _sunrise_sunset_face_struct_from_latlon(movement_location.bit.latitude);
     state->working_longitude = _sunrise_sunset_face_struct_from_latlon(movement_location.bit.longitude);
-    movement_update_dst_offset_cache_if_needed(movement_get_utc_date_time());
 }
 
 bool sunrise_sunset_face_loop(movement_event_t event, void *context) {

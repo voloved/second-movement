@@ -216,8 +216,8 @@ void fast_stopwatch_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         memset(*context_ptr, 0, sizeof(fast_stopwatch_state_t));
         fast_stopwatch_state_t *state = (fast_stopwatch_state_t *)*context_ptr;
         _ticks = _lap_ticks = _blink_ticks = _old_minutes = _old_seconds = _hours = 0;
-    _is_running = _colon = false;
-        state->light_on_button = true;
+        _is_running = _colon = false;
+        state->light_on_button = false;
     }
     if (!_is_running) {
         // prepare the 128 Hz callback source

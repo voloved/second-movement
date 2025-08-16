@@ -29,11 +29,12 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-    stopwatch_face,
+    fast_stopwatch_face,
     countdown_face,
     advanced_alarm_face,
     tally_face,
     sunrise_sunset_face,
+    moon_phase_face,
     activity_logging_face,
 // Start of Secondary Faces
     settings_face,

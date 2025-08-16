@@ -1171,9 +1171,6 @@ void app_setup(void) {
 #endif
     }
 
-    // LCD autodetect uses the buttons as a a failsafe, so we should run it before we enable the button interrupts
-    watch_enable_display();
-
     if (!movement_volatile_state.is_sleeping && !movement_state.is_screen_forced_off) {
         movement_update_dst_offset_cache_if_needed(movement_get_utc_date_time());
         watch_disable_extwake_interrupt(HAL_GPIO_BTN_ALARM_pin());
@@ -1244,6 +1241,10 @@ void app_setup(void) {
 
         movement_request_tick_frequency(1);
 
+        if (movement_volatile_state.enter_sleep_mode && movement_volatile_state.is_buzzing) return;
+        // LCD autodetect uses the buttons as a a failsafe, so we should run it before we enable the button interrupts
+        watch_enable_display();
+        
         for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
             watch_faces[i].setup(i, &watch_face_contexts[i]);
         }
@@ -1578,6 +1579,7 @@ void cb_minute_alarm_fired(void) {
 }
 
 void cb_tick(void) {
+    if (movement_volatile_state.enter_sleep_mode && movement_volatile_state.is_buzzing) return;
     rtc_counter_t counter = watch_rtc_get_counter();
     uint32_t freq = watch_rtc_get_frequency();
     uint32_t half_freq = freq >> 1;

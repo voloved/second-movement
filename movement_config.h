@@ -79,7 +79,7 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DEFAULT_24H_MODE 0
 
 /* Enable or disable the sound on mode button press */
-#define MOVEMENT_DEFAULT_BUTTON_SOUND true
+#define MOVEMENT_DEFAULT_BUTTON_SOUND false
 
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_SOFT
 
@@ -103,7 +103,7 @@ const watch_face_t watch_faces[] = {
  * 6: 1 day
  * 7: 7 days
  */
-#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
+#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 1
 
 /*
  * If true and we're in LE mode and it's the top of the hour
@@ -111,7 +111,7 @@ const watch_face_t watch_faces[] = {
  * then turn off the screen and other tasks.
  * Only runs if Temperature Logging Face is installed.
 */
-#define MOVEMENT_DEFAULT_LE_DEEP_SLEEP true
+#define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE 0
 
 /* Set the led duration
  * Valid values are:

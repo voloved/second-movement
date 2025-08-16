@@ -441,6 +441,14 @@ static void _movement_handle_scheduled_tasks(void) {
     }
 }
 
+static movement_location_t load_location_from_filesystem() {
+    movement_location_t location = {0};
+
+    filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
+
+    return location;
+}
+
 static void persist_location_to_filesystem(movement_location_t new_location) {
     movement_location_t maybe_location = {0};
 
@@ -1090,10 +1098,14 @@ void app_init(void) {
         movement_state.settings.bit.led_duration = MOVEMENT_DEFAULT_LED_DURATION;
 
 #if defined(MOVEMENT_DEFAULT_LATITUDE) && defined(MOVEMENT_DEFAULT_LONGITUDE)
-        movement_location_t movement_location;
-        movement_location.bit.latitude = MOVEMENT_DEFAULT_LATITUDE;
-        movement_location.bit.longitude = MOVEMENT_DEFAULT_LONGITUDE;
-        persist_location_to_filesystem(movement_location);
+        // If there's no location set on the watch already, set it to a default.
+        movement_location_t movement_location = load_location_from_filesystem();
+        if (movement_location.reg == 0) {
+            movement_location_t movement_location;
+            movement_location.bit.latitude = MOVEMENT_DEFAULT_LATITUDE;
+            movement_location.bit.longitude = MOVEMENT_DEFAULT_LONGITUDE;
+            persist_location_to_filesystem(movement_location);
+        }
 #endif
 
         movement_store_settings();

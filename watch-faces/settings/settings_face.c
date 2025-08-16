@@ -297,11 +297,11 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 #endif
 
         state->settings_screens = malloc(state->num_settings * sizeof(settings_screen_t));
-        state->settings_screens[current_setting].display = clock_setting_display;
-        state->settings_screens[current_setting].advance = clock_setting_advance;
-        current_setting++;
         state->settings_screens[current_setting].display = beep_setting_display;
         state->settings_screens[current_setting].advance = beep_setting_advance;
+        current_setting++;
+        state->settings_screens[current_setting].display = clock_setting_display;
+        state->settings_screens[current_setting].advance = clock_setting_advance;
         current_setting++;
         state->settings_screens[current_setting].display = timeout_setting_display;
         state->settings_screens[current_setting].advance = timeout_setting_advance;

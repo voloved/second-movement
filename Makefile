@@ -1,6 +1,9 @@
 # Keep this first line.
 GOSSAMER_PATH=gossamer
 
+
+DEFAULT_BOARD = sensorwatch_pro
+DEFAULT_DISPLAY = custom
 # Which board are we building for? Commented out to force a choice when building.
 # Options are:
 # - sensorwatch_pro
@@ -9,8 +12,17 @@ GOSSAMER_PATH=gossamer
 # - sensorwatch_blue
 # BOARD=sensorwatch_pro
 
+ifndef BOARD
+  BOARD = $(DEFAULT_BOARD)
+  $(info Setting Board to: $(BOARD))
+endif
+
 # Set this to the type of display in your watch: classic or custom. Commented out to force a choice when building.
 # DISPLAY=classic
+ifeq ($(DISPLAY),:0)
+    DISPLAY = $(DEFAULT_DISPLAY)
+    $(info Setting Display to: $(DISPLAY))
+endif
 
 # End of user configurable options.
 

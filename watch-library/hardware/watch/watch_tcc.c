@@ -28,17 +28,24 @@
 #include "tc.h"
 
 void _watch_enable_tcc(void);
+static void (*_cb_tc0)(void) = NULL;
 void cb_watch_buzzer_seq(void);
+void cb_watch_buzzer_raw_source(void);
 
 static uint16_t _seq_position;
 static int8_t _tone_ticks, _repeat_counter;
 static int8_t *_sequence;
+static watch_buzzer_raw_source_t _raw_source;
+static void* _userdata;
 static uint8_t _volume;
 static void (*_cb_finished)(void);
 static watch_cb_t _cb_start_global = NULL;
 static watch_cb_t _cb_stop_global = NULL;
 static volatile bool _led_is_active = false;
 static volatile bool _buzzer_is_active = false;
+static volatile uint8_t _current_led_color[3] = {0, 0, 0};
+
+static void _watch_set_led_duty_cycle(uint32_t period, uint8_t red, uint8_t green, uint8_t blue);
 
 static void _tcc_write_RUNSTDBY(bool value) {
     // enables or disables RUNSTDBY of the tcc
@@ -94,6 +101,7 @@ void watch_buzzer_play_sequence_with_volume(int8_t *note_sequence, void (*callba
     _repeat_counter = -1;
     // prepare buzzer
     
+    _cb_tc0 = cb_watch_buzzer_seq;
     // setup TC0 timer
     _tc0_initialize();
     // start the timer (for the 64 hz callback)
@@ -138,6 +146,67 @@ void cb_watch_buzzer_seq(void) {
     } else _tone_ticks--;
 }
 
+void watch_buzzer_play_raw_source(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end) {
+    watch_buzzer_play_raw_source_with_volume(raw_source, userdata, callback_on_end, WATCH_BUZZER_VOLUME_LOUD);
+}
+
+void watch_buzzer_play_raw_source_with_volume(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end, watch_buzzer_volume_t volume) {
+    // Abort any previous sequence
+    watch_buzzer_abort_sequence();
+
+    _buzzer_is_active = true;
+
+    if (_cb_start_global) {
+        _cb_start_global();
+    }
+
+    watch_enable_buzzer_and_leds();
+
+    watch_set_buzzer_off();
+    _raw_source = raw_source;
+    _userdata = userdata;
+    _cb_finished = callback_on_end;
+    _volume = volume == WATCH_BUZZER_VOLUME_SOFT ? 5 : 25;
+    _seq_position = 0;
+    _tone_ticks = 0;
+    // prepare buzzer
+
+    _cb_tc0 = cb_watch_buzzer_raw_source;
+    // setup TC0 timer
+    _tc0_initialize();
+    // start the timer (for the 64 hz callback)
+    _tc0_start();
+}
+
+void cb_watch_buzzer_raw_source(void) {
+    // callback for reading the note sequence
+    uint16_t period;
+    uint16_t duration;
+    bool done;
+
+    if (_tone_ticks == 0) {
+        done = _raw_source(_seq_position, _userdata, &period, &duration);
+
+        if (done) {
+            // end the sequence
+            watch_buzzer_abort_sequence();
+        } else {
+            if (period == WATCH_BUZZER_PERIOD_REST) {
+                watch_set_buzzer_off();
+            } else {
+                watch_set_buzzer_period_and_duty_cycle(period, _volume);
+                watch_set_buzzer_on();
+            }
+
+            // set duration ticks and move to next tone
+            _tone_ticks = duration;
+            _seq_position += 1;
+        }
+    } else {
+        _tone_ticks--;
+    }
+}
+
 void watch_buzzer_abort_sequence(void) {
     // ends/aborts the sequence
     if (!_buzzer_is_active) {
@@ -169,7 +238,9 @@ void watch_buzzer_register_global_callbacks(watch_cb_t cb_start, watch_cb_t cb_s
 
 void irq_handler_tc0(void) {
     // interrupt handler for TC0 (globally!)
-    cb_watch_buzzer_seq();
+    if (_cb_tc0) {
+        _cb_tc0();
+    }
     TC0->COUNT8.INTFLAG.reg |= TC_INTFLAG_OVF;
 }
 
@@ -208,6 +279,11 @@ void watch_enable_buzzer(void) {
 void watch_set_buzzer_period_and_duty_cycle(uint32_t period, uint8_t duty) {
     tcc_set_period(0, period, true);
     tcc_set_cc(0, (WATCH_BUZZER_TCC_CHANNEL) % 4, period / (100 / duty), true);
+    // The buzzer determines the period, which means that if the LED was active before it will flicker
+    // Update the LED duty cycle to match the new period required by the buzzer.
+    if (_led_is_active) {
+        _watch_set_led_duty_cycle(period, _current_led_color[0], _current_led_color[1], _current_led_color[2]);
+    }
 }
 
 void watch_disable_buzzer(void) {
@@ -332,10 +408,27 @@ void watch_set_led_color(uint8_t red, uint8_t green) {
 #endif
 }
 
+static void _watch_set_led_duty_cycle(uint32_t period, uint8_t red, uint8_t green, uint8_t blue) {
+    tcc_set_cc(0, (WATCH_RED_TCC_CHANNEL) % 4, ((period * (uint32_t)red * 1000ull) / 255000ull), true);
+#ifdef WATCH_GREEN_TCC_CHANNEL
+    tcc_set_cc(0, (WATCH_GREEN_TCC_CHANNEL) % 4, ((period * (uint32_t)green * 1000ull) / 255000ull), true);
+#else
+    (void) green; // silence warning
+#endif
+#ifdef WATCH_BLUE_TCC_CHANNEL
+    tcc_set_cc(0, (WATCH_BLUE_TCC_CHANNEL) % 4, ((period * (uint32_t)blue * 1000ull) / 255000ull), true);
+#else
+    (void) blue; // silence warning
+#endif
+}
+
 void watch_set_led_color_rgb(uint8_t red, uint8_t green, uint8_t blue) {
     bool turning_on = (red | green | blue) != 0;
 
     if (turning_on) {
+        _current_led_color[0] = red;
+        _current_led_color[1] = green;
+        _current_led_color[2] = blue;
         _led_is_active = true;
         watch_enable_buzzer_and_leds();
     } else {
@@ -344,17 +437,7 @@ void watch_set_led_color_rgb(uint8_t red, uint8_t green, uint8_t blue) {
 
     if (tcc_is_enabled(0)) {
         uint32_t period = tcc_get_period(0);
-        tcc_set_cc(0, (WATCH_RED_TCC_CHANNEL) % 4, ((period * (uint32_t)red * 1000ull) / 255000ull), true);
-#ifdef WATCH_GREEN_TCC_CHANNEL
-        tcc_set_cc(0, (WATCH_GREEN_TCC_CHANNEL) % 4, ((period * (uint32_t)green * 1000ull) / 255000ull), true);
-#else
-        (void) green; // silence warning
-#endif
-#ifdef WATCH_BLUE_TCC_CHANNEL
-        tcc_set_cc(0, (WATCH_BLUE_TCC_CHANNEL) % 4, ((period * (uint32_t)blue * 1000ull) / 255000ull), true);
-#else
-        (void) blue; // silence warning
-#endif
+        _watch_set_led_duty_cycle(period, red, green, blue);
     }
 
     if (!turning_on) {

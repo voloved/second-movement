@@ -122,6 +122,12 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LED_DURATION 1
 
+/* Optionally debounce button presses (disable by default).
+ * A value of 4 is a good starting point if you have issues
+ * with multiple button presses firing.
+*/
+#define MOVEMENT_DEBOUNCE_TICKS 0
+
 /* The latitude and longitude used for the wearers location
  * Set signed values in 1/100ths of a degree
  * Set lat and long for Raleigh (3578, -7864)

@@ -26,6 +26,8 @@
 #include "settings_face.h"
 #include "watch.h"
 
+static bool requesting_deep_sleep = false;
+
 static void clock_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CLOCK", "CL");
     if (subsecond % 2) {
@@ -148,6 +150,40 @@ static void low_energy_setting_advance(void) {
     movement_set_low_energy_timeout((movement_get_low_energy_timeout() + 1));
 }
 
+static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
+    bool is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
+    if (is_custom_lcd) {
+        watch_display_text(WATCH_POSITION_TOP_LEFT, "DPSLP");
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_LEFT, "LE");
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "ds");
+    }
+    if (subsecond % 2) {
+        switch (movement_get_low_energy_screen_off_setting()) {
+            case MOVEMENT_LE_SCREEN_OFF_DISABLE:
+                watch_display_text(WATCH_POSITION_BOTTOM, "   OFF");
+                break;
+            case MOVEMENT_LE_SCREEN_OFF_ENABLE:
+                watch_display_text(WATCH_POSITION_BOTTOM, "   ON ");
+                break;
+            case MOVEMENT_LE_SCREEN_OFF_NOW:
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "   Now", "  Nowj");
+                break;
+            case MOVEMENT_LE_SCREEN_OFF_MODES:
+            defaut:
+                break;
+        }
+    }
+    else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
+    }
+}
+
+static void low_energy_deep_sleep_setting_advance(void) {
+    movement_low_energy_screen_off_t next_mode = (movement_get_low_energy_screen_off_setting() + 1) % MOVEMENT_LE_SCREEN_OFF_MODES;
+    movement_set_low_energy_screen_off_setting(next_mode);
+}
+
 static void led_duration_setting_display(uint8_t subsecond) {
     char buf[8];
 
@@ -246,7 +282,7 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         settings_state_t *state = (settings_state_t *)*context_ptr;
         int8_t current_setting = 0;
 
-        state->num_settings = 5; // baseline, without LED settings
+        state->num_settings = 6; // baseline, without LED settings
 #ifdef BUILD_GIT_HASH
         state->num_settings++;
 #endif
@@ -273,6 +309,10 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
         state->settings_screens[current_setting].display = low_energy_setting_display;
         state->settings_screens[current_setting].advance = low_energy_setting_advance;
+        current_setting++;
+        state->settings_screens[current_setting].display = low_energy_deep_sleep_setting_display;
+        state->settings_screens[current_setting].advance = low_energy_deep_sleep_setting_advance;
+        state->screen_off_screen = current_setting;
         current_setting++;
 #endif
         state->settings_screens[current_setting].display = led_duration_setting_display;
@@ -314,7 +354,10 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void settings_face_activate(void *context) {
     settings_state_t *state = (settings_state_t *)context;
-    state->current_page = 0;
+    if (!state->dont_reset_page_location) {
+        state->current_page = 0;
+    }
+    state->dont_reset_page_location = false;
     movement_request_tick_frequency(4); // we need to manually blink some pixels
 }
 
@@ -323,7 +366,13 @@ bool settings_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_LIGHT_BUTTON_DOWN:
-            state->current_page = (state->current_page + 1) % state->num_settings;
+            if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
+                && state->current_page == state->screen_off_screen) {
+                state->dont_reset_page_location = true;
+                movement_request_screen_forced_off_on_next_tick();
+            }else {
+                state->current_page = (state->current_page + 1) % state->num_settings;
+            }
             // fall through
         case EVENT_TICK:
         case EVENT_ACTIVATE:

@@ -84,6 +84,7 @@ typedef struct {
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
     volatile bool is_sleeping;
+    volatile bool movement_request_screen_forced_off_on_next_tick;
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
@@ -101,6 +102,7 @@ movement_volatile_state_t movement_volatile_state;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
+static float temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
@@ -291,6 +293,7 @@ static inline void _movement_reset_inactivity_countdown(void) {
         SLEEP_TIMEOUT
     );
 
+    movement_state.le_mode_and_not_worn_hours = 0;
     movement_volatile_state.schedule_next_comp = true;
 }
 
@@ -359,6 +362,25 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
     }
 }
 
+static void _check_for_deep_sleep(void) {
+    if(movement_state.settings.bit.screen_off_after_le != MOVEMENT_LE_SCREEN_OFF_ENABLE) return;
+    if (movement_state.is_screen_forced_off) return;
+    if (!movement_volatile_state.is_sleeping) return;
+    if (temperature_last_read_c == (float)0xFFFFFFFF) return; // Ignore when the temp is not first read without affecting the timer.
+    // Reset whenever the temperature is high enough, so that way, we need multiple hours in a row before going into deep sleep.    
+    if (temperature_last_read_c >= MOVEMENT_TEMPERATURE_ASSUME_WEARING) movement_state.le_mode_and_not_worn_hours = 0;
+    else if (MOVEMENT_HOURS_BEFORE_DEEPSLEEP > movement_state.le_mode_and_not_worn_hours) movement_state.le_mode_and_not_worn_hours++;
+    else {
+        // Re-check temperature in case the user wore the watch after the last reading.
+        float temperature = movement_get_temperature();
+        if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
+            watch_clear_display();
+            movement_state.is_screen_forced_off = true;
+        }
+        movement_state.le_mode_and_not_worn_hours = 0;
+    }
+}
+
 static void _movement_handle_top_of_minute(void) {
     watch_date_time_t utc_now = movement_get_utc_date_time();
     watch_date_time_t date_time = watch_utility_date_time_convert_zone(utc_now, 0, movement_get_current_timezone_offset());
@@ -383,6 +405,10 @@ static void _movement_handle_top_of_minute(void) {
 
             // TODO: handle other advisory types
         }
+    }
+    // Don't turn off the display during hour where people are unlikely to wear it
+    if (date_time.unit.minute == 0 && date_time.unit.hour >= 8 && date_time.unit.hour < 22) {
+        _check_for_deep_sleep();
     }
 }
 
@@ -573,8 +599,22 @@ void movement_request_sleep(void) {
     movement_volatile_state.enter_sleep_mode = true;
 }
 
+void movement_request_screen_forced_off(void) {
+    movement_volatile_state.enter_sleep_mode = true;
+    movement_state.is_screen_forced_off = true;
+}
+
+void movement_request_screen_forced_off_on_next_tick(void) {
+    movement_volatile_state.movement_request_screen_forced_off_on_next_tick = true;
+}
+
+bool movement_is_screen_forced_off(void) {
+    return movement_state.is_screen_forced_off;
+}
+
 void movement_request_wake() {
     movement_volatile_state.exit_sleep_mode = true;
+    movement_state.is_screen_forced_off = false;
     _movement_reset_inactivity_countdown();
 }
 
@@ -640,6 +680,7 @@ void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note) {
 }
 
 void movement_play_sequence(int8_t *note_sequence, uint8_t priority) {
+    if (movement_state.is_screen_forced_off) return;
     // Priority is used to ensure that lower priority sequences don't cancel higher priority ones
     // Priotity order: alarm(2) > signal(1) > note(0)
     if (priority < movement_volatile_state.pending_sequence_priority) {
@@ -805,6 +846,14 @@ void movement_set_fast_tick_timeout(uint8_t value) {
     movement_state.settings.bit.to_interval = value;
 }
 
+movement_low_energy_screen_off_t movement_get_low_energy_screen_off_setting(void) {
+    return movement_state.settings.bit.screen_off_after_le;
+}
+
+void movement_set_low_energy_screen_off_setting(movement_low_energy_screen_off_t value) {
+    movement_state.settings.bit.screen_off_after_le = value;
+}
+
 uint8_t movement_get_low_energy_timeout(void) {
     return movement_state.settings.bit.le_interval;
 }
@@ -938,6 +987,7 @@ float movement_get_temperature(void) {
             temperature_c = 25 + (float)val / 16.0;
     }
 
+    temperature_last_read_c = temperature_c;
     return temperature_c;
 }
 
@@ -990,6 +1040,7 @@ void app_init(void) {
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
+    movement_state.is_screen_forced_off = false;
     movement_state.has_thermistor = thermistor_driver_init();
 
     bool settings_file_exists = filesystem_file_exists("settings.u32");
@@ -1107,7 +1158,7 @@ void app_setup(void) {
     // LCD autodetect uses the buttons as a a failsafe, so we should run it before we enable the button interrupts
     watch_enable_display();
 
-    if (!movement_volatile_state.is_sleeping) {
+    if (!movement_volatile_state.is_sleeping && !movement_state.is_screen_forced_off) {
         movement_update_dst_offset_cache_if_needed(movement_get_utc_date_time());
         watch_disable_extwake_interrupt(HAL_GPIO_BTN_ALARM_pin());
 
@@ -1507,6 +1558,10 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
+    if (movement_volatile_state.movement_request_screen_forced_off_on_next_tick) {
+        movement_volatile_state.movement_request_screen_forced_off_on_next_tick = false;
+        movement_request_screen_forced_off();
+    }
 }
 
 void cb_accelerometer_event(void) {

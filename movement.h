@@ -56,6 +56,13 @@ typedef enum {
     MOVEMENT_NUM_CLOCK_MODES
 } movement_clock_mode_t;
 
+typedef enum {
+    MOVEMENT_LE_SCREEN_OFF_DISABLE = 0,
+    MOVEMENT_LE_SCREEN_OFF_ENABLE,
+    MOVEMENT_LE_SCREEN_OFF_NOW,
+    MOVEMENT_LE_SCREEN_OFF_MODES
+} movement_low_energy_screen_off_t;
+
 /// struct for Movement LED color
 typedef struct {
     uint8_t red : 4;
@@ -71,7 +78,7 @@ typedef union {
         bool button_should_sound : 1;       // if true, pressing a button emits a sound.
         uint8_t to_interval : 2;            // an inactivity interval for asking the active face to resign.
         uint8_t le_interval : 3;            // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
-        bool screen_off_after_le : 1;       // If true and we're in LE mode and it's the top of the hour and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
+        movement_low_energy_screen_off_t screen_off_after_le : 2;    // If true and we're in LE mode and it's the top of the hour after movement_le_deep_sleep_deadline and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
         uint8_t led_duration : 3;           // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
         uint8_t led_red_color : 3;          // for general purpose illumination, the red LED value (0-7)
         uint8_t led_green_color : 3;        // for general purpose illumination, the green LED value (0-7)
@@ -270,6 +277,9 @@ typedef struct {
     // background task handling
     bool has_scheduled_background_task;
 
+    // Dont' allow the display to be on while this is true;
+    bool is_screen_forced_off;
+
     // stuff for subsecond tracking
     uint8_t tick_frequency;
     uint8_t tick_pern;
@@ -289,6 +299,7 @@ typedef struct {
     lis2dw_data_rate_t accelerometer_background_rate;
     // threshold for considering the wearer is in motion
     uint8_t accelerometer_motion_threshold;
+    uint8_t le_mode_and_not_worn_hours;
 } movement_state_t;
 
 void movement_move_to_face(uint8_t watch_face_index);
@@ -318,6 +329,9 @@ void movement_schedule_background_task_for_face(uint8_t watch_face_index, watch_
 void movement_cancel_background_task_for_face(uint8_t watch_face_index);
 
 void movement_request_sleep(void);
+void movement_request_screen_forced_off(void);
+void movement_request_screen_forced_off_on_next_tick(void);
+bool movement_is_screen_forced_off(void);
 void movement_request_wake(void);
 
 void movement_play_note(watch_buzzer_note_t note, uint16_t duration_ms);
@@ -362,6 +376,9 @@ void movement_set_use_imperial_units(bool value);
 
 uint8_t movement_get_fast_tick_timeout(void);
 void movement_set_fast_tick_timeout(uint8_t value);
+
+movement_low_energy_screen_off_t movement_get_low_energy_screen_off_setting(void);
+void movement_set_low_energy_screen_off_setting(movement_low_energy_screen_off_t value);
 
 uint8_t movement_get_low_energy_timeout(void);
 void movement_set_low_energy_timeout(uint8_t value);

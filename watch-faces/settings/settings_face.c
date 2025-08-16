@@ -26,8 +26,6 @@
 #include "settings_face.h"
 #include "watch.h"
 
-static bool requesting_deep_sleep = false;
-
 static void clock_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CLOCK", "CL");
     if (subsecond % 2) {
@@ -169,8 +167,7 @@ static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
             case MOVEMENT_LE_SCREEN_OFF_NOW:
                 watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "   Now", "  Nowj");
                 break;
-            case MOVEMENT_LE_SCREEN_OFF_MODES:
-            defaut:
+            default:
                 break;
         }
     }

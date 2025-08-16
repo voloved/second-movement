@@ -34,7 +34,7 @@ SRCS += \
   ./watch-faces/io/irda_upload_face.c \
   ./watch-faces/complication/tally_face.c \
   ./watch-faces/complication/party_face.c \
-  ./legacy/watch_faces/complication/festival_schedule_face.c \
+  ./watch-faces/complication/festival_schedule_face.c \
   ./watch-faces/complication/wordle_face.c \
   ./watch-faces/complication/probability_face.c \
   ./watch-faces/clock/close_enough_face.c \

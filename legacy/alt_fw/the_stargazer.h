@@ -27,7 +27,7 @@
 
 #include "movement_faces.h"
 
-#define MOVEMENT_DEFAULT_RED_COLOR 0xF
+#define MOVEMENT_DEFAULT_RED_COLOR 0x7
 #define MOVEMENT_DEFAULT_GREEN_COLOR 0x0
 
 const watch_face_t watch_faces[] = {

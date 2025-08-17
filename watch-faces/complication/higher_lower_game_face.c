@@ -42,8 +42,6 @@
 #define MAX_BOARDS 40
 #define GUESSES_PER_SCREEN 5
 #define WIN_SCORE (MAX_BOARDS * GUESSES_PER_SCREEN)
-#define STATUS_DISPLAY_START 0
-#define BOARD_SCORE_DISPLAY_START 2
 #define BOARD_DISPLAY_START 4
 #define BOARD_DISPLAY_END 9
 #define MIN_CARD_VALUE 2
@@ -146,8 +144,8 @@ static void reset_board(bool first_round) {
 
 static void init_game(void) {
     watch_clear_display();
-    watch_display_string(TITLE_TEXT, BOARD_DISPLAY_START);
-    watch_display_string("GA", STATUS_DISPLAY_START);
+    watch_display_text(WATCH_POSITION_BOTTOM, TITLE_TEXT);
+    watch_display_text(WATCH_POSITION_TOP_LEFT, "HL");
     reset_deck();
     reset_board(true);
     score = 0;
@@ -156,9 +154,14 @@ static void init_game(void) {
 }
 
 static void set_segment_at_position(segment_t segment, uint8_t position) {
-    const uint64_t position_segment_data = (Segment_Map[position] >> (8 * (uint8_t) segment)) & 0xFF;
-    const uint8_t com_pin = position_segment_data >> 6;
-    const uint8_t seg = position_segment_data & 0x3F;
+    digit_mapping_t segmap;
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+        segmap = Custom_LCD_Display_Mapping[position];
+    } else {
+        segmap = Classic_LCD_Display_Mapping[position];
+    }
+    const uint8_t com_pin = segmap.segment[segment].address.com;
+    const uint8_t seg = segmap.segment[segment].address.seg;
     watch_set_pixel(com_pin, seg);
 }
 
@@ -216,7 +219,7 @@ static void render_board_count(void) {
     // Render completed boards (screens)
     char buf[3] = {0};
     snprintf(buf, sizeof(buf), "%2hhu", completed_board_count);
-    watch_display_string(buf, BOARD_SCORE_DISPLAY_START);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
 }
 
 static void render_final_score(void) {
@@ -225,7 +228,7 @@ static void render_final_score(void) {
     const uint8_t complete_boards = score / GUESSES_PER_SCREEN;
     snprintf(buf, sizeof(buf), "%2hu %03hu", complete_boards, score);
     watch_set_colon();
-    watch_display_string(buf, BOARD_DISPLAY_START);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 static guess_t get_answer(void) {
@@ -258,13 +261,13 @@ static void do_game_loop(guess_t user_guess) {
             // Render answer indicator
             switch (answer) {
                 case HL_GUESS_EQUAL:
-                    watch_display_string("==", STATUS_DISPLAY_START);
+                    watch_display_text(WATCH_POSITION_TOP_LEFT, "==");
                     break;
                 case HL_GUESS_HIGHER:
-                    watch_display_string("HI", STATUS_DISPLAY_START);
+                    watch_display_text(WATCH_POSITION_TOP_LEFT, "HI");
                     break;
                 case HL_GUESS_LOWER:
-                    watch_display_string("LO", STATUS_DISPLAY_START);
+                    watch_display_text(WATCH_POSITION_TOP_LEFT, "LO");
                     break;
             }
 
@@ -273,7 +276,7 @@ static void do_game_loop(guess_t user_guess) {
                 score++;
             } else {
                 // Incorrect guess, game over
-                watch_display_string("GO", STATUS_DISPLAY_START);
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "End", "GO");
                 game_board[guess_position].revealed = true;
                 watch_display_text(WATCH_POSITION_BOTTOM, "------");
                 render_board_position(guess_position - 1);
@@ -288,7 +291,7 @@ static void do_game_loop(guess_t user_guess) {
                 // Win, perhaps some kind of animation sequence?
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WIN", "WI");
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-                watch_display_text(WATCH_POSITION_BOTTOM, "------");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WINNER", "winnEr");
                 game_state = HL_GS_WIN;
                 return;
             }
@@ -318,12 +321,12 @@ static void do_game_loop(guess_t user_guess) {
             break;
         case HL_GS_SHOW_SCORE:
             watch_clear_display();
-            watch_display_string(TITLE_TEXT, BOARD_DISPLAY_START);
-            watch_display_string("GA", STATUS_DISPLAY_START);
+            watch_display_text(WATCH_POSITION_BOTTOM, TITLE_TEXT);
+            watch_display_text(WATCH_POSITION_TOP_LEFT, "HL");
             game_state = HL_GS_TITLE_SCREEN;
             break;
         default:
-            watch_display_string("ERROR", BOARD_DISPLAY_START);
+            watch_display_text(WATCH_POSITION_BOTTOM, "ERROR");
             break;
     }
 }
@@ -362,8 +365,8 @@ bool higher_lower_game_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             // Show your initial UI here.
-            watch_display_string(TITLE_TEXT, BOARD_DISPLAY_START);
-            watch_display_string("GA", STATUS_DISPLAY_START);
+            watch_display_text(WATCH_POSITION_BOTTOM, TITLE_TEXT);
+            watch_display_text(WATCH_POSITION_TOP_LEFT, "HL");
             break;
         case EVENT_TICK:
             // If needed, update your display here.

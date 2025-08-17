@@ -395,7 +395,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
         movement_force_led_on(movement_get_color_val(color.red),
                               movement_get_color_val(color.green),
                               movement_get_color_val(color.blue));
-        return true;
+        return false;
     } else {
         movement_force_led_off();
         return true;

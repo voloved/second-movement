@@ -29,9 +29,9 @@
 static void clock_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CLOCK", "CL");
     if (subsecond % 2) {
-        if (movement_clock_mode_toggle()) watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Button", "Btn");
-        else if (movement_clock_mode_24h()) watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "24Hour", "24h");
-        else watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "12Hour", "12h");
+        if (movement_clock_mode_toggle()) watch_display_text(WATCH_POSITION_BOTTOM, "Btn");
+        else if (movement_clock_mode_24h()) watch_display_text(WATCH_POSITION_BOTTOM, "24h");
+        else watch_display_text(WATCH_POSITION_BOTTOM, "12h");
     }
 }
 
@@ -149,6 +149,7 @@ static void low_energy_setting_advance(void) {
 }
 
 static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
+    bool is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DPS", "LE");
     watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "LP", "ds");
     if (subsecond % 2) {

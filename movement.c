@@ -87,6 +87,7 @@ typedef struct {
     volatile bool exit_sleep_mode;
     volatile bool is_sleeping;
     volatile bool movement_request_screen_forced_off_on_next_tick;
+    volatile bool woke_for_buzzer;
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
@@ -296,6 +297,7 @@ static inline void _movement_reset_inactivity_countdown(void) {
     );
 
     movement_state.le_mode_and_not_worn_hours = 0;
+    movement_volatile_state.woke_for_buzzer = false;
     movement_volatile_state.schedule_next_comp = true;
 }
 
@@ -607,6 +609,7 @@ void movement_cancel_background_task_for_face(uint8_t watch_face_index) {
 
 void movement_request_sleep(void) {
     movement_volatile_state.enter_sleep_mode = true;
+    movement_volatile_state.woke_for_buzzer = false;
 }
 
 void movement_request_screen_forced_off(void) {
@@ -1028,6 +1031,7 @@ void app_init(void) {
     movement_volatile_state.exit_sleep_mode = false;
     movement_volatile_state.has_pending_sequence = false;
     movement_volatile_state.is_sleeping = false;
+    movement_volatile_state.woke_for_buzzer = false;
 
     movement_volatile_state.is_buzzing = false;
     movement_volatile_state.pending_sequence_priority = 0;
@@ -1248,7 +1252,7 @@ void app_setup(void) {
 
         movement_request_tick_frequency(1);
 
-        if (movement_volatile_state.enter_sleep_mode && movement_volatile_state.is_buzzing) return;
+        if (movement_volatile_state.woke_for_buzzer) return;
         // LCD autodetect uses the buttons as a a failsafe, so we should run it before we enable the button interrupts
         watch_enable_display();
         
@@ -1422,6 +1426,7 @@ bool app_loop(void) {
         _sleep_mode_app_loop();
         // as soon as _sleep_mode_app_loop returns, we prepare to reactivate
 
+        movement_volatile_state.woke_for_buzzer = movement_volatile_state.has_pending_sequence;
         // // this is a hack tho: waking from sleep mode, app_setup does get called, but it happens before we have reset our ticks.
         // // need to figure out if there's a better heuristic for determining how we woke up.
         app_setup();
@@ -1586,7 +1591,7 @@ void cb_minute_alarm_fired(void) {
 }
 
 void cb_tick(void) {
-    if (movement_volatile_state.enter_sleep_mode && movement_volatile_state.is_buzzing) return;
+    if (movement_volatile_state.woke_for_buzzer) return;
     rtc_counter_t counter = watch_rtc_get_counter();
     uint32_t freq = watch_rtc_get_frequency();
     uint32_t half_freq = freq >> 1;

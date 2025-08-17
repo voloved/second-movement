@@ -71,6 +71,7 @@ void * watch_face_contexts[MOVEMENT_NUM_FACES];
 watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
 const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 600, 3600, 7200, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
+static bool _woke_up_for_buzzer;
 movement_event_t event;
 
 int8_t _movement_dst_offset_cache[NUM_ZONE_NAMES] = {0};
@@ -141,6 +142,7 @@ static bool _movement_update_dst_offset_cache(void) {
 static inline void _movement_reset_inactivity_countdown(void) {
     movement_state.le_mode_ticks = movement_le_inactivity_deadlines[movement_state.settings.bit.le_interval];
     movement_state.timeout_ticks = movement_timeout_inactivity_deadlines[movement_state.settings.bit.to_interval];
+    _woke_up_for_buzzer = false;
 }
 
 static inline void _reset_debounce_ticks(void) {
@@ -877,6 +879,7 @@ void app_setup(void) {
         watch_enable_leds();
 
         movement_request_tick_frequency(1);
+        if (_woke_up_for_buzzer) return;
 
         for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
             watch_faces[i].setup(i, &watch_face_contexts[i]);
@@ -912,7 +915,6 @@ static void _sleep_mode_app_loop(void) {
 
 bool app_loop(void) {
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
-    bool woke_up_for_buzzer = false;
 
     if (movement_state.watch_face_changed) {
         if (movement_state.settings.bit.button_should_sound) {
@@ -954,16 +956,17 @@ bool app_loop(void) {
         watch_register_extwake_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, true);
         event.event_type = EVENT_NONE;
         event.subsecond = 0;
+        _woke_up_for_buzzer = false;
 
         // _sleep_mode_app_loop takes over at this point and loops until le_mode_ticks is reset by the extwake handler,
         // or wake is requested using the movement_request_wake function.
         _sleep_mode_app_loop();
         // as soon as _sleep_mode_app_loop returns, we prepare to reactivate
         // ourselves, but first, we check to see if we woke up for the buzzer:
-        if (movement_state.is_buzzing) {
-            woke_up_for_buzzer = true;
+        _woke_up_for_buzzer = movement_state.is_buzzing;
+        if (!_woke_up_for_buzzer) {
+            event.event_type = EVENT_ACTIVATE;
         }
-        event.event_type = EVENT_ACTIVATE;
         _reset_debounce_ticks();  // Likely unneeded, but good to reset the debounce timers on wake.
         // this is a hack tho: waking from sleep mode, app_setup does get called, but it happens before we have reset our ticks.
         // need to figure out if there's a better heuristic for determining how we woke up.
@@ -1044,7 +1047,7 @@ bool app_loop(void) {
     if (movement_state.watch_face_changed) can_sleep = false;
 
     // if we woke up for the buzzer, stay awake until it's finished.
-    if (woke_up_for_buzzer) {
+    if (_woke_up_for_buzzer) {
         while(watch_is_buzzer_or_led_enabled());
     }
 
@@ -1225,7 +1228,7 @@ void cb_fast_tick(void) {
 }
 
 void cb_tick(void) {
-    event.event_type = EVENT_TICK;
+    if (!_woke_up_for_buzzer) event.event_type = EVENT_TICK;
     watch_date_time_t date_time = watch_rtc_get_date_time();
     if (date_time.unit.second != movement_state.last_second) {
         // TODO: can we consolidate these two ticks?

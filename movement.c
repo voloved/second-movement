@@ -787,7 +787,14 @@ void app_setup(void) {
             is_first_launch = false;
         }
 
-#if __EMSCRIPTEN__
+#ifdef BUILD_TIMEZONE
+        for (int i = 0; i < NUM_ZONE_NAMES; i++) {
+            if (movement_get_current_timezone_offset_for_zone(i) == BUILD_TIMEZONE * 60) {
+                movement_state.settings.bit.time_zone = i;
+                break;
+            }
+        }
+#elif __EMSCRIPTEN__
         int32_t time_zone_offset = EM_ASM_INT({
             return -new Date().getTimezoneOffset();
         });

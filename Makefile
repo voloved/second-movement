@@ -12,6 +12,7 @@ DEFAULT_DISPLAY = custom
 # - sensorwatch_blue
 # BOARD=sensorwatch_pro
 
+ifeq (,$(filter clean install,$(MAKECMDGOALS)))
 ifndef BOARD
   BOARD = $(DEFAULT_BOARD)
   $(info Setting Board to: $(BOARD))
@@ -22,6 +23,7 @@ endif
 ifeq ($(DISPLAY),:0)
     DISPLAY = $(DEFAULT_DISPLAY)
     $(info Setting Display to: $(DISPLAY))
+endif
 endif
 
 # End of user configurable options.

@@ -205,7 +205,7 @@ bool set_time_face_loop(movement_event_t event, void *context) {
 }
 
 void set_time_face_resign(void *context) {
-    uint8_t current_page = *((uint8_t *)context);
+    (void) context;
     watch_set_led_off();
     movement_store_settings();
     movement_request_tick_frequency(1);

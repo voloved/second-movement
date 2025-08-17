@@ -215,7 +215,7 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(clock_state_t));
         clock_state_t *state = (clock_state_t *) *context_ptr;
-        state->time_signal_enabled = false;
+        state->time_signal_enabled = true;
         state->watch_face_index = watch_face_index;
     }
 }

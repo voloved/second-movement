@@ -150,12 +150,8 @@ static void low_energy_setting_advance(void) {
 
 static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
     bool is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
-    if (is_custom_lcd) {
-        watch_display_text(WATCH_POSITION_TOP_LEFT, "DPSLP");
-    } else {
-        watch_display_text(WATCH_POSITION_TOP_LEFT, "LE");
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, "ds");
-    }
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DPS", "LE");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "LP", "ds");
     if (subsecond % 2) {
         switch (movement_get_low_energy_screen_off_setting()) {
             case MOVEMENT_LE_SCREEN_OFF_DISABLE:
@@ -278,7 +274,8 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         *context_ptr = malloc(sizeof(settings_state_t));
         settings_state_t *state = (settings_state_t *)*context_ptr;
         int8_t current_setting = 0;
-
+        state->current_page = 0;
+        state->retain_curr_pos = false;
         state->num_settings = 6; // baseline, without LED settings
 #ifdef BUILD_GIT_HASH
         state->num_settings++;
@@ -351,10 +348,10 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void settings_face_activate(void *context) {
     settings_state_t *state = (settings_state_t *)context;
-    if (!state->dont_reset_page_location) {
+    if (!state->retain_curr_pos || state->current_page >= state->num_settings) {
         state->current_page = 0;
     }
-    state->dont_reset_page_location = false;
+    state->retain_curr_pos = false;
     movement_request_tick_frequency(4); // we need to manually blink some pixels
 }
 
@@ -365,7 +362,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_DOWN:
             if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
                 && state->current_page == state->screen_off_screen) {
-                state->dont_reset_page_location = true;
+                state->retain_curr_pos = true;
                 movement_request_screen_forced_off_on_next_tick();
             }else {
                 state->current_page = (state->current_page + 1) % state->num_settings;

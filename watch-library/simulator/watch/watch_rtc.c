@@ -71,9 +71,6 @@ bool _watch_rtc_is_enabled(void) {
 }
 
 void _watch_rtc_init(void) {
-#ifdef MAKEFILE_TIMEZONE
-    int32_t time_zone_offset = MAKEFILE_TIMEZONE * 60;
-#else
     for (uint8_t index = 0; index < 8; ++index) {
         tick_callbacks[index] = NULL;
     }
@@ -126,11 +123,13 @@ uint32_t watch_rtc_get_ticks_per_minute(void) {
 
 rtc_date_time_t watch_get_init_date_time(void) {
     rtc_date_time_t date_time = {0};
-
+#ifdef BUILD_TIMEZONE
+    int32_t time_zone_offset = BUILD_TIMEZONE * 60;
+#else
     int32_t time_zone_offset = EM_ASM_INT({
         return new Date().getTimezoneOffset() * 60 * 1000; // ms
     });
-
+#endif
     date_time.reg = EM_ASM_INT({
         const date = new Date(Date.now() + $0);
         return date.getSeconds() |

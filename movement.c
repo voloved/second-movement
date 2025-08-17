@@ -1158,9 +1158,9 @@ void app_setup(void) {
         // populate the DST offset cache
         _movement_update_dst_offset_cache(movement_get_utc_date_time());
 
-#ifdef MAKEFILE_TIMEZONE
+#ifdef BUILD_TIMEZONE
         for (int i = 0; i < NUM_ZONE_NAMES; i++) {
-            if (movement_get_current_timezone_offset_for_zone(i) == MAKEFILE_TIMEZONE * 60) {
+            if (movement_get_current_timezone_offset_for_zone(i) == BUILD_TIMEZONE * 60) {
                 movement_state.settings.bit.time_zone = i;
                 break;
             }

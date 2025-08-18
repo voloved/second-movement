@@ -335,6 +335,12 @@ void watch_stop_blink(void) {
     slcd_set_blink_enabled(false);
 }
 
+void watch_set_sleep_indicator_if_possible(void) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+        watch_set_indicator(WATCH_INDICATOR_SLEEP);
+    }
+}
+
 void watch_start_sleep_animation(uint32_t duration) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         // on pro LCD, we just show the sleep indicator
@@ -372,6 +378,12 @@ bool watch_sleep_animation_is_running(void) {
     }
 }
 
+void watch_clear_sleep_indicator_if_possible(void) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+        watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+    }
+}
+
 void watch_stop_sleep_animation(void) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_indicator(WATCH_INDICATOR_SLEEP);
@@ -380,3 +392,4 @@ void watch_stop_sleep_animation(void) {
         watch_display_character(' ', 8);
     }
 }
+

@@ -1041,6 +1041,7 @@ bool app_loop(void) {
         event.event_type = EVENT_NONE;
         event.subsecond = 0;
         _woke_up_for_buzzer = false;
+        watch_set_sleep_indicator_if_possible();
 
         // _sleep_mode_app_loop takes over at this point and loops until le_mode_ticks is reset by the extwake handler,
         // or wake is requested using the movement_request_wake function.
@@ -1049,6 +1050,7 @@ bool app_loop(void) {
         // ourselves, but first, we check to see if we woke up for the buzzer:
         _woke_up_for_buzzer = movement_state.is_buzzing;
         if (!_woke_up_for_buzzer) {
+            watch_clear_sleep_indicator_if_possible();
             event.event_type = EVENT_ACTIVATE;
         }
         _reset_debounce_ticks();  // Likely unneeded, but good to reset the debounce timers on wake.

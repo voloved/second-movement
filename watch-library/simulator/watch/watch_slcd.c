@@ -102,6 +102,12 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
     /// TODO: For #SecondMovement, implement this on simulator
 }
 
+void watch_set_sleep_indicator_if_possible(void) {
+#if defined(FORCE_CUSTOM_LCD_TYPE)
+    watch_set_indicator(WATCH_INDICATOR_SLEEP);
+#endif
+}
+
 void watch_stop_blink(void) {
     emscripten_clear_timeout(blink_interval_id);
     blink_interval_id = -1;
@@ -129,6 +135,12 @@ void watch_start_sleep_animation(uint32_t duration) {
 
 bool watch_sleep_animation_is_running(void) {
     return tick_interval_id != -1;
+}
+
+void watch_clear_sleep_indicator_if_possible(void) {
+#if defined(FORCE_CUSTOM_LCD_TYPE)
+    watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+#endif
 }
 
 void watch_stop_sleep_animation(void) {

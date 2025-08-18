@@ -254,6 +254,10 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
   */
 void watch_stop_blink(void);
 
+/** @brief Turns on the sleep indicator if it's the custom display
+  */
+void watch_set_sleep_indicator_if_possible(void);
+
 /** @brief Begins a two-segment "tick-tock" animation in position 8 on the classic LCD, or energizes
  *         the crescent moon icon on the custom LCD to indicate a sleep mode.
   * @details On the classic Casio LCD, six of the seven segments in position 8 can animate themselves
@@ -274,6 +278,10 @@ void watch_start_sleep_animation(uint32_t duration);
   *         false otherwise.
   */
 bool watch_sleep_animation_is_running(void);
+
+/** @brief Turns off the sleep indicator if it's the custom display
+  */
+void watch_clear_sleep_indicator_if_possible(void);
 
 /** @brief Stops the tick/tock animation and clears all animating segments.
   * @details On the classic LCD this will stop the animation and clear all segments in position 8.

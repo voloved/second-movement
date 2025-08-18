@@ -29,6 +29,7 @@
 
 #define TALLY_FACE_MAX 9999
 #define TALLY_FACE_MIN -999
+#define TALLY_FACE_PRESETS_MTG
 
 static bool _init_val;
 static bool _quick_ticks_running;

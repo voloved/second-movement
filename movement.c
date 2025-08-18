@@ -1260,6 +1260,7 @@ void app_setup(void) {
             watch_faces[i].setup(i, &watch_face_contexts[i]);
         }
 
+        watch_clear_sleep_indicator_if_possible();
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
     }
@@ -1416,6 +1417,7 @@ bool app_loop(void) {
         movement_volatile_state.enter_sleep_mode = false;
         movement_volatile_state.is_sleeping = true;
 
+        watch_set_sleep_indicator_if_possible();
         // No need to fire resign and sleep interrupts while in sleep mode
         _movement_disable_inactivity_countdown();
 

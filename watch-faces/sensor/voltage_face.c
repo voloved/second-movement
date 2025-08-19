@@ -48,7 +48,6 @@ bool voltage_face_loop(movement_event_t event, void *context) {
     watch_date_time_t date_time;
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             _voltage_face_update_display();
             break;
         case EVENT_TICK:
@@ -61,11 +60,6 @@ bool voltage_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            // clear seconds area (on classic LCD) and start tick animation if necessary
-            if (!watch_sleep_animation_is_running()) {
-                watch_display_text_with_fallback(WATCH_POSITION_SECONDS, " V", "  ");
-                watch_start_sleep_animation(1000);
-            }
             // update once an hour
             if (date_time.unit.minute == 0) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);

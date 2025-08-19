@@ -155,7 +155,6 @@ void world_clock_face_activate(void *context) {
     _update_timezone_offset(state);
 
     if (watch_sleep_animation_is_running()) {
-        watch_stop_sleep_animation();
         watch_stop_blink();
     }
 }
@@ -213,7 +212,6 @@ static bool world_clock_face_do_display_mode(movement_event_t event, world_clock
                 if (event.event_type == EVENT_LOW_ENERGY_UPDATE) {
                     if (!watch_sleep_animation_is_running()) {
                         watch_display_text(WATCH_POSITION_SECONDS, "  ");
-                        watch_start_sleep_animation(500);
                         watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
                     }
                 } else {

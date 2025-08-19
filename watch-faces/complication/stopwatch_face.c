@@ -78,8 +78,6 @@ static void _stopwatch_face_update_display(stopwatch_state_t *stopwatch_state, b
 }
 
 void stopwatch_face_activate(void *context) {
-    if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
-
     stopwatch_state_t *stopwatch_state = (stopwatch_state_t *)context;
     if (stopwatch_state->running) {
         // because the low power update happens on the minute mark, and the wearer could start
@@ -147,13 +145,7 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
             // explicitly ignore the timeout event so we stay on screen
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            if (!watch_sleep_animation_is_running()) watch_start_sleep_animation(1000);
-            if (!stopwatch_state->running) {
-                // since the tick animation is running, displaying the stopped time could be misleading,
-                // as it could imply that the stopwatch is running. instead, show a blank display to
-                // indicate that we are in sleep mode.
-                watch_display_text(WATCH_POSITION_BOTTOM, "----  ");
-            } else {
+            if (stopwatch_state->running) {
                 // this OTOH shouldn't happen anymore; if we're running, we shouldn't enter low energy mode
                 _stopwatch_face_update_display(stopwatch_state, false);
                 watch_set_indicator(WATCH_INDICATOR_BELL);

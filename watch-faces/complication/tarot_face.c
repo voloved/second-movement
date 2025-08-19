@@ -305,7 +305,6 @@ bool tarot_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             tarot_display(state);
             break;
         case EVENT_TICK:
@@ -351,9 +350,6 @@ bool tarot_face_loop(movement_event_t event, void *context) {
             movement_request_tick_frequency(TAROT_ANIMATION_TICK_FREQUENCY);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            if (!watch_sleep_animation_is_running()) {
-                watch_start_sleep_animation(1000);
-            }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             // don't light up every time light is hit

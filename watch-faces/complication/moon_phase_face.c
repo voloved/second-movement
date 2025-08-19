@@ -158,7 +158,6 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             _update(state, state->offset);
             break;
         case EVENT_TICK:
@@ -172,11 +171,6 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
             if (state->offset || (watch_rtc_get_date_time().unit.minute == 0)) _update(state, 0);
             // and kill the offset so when the wearer wakes up, it matches what's on screen.
             state->offset = 0;
-            if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
-                // clear out the last two digits and replace them with the sleep mode indicator
-                watch_display_text(WATCH_POSITION_SECONDS, "  ");
-            }
-            if (!watch_sleep_animation_is_running()) watch_start_sleep_animation(1000);
             break;
         case EVENT_ALARM_BUTTON_UP:
             // Pressing the alarm adds an offset of one day to the displayed value,

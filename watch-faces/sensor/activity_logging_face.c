@@ -90,9 +90,6 @@ bool activity_logging_face_loop(movement_event_t event, void *context) {
             state->display_index = (state->display_index + 1) % ACTIVITY_LOGGING_NUM_DAYS;
             // fall through
         case EVENT_ACTIVATE:
-            if (watch_sleep_animation_is_running()) {
-                watch_stop_sleep_animation();
-            }
             _activity_logging_face_update_display(state);
             break;
         case EVENT_TICK:
@@ -111,8 +108,6 @@ bool activity_logging_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            // start tick animation if necessary
-            if (!watch_sleep_animation_is_running()) watch_start_sleep_animation(1000);
             // update the display as usual
             _activity_logging_face_update_display(state);
             break;

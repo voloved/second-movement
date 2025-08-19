@@ -62,7 +62,6 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 movement_move_to_next_face();
                 return false;
             }
-            if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP", "TE");
             // force a measurement to be taken immediately.
             date_time.unit.second = 0;
@@ -79,10 +78,6 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
-            // clear seconds area and start tick animation if necessary
-            if (!watch_sleep_animation_is_running()) {
-                watch_start_sleep_animation(1000);
-            }
             // update every 5 minutes
             if (date_time.unit.minute % 5 == 0) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);

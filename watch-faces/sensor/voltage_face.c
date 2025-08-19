@@ -91,7 +91,7 @@ static void _voltage_face_logging_update_display(voltage_face_state_t *logger_st
             date_time.unit.hour %= 12;
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
-        watch_display_text(WATCH_POSITION_TOP_LEFT, "AT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
         sprintf(buf, "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         sprintf(buf, "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);

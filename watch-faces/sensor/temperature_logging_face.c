@@ -82,6 +82,7 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
     if (pos < 0) {
         // no data at this index
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL");
+        watch_clear_decimal_if_available();
         watch_display_text(WATCH_POSITION_BOTTOM, "no dat");
         sprintf(buf, "%2d", logger_state->display_index);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -96,7 +97,7 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
             date_time.unit.hour %= 12;
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
-        watch_display_text(WATCH_POSITION_TOP_LEFT, "AT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
         sprintf(buf, "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         sprintf(buf, "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);

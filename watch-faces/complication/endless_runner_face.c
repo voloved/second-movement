@@ -525,6 +525,7 @@ void endless_runner_face_activate(void *context) {
     ball_arr_seg = is_custom_lcd ? custom_ball_arr_seg : classic_ball_arr_seg;
     obstacle_arr_com = is_custom_lcd ? custom_obstacle_arr_com : classic_obstacle_arr_com;
     obstacle_arr_seg = is_custom_lcd ? custom_obstacle_arr_seg : classic_obstacle_arr_seg;
+    movement_enable_tap_detection_if_available();
 }
 
 bool endless_runner_face_loop(movement_event_t event, void *context) {
@@ -546,6 +547,10 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
                 break;
             }
             break;
+        case EVENT_SINGLE_TAP:
+        case EVENT_DOUBLE_TAP:
+            if (state->difficulty > DIFF_HARD) break; // Don't do this on fuel modes
+            //fall through
         case EVENT_LIGHT_BUTTON_UP:
         case EVENT_ALARM_BUTTON_UP:
             if (game_state.curr_screen == SCREEN_TITLE)
@@ -588,5 +593,6 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
 
 void endless_runner_face_resign(void *context) {
     (void) context;
+    movement_disable_tap_detection_if_available();
 }
 

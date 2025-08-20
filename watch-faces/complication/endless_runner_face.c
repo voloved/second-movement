@@ -515,6 +515,7 @@ void endless_runner_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         memset(*context_ptr, 0, sizeof(endless_runner_state_t));
         endless_runner_state_t *state = (endless_runner_state_t *)*context_ptr;
         state->difficulty = DIFF_FUEL_1;
+        state->tap_control_on = false;
     }
 }
 
@@ -525,13 +526,16 @@ void endless_runner_face_activate(void *context) {
     ball_arr_seg = is_custom_lcd ? custom_ball_arr_seg : classic_ball_arr_seg;
     obstacle_arr_com = is_custom_lcd ? custom_obstacle_arr_com : classic_obstacle_arr_com;
     obstacle_arr_seg = is_custom_lcd ? custom_obstacle_arr_seg : classic_obstacle_arr_seg;
-    movement_enable_tap_detection_if_available();
 }
 
 bool endless_runner_face_loop(movement_event_t event, void *context) {
     endless_runner_state_t *state = (endless_runner_state_t *)context;
     switch (event.event_type) {
         case EVENT_ACTIVATE:
+            if (state->tap_control_on) {
+                movement_disable_tap_detection_if_available();
+                state->tap_control_on = false;
+            }
             check_and_reset_hi_score(state);
             if (state -> soundOn) watch_set_indicator(WATCH_INDICATOR_BELL);
             display_title(state);
@@ -549,10 +553,16 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_BUTTON_UP:
         case EVENT_ALARM_BUTTON_UP:
-            if (game_state.curr_screen == SCREEN_TITLE)
+            if (game_state.curr_screen == SCREEN_TITLE) {
+                if (!state->tap_control_on) {
+                    movement_enable_tap_detection_if_available();
+                    state->tap_control_on = true;
+                }
                 begin_playing(state);
-            else if (game_state.curr_screen == SCREEN_LOSE)
+            }
+            else if (game_state.curr_screen == SCREEN_LOSE) {
                 display_title(state);
+            }
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (game_state.curr_screen == SCREEN_TITLE)
@@ -597,7 +607,10 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
 }
 
 void endless_runner_face_resign(void *context) {
-    (void) context;
-    movement_disable_tap_detection_if_available();
+    endless_runner_state_t *state = (endless_runner_state_t *)context;
+    if (state->tap_control_on) {
+        movement_disable_tap_detection_if_available();
+        state->tap_control_on = false;
+    }
 }
 

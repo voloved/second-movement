@@ -42,7 +42,8 @@ typedef struct {
     uint8_t month_last_hi_score : 4;
     uint8_t year_last_hi_score : 6;
     uint8_t soundOn : 1;
-    /* 24 bits, likely aligned to 32 bits = 4 bytes */
+    bool tap_control_on;
+    /* 25 bits, likely aligned to 32 bits = 4 bytes */
 } endless_runner_state_t;
 
 void endless_runner_face_setup(uint8_t watch_face_index, void ** context_ptr);

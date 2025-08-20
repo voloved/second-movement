@@ -35,7 +35,6 @@ const watch_face_t watch_faces[] = {
     tally_face,
     sunrise_sunset_face,
     moon_phase_face,
-    activity_logging_face,
 // Start of Secondary Faces
     settings_face,
     set_time_face,
@@ -47,6 +46,7 @@ const watch_face_t watch_faces[] = {
     wordle_face,
     higher_lower_game_face,
     lander_face,
+    simon_face,
     party_face,
     festival_schedule_face
 };

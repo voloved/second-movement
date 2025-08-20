@@ -149,7 +149,6 @@ static void low_energy_setting_advance(void) {
 }
 
 static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
-    bool is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DPS", "LE");
     watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "LP", "ds");
     if (subsecond % 2) {

@@ -181,7 +181,7 @@ static void _display_act(festival_schedule_state_t *state){
     sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (popularity <= max_pop_display && popularity > 0) {
-        sprintf(buf, "%2d", festival_acts[state->curr_act].popularity);
+        sprintf(buf, "%2d", popularity);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     } else {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
@@ -260,7 +260,7 @@ static void _display_festival_name_and_year() {
 }
 
 static bool _festival_occurring(watch_date_time_t curr_time, bool update_display){
-    char buf[MAX_LENGTH + 1];
+    char buf[11];
     if (_compare_dates_times(_starting_time, curr_time) > 0){
         _display_festival_name_and_year();
         int16_t days_until = _get_days_until(_starting_time, curr_time);

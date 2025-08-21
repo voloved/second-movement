@@ -110,13 +110,13 @@ static float temperature_last_read_c = (float)0xFFFFFFFF;
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
     BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_REST, 7,
     BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_REST, 7,
     BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 4,
-    BUZZER_NOTE_C8, 6,
-    BUZZER_NOTE_REST, 18,
+    BUZZER_NOTE_REST, 7,
+    BUZZER_NOTE_C8, 4,
+    BUZZER_NOTE_REST, 27,
     -8, 9,
     0
 };
@@ -644,9 +644,9 @@ void movement_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {
     static int8_t single_note_sequence[3];
 
     single_note_sequence[0] = note;
-    // 48 ticks per second for the tc0?
-    // Each tick is approximately 20ms
-    uint16_t duration = duration_ms / 20;
+    // 64 ticks per second for the tc0
+    // Each tick is approximately 15ms
+    uint16_t duration = duration_ms / 15;
     if (duration > 127) duration = 127;
     single_note_sequence[1] = (int8_t)duration;
     single_note_sequence[2] = 0;

@@ -44,7 +44,6 @@ uint8_t IndicatorSegments[8] = {
 };
 
 void watch_display_character(uint8_t character, uint8_t position) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
         else if (character == 'T' && position > 1 && position < 8) character = 't'; // lowercase t is the only option for these positions
@@ -128,7 +127,6 @@ void watch_display_character(uint8_t character, uint8_t position) {
 }
 
 void watch_display_character_lp_seconds(uint8_t character, uint8_t position) {
-    if (movement_is_screen_forced_off()) return;
     // Will only work for digits and for positions  8 and 9 - but less code & checks to reduce power consumption
 
     digit_mapping_t segmap;
@@ -165,7 +163,6 @@ void watch_display_character_lp_seconds(uint8_t character, uint8_t position) {
 }
 
 void watch_display_string(const char *string, uint8_t position) {
-    if (movement_is_screen_forced_off()) return;
     size_t i = 0;
     while(string[i] != 0) {
         watch_display_character(string[i], position + i);
@@ -175,7 +172,6 @@ void watch_display_string(const char *string, uint8_t position) {
 }
 
 void watch_display_text(watch_position_t location, const char *string) {
-    if (movement_is_screen_forced_off()) return;
     switch (location) {
         case WATCH_POSITION_TOP:
         case WATCH_POSITION_TOP_LEFT:
@@ -234,7 +230,6 @@ void watch_display_text(watch_position_t location, const char *string) {
 }
 
 void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         switch (location) {
             case WATCH_POSITION_TOP:
@@ -289,7 +284,6 @@ void watch_display_text_with_fallback(watch_position_t location, const char *str
 }
 
 void watch_display_float_with_best_effort(float value, const char *units) {
-    if (movement_is_screen_forced_off()) return;
     char buf[8];
     char buf_fallback[8];
     const char *blank_units = "  ";
@@ -337,7 +331,6 @@ void watch_display_float_with_best_effort(float value, const char *units) {
 }
 
 void watch_set_colon(void) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 0);
     } else {
@@ -346,7 +339,6 @@ void watch_set_colon(void) {
 }
 
 void watch_clear_colon(void) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 0);
     } else {
@@ -355,21 +347,18 @@ void watch_clear_colon(void) {
 }
 
 void watch_set_decimal_if_available(void) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 14);
     }
 }
 
 void watch_clear_decimal_if_available(void) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 14);
     }
 }
 
 void watch_set_indicator(watch_indicator_t indicator) {
-    if (movement_is_screen_forced_off()) return;
     uint32_t value = IndicatorSegments[indicator];
     uint8_t com = SLCD_COMNUM(value);
     uint8_t seg = SLCD_SEGNUM(value);
@@ -377,7 +366,6 @@ void watch_set_indicator(watch_indicator_t indicator) {
 }
 
 void watch_clear_indicator(watch_indicator_t indicator) {
-    if (movement_is_screen_forced_off()) return;
     uint32_t value = IndicatorSegments[indicator];
     uint8_t com = SLCD_COMNUM(value);
     uint8_t seg = SLCD_SEGNUM(value);
@@ -385,7 +373,6 @@ void watch_clear_indicator(watch_indicator_t indicator) {
 }
 
 void watch_clear_all_indicators(void) {
-    if (movement_is_screen_forced_off()) return;
     /// TODO: Optimize this? Can be 3-4 writes to SDATAL registers
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
     watch_clear_indicator(WATCH_INDICATOR_BELL);
@@ -397,7 +384,6 @@ void watch_clear_all_indicators(void) {
 }
 
 void _watch_update_indicator_segments(void) {
-    if (movement_is_screen_forced_off()) return;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         IndicatorSegments[0] = SLCD_SEGID(0, 21); // WATCH_INDICATOR_SIGNAL
         IndicatorSegments[1] = SLCD_SEGID(1, 21); // WATCH_INDICATOR_BELL

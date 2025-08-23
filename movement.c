@@ -279,7 +279,7 @@ static void _movement_handle_top_of_minute(void) {
         }
     }
     // Don't turn off the display during hour where people are unlikely to wear it
-    if (date_time.unit.minute == 0 && date_time.unit.hour >= 8 && date_time.unit.hour < 22) {
+    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
         _check_for_deep_sleep();
     }
     movement_state.woke_from_alarm_handler = false;
@@ -610,6 +610,10 @@ void movement_set_local_date_time(watch_date_time_t date_time) {
     int32_t current_offset = movement_get_current_timezone_offset();
     watch_date_time_t utc_date_time = watch_utility_date_time_convert_zone(date_time, current_offset, 0);
     watch_rtc_set_date_time(utc_date_time);
+}
+
+bool movement_in_chime_interval(uint8_t hour) {
+    return hour >= MOVEMENT_HOURLY_CHIME_START && hour < MOVEMENT_HOURLY_CHIME_END;
 }
 
 bool movement_button_should_sound(void) {

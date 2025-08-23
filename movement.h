@@ -366,6 +366,7 @@ bool movement_update_dst_offset_cache_if_needed(watch_date_time_t utc_now);
 
 void movement_set_local_date_time(watch_date_time_t date_time);
 
+bool movement_in_chime_interval(uint8_t hour);
 bool movement_button_should_sound(void);
 void movement_set_button_should_sound(bool value);
 

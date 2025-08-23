@@ -124,6 +124,9 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LED_DURATION 1
 
+#define MOVEMENT_HOURLY_CHIME_START 8  // First hour we chime
+#define MOVEMENT_HOURLY_CHIME_END 20  // First hour we don't chime
+
 /* The latitude and longitude used for the wearers location
  * Set signed values in 1/100ths of a degree
  * Set lat and long for Raleigh (3578, -7864)

@@ -32,7 +32,7 @@
 #include "probability_face.h"
 #include "watch_common_display.h"
 
-#define DEFAULT_DICE_SIDES 2
+#define DEFAULT_DICE_SIDES 20
 #define PROBABILITY_ANIMATION_TICK_FREQUENCY 8
 #define TAP_DETECTION_SECONDS 5
 #define ANIMATION_FRAMES 4
@@ -216,6 +216,8 @@ void probability_face_setup(uint8_t watch_face_index, void **context_ptr)
     {
         *context_ptr = malloc(sizeof(probability_state_t));
         memset(*context_ptr, 0, sizeof(probability_state_t));
+        probability_state_t *state = (probability_state_t *)*context_ptr;
+        state->dice_sides = DEFAULT_DICE_SIDES;
     }
 // Emulator only: Seed random number generator
 #if __EMSCRIPTEN__
@@ -226,8 +228,6 @@ void probability_face_setup(uint8_t watch_face_index, void **context_ptr)
 void probability_face_activate(void *context)
 {
     probability_state_t *state = (probability_state_t *)context;
-
-    state->dice_sides = DEFAULT_DICE_SIDES;
     state->rolled_value = 0;
 
     // Display face identifier
@@ -282,9 +282,6 @@ bool probability_face_loop(movement_event_t event, void *context)
 
         // Reset tap detection timer to keep accelerometer active
         state->tap_detection_ticks = TAP_DETECTION_SECONDS;
-        break;
-    case EVENT_LOW_ENERGY_UPDATE:
-        watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
         break;
     default:
         movement_default_loop_handler(event);

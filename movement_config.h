@@ -33,6 +33,7 @@ const watch_face_t watch_faces[] = {
     countdown_face,
     advanced_alarm_face,
     tally_face,
+    probability_face,
     sunrise_sunset_face,
     moon_phase_face,
     activity_logging_face,
@@ -49,7 +50,7 @@ const watch_face_t watch_faces[] = {
     lander_face,
     simon_face,
     party_face,
-    festival_schedule_face
+    festival_schedule_face,
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))

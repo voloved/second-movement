@@ -1308,6 +1308,11 @@ static void _sleep_mode_app_loop(void) {
         event.subsecond = 0;
         watch_faces[movement_state.current_face_idx].loop(event, watch_face_contexts[movement_state.current_face_idx]);
 
+        // Show the sleep indicator if the current watch face wouldn't have shown it otherwise.
+        if (!watch_sleep_animation_is_running()) {
+            watch_set_sleep_indicator_if_possible();
+        }
+
         // If any of the previous loops requested to wake up, do it!
         if (movement_volatile_state.exit_sleep_mode) {
             movement_volatile_state.exit_sleep_mode = false;
@@ -1434,7 +1439,6 @@ bool app_loop(void) {
         movement_volatile_state.enter_sleep_mode = false;
         movement_volatile_state.is_sleeping = true;
 
-        watch_set_sleep_indicator_if_possible();
         // No need to fire resign and sleep interrupts while in sleep mode
         _movement_disable_inactivity_countdown();
 

@@ -1656,11 +1656,15 @@ void cb_accelerometer_event(void) {
 
     if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
         movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
+#if __EMSCRIPTEN__
         printf("Double tap!\n");
+#endif
     }
     if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
         movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
+#if __EMSCRIPTEN__
         printf("Single tap!\n");
+#endif
     }
 }
 

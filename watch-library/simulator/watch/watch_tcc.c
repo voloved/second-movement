@@ -51,10 +51,6 @@ static inline void _em_interval_stop() {
     _em_interval_id = 0;
 }
 
-void watch_buzzer_play_sequence(int8_t *note_sequence, void (*callback_on_end)(void)) {
-    watch_buzzer_play_sequence_with_volume(note_sequence, callback_on_end, WATCH_BUZZER_VOLUME_LOUD);
-}
-
 void watch_buzzer_play_sequence_with_volume(int8_t *note_sequence, void (*callback_on_end)(void), watch_buzzer_volume_t volume) {
     watch_buzzer_abort_sequence();
 
@@ -117,10 +113,6 @@ void cb_watch_buzzer_seq(void *userData) {
             watch_buzzer_abort_sequence();
         }
     } else _tone_ticks--;
-}
-
-void watch_buzzer_play_raw_source(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end) {
-    watch_buzzer_play_raw_source_with_volume(raw_source, userdata, callback_on_end, WATCH_BUZZER_VOLUME_LOUD);
 }
 
 void watch_buzzer_play_raw_source_with_volume(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end, watch_buzzer_volume_t volume) {
@@ -262,10 +254,6 @@ void watch_set_buzzer_off(void) {
             audioContext._gain.gain.value = 0;
         }
     });
-}
-
-void watch_buzzer_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {
-    watch_buzzer_play_note_with_volume(note, duration_ms, WATCH_BUZZER_VOLUME_LOUD);
 }
 
 void watch_buzzer_play_note_with_volume(watch_buzzer_note_t note, uint16_t duration_ms, watch_buzzer_volume_t volume) {

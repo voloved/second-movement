@@ -52,13 +52,13 @@ void watch_enable_display(void) {
     _watch_update_indicator_segments();
 #endif
 
-    EM_ASM({
 #if defined(FORCE_CUSTOM_LCD_TYPE)
-        document.getElementById("classic").style.display = "none";
+    EM_ASM({document.getElementById("custom").style.display = "";});
+    EM_ASM({document.getElementById("classic").style.display = "none";});
 #else
-        document.getElementById("custom").style.display = "none";
+    EM_ASM({document.getElementById("custom").style.display = "none";});
+    EM_ASM({document.getElementById("classic").style.display = "";});
 #endif
-    });
 
     watch_clear_display();
 }

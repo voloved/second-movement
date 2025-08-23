@@ -733,7 +733,10 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 
 float movement_get_temperature(void) {
 #if __EMSCRIPTEN__
-    return 25;
+#include <emscripten.h>
+    return EM_ASM_DOUBLE({
+        return temp_c || 25.0;
+    });
 #endif
     float temperature_c = (float)0xFFFFFFFF;
 
@@ -834,7 +837,11 @@ void app_init(void) {
     }
 
     // populate the DST offset cache
+<<<<<<< HEAD
     _movement_update_dst_offset_cache(date_time);
+=======
+    _movement_update_dst_offset_cache();
+>>>>>>> default_temp_in_simulator
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 

@@ -643,14 +643,17 @@ void cb_buzzer_stop(void) {
 }
 
 void watch_buzzer_play_sequence(int8_t *note_sequence, void (*callback_on_end)(void)) {
+    if (movement_state.is_deep_sleeping) return;
     watch_buzzer_play_sequence_with_volume(note_sequence, callback_on_end, movement_button_volume());
 }
 
 void watch_buzzer_play_raw_source(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end) {
+    if (movement_state.is_deep_sleeping) return;
     watch_buzzer_play_raw_source_with_volume(raw_source, userdata, callback_on_end, movement_button_volume());
 }
 
 void watch_buzzer_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {
+    if (movement_state.is_deep_sleeping) return;
     watch_buzzer_play_note_with_volume(note, duration_ms, movement_button_volume());
 }
 

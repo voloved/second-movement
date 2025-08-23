@@ -46,8 +46,6 @@ watch_lcd_type_t watch_get_lcd_type(void) {
 }
 
 void watch_enable_display(void) {
-    EM_ASM({document.getElementById("classic").style.display = "";});
-    EM_ASM({document.getElementById("custom").style.display = "";});
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     _watch_update_indicator_segments();
 #endif

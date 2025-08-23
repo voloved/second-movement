@@ -82,6 +82,8 @@ typedef struct {
     int8_t num_settings;
     int8_t led_color_start;
     int8_t led_color_end;
+    int8_t screen_off_screen;
+    bool retain_curr_pos;
     settings_screen_t *settings_screens;
 } settings_state_t;
 

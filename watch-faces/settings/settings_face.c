@@ -148,6 +148,34 @@ static void low_energy_setting_advance(void) {
     movement_set_low_energy_timeout((movement_get_low_energy_timeout() + 1));
 }
 
+static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DPS", "LE");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "LP", "ds");
+    if (subsecond % 2) {
+        switch (movement_get_low_energy_screen_off_setting()) {
+            case MOVEMENT_LE_SCREEN_OFF_DISABLE:
+                watch_display_text(WATCH_POSITION_BOTTOM, "   OFF");
+                break;
+            case MOVEMENT_LE_SCREEN_OFF_ENABLE:
+                watch_display_text(WATCH_POSITION_BOTTOM, "   ON ");
+                break;
+            case MOVEMENT_LE_SCREEN_OFF_NOW:
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "   Now", "  Nowj");
+                break;
+            default:
+                break;
+        }
+    }
+    else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
+    }
+}
+
+static void low_energy_deep_sleep_setting_advance(void) {
+    movement_low_energy_screen_off_t next_mode = (movement_get_low_energy_screen_off_setting() + 1) % MOVEMENT_LE_SCREEN_OFF_MODES;
+    movement_set_low_energy_screen_off_setting(next_mode);
+}
+
 static void led_duration_setting_display(uint8_t subsecond) {
     char buf[8];
 
@@ -245,8 +273,9 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         *context_ptr = malloc(sizeof(settings_state_t));
         settings_state_t *state = (settings_state_t *)*context_ptr;
         int8_t current_setting = 0;
-
-        state->num_settings = 5; // baseline, without LED settings
+        state->current_page = 0;
+        state->retain_curr_pos = false;
+        state->num_settings = 6; // baseline, without LED settings
 #ifdef BUILD_GIT_HASH
         state->num_settings++;
 #endif
@@ -273,6 +302,10 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
         state->settings_screens[current_setting].display = low_energy_setting_display;
         state->settings_screens[current_setting].advance = low_energy_setting_advance;
+        current_setting++;
+        state->settings_screens[current_setting].display = low_energy_deep_sleep_setting_display;
+        state->settings_screens[current_setting].advance = low_energy_deep_sleep_setting_advance;
+        state->screen_off_screen = current_setting;
         current_setting++;
 #endif
         state->settings_screens[current_setting].display = led_duration_setting_display;
@@ -314,7 +347,9 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void settings_face_activate(void *context) {
     settings_state_t *state = (settings_state_t *)context;
-    state->current_page = 0;
+    if (!state->retain_curr_pos || state->current_page >= state->num_settings) {
+        state->current_page = 0;
+    }
     movement_request_tick_frequency(4); // we need to manually blink some pixels
 }
 
@@ -323,7 +358,15 @@ bool settings_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_LIGHT_BUTTON_DOWN:
-            state->current_page = (state->current_page + 1) % state->num_settings;
+            break;
+        case EVENT_LIGHT_BUTTON_UP:
+            if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
+                && state->current_page == state->screen_off_screen) {
+                state->retain_curr_pos = true;
+                movement_request_deep_sleep_on_next_tick();
+            }else {
+                state->current_page = (state->current_page + 1) % state->num_settings;
+            }
             // fall through
         case EVENT_TICK:
         case EVENT_ACTIVATE:
@@ -333,7 +376,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
         case EVENT_MODE_BUTTON_UP:
             movement_force_led_off();
             movement_move_to_next_face();
-            return false;
+            return true;
         case EVENT_ALARM_BUTTON_UP:
             state->settings_screens[state->current_page].advance();
             break;
@@ -357,7 +400,8 @@ bool settings_face_loop(movement_event_t event, void *context) {
 }
 
 void settings_face_resign(void *context) {
-    (void) context;
+    settings_state_t *state = (settings_state_t *)context;
+    state->retain_curr_pos = false;
     movement_force_led_off();
     movement_store_settings();
 }

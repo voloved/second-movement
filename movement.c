@@ -72,6 +72,7 @@ watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
 const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 5, 600, 3600, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 static bool _woke_up_for_buzzer;
+static bool _movement_request_deep_sleep_on_next_tick;
 movement_event_t event;
 
 static watch_date_time_t _dst_last_cache;
@@ -88,6 +89,8 @@ void cb_tick(void);
 
 void cb_accelerometer_event(void);
 void cb_accelerometer_wake(void);
+
+static float _temperature_last_read_c;
 
 #if __EMSCRIPTEN__
 void yield(void) {
@@ -190,8 +193,10 @@ static bool _movement_check_dst_changeover_occurring_now(watch_date_time_t date_
 }
 
 static inline void _movement_reset_inactivity_countdown(void) {
+    if (movement_state.is_deep_sleeping) return;
     movement_state.le_mode_ticks = movement_le_inactivity_deadlines[movement_state.settings.bit.le_interval];
     movement_state.timeout_ticks = movement_timeout_inactivity_deadlines[movement_state.settings.bit.to_interval];
+    movement_state.le_mode_and_not_worn_hours = 0;
     _woke_up_for_buzzer = false;
 }
 
@@ -229,6 +234,25 @@ static inline void _movement_disable_fast_tick_if_possible(void) {
     }
 }
 
+
+static void _check_for_deep_sleep(void) {
+    if(movement_state.settings.bit.screen_off_after_le != MOVEMENT_LE_SCREEN_OFF_ENABLE) return;
+    if (movement_state.is_deep_sleeping) return;
+    if(movement_state.le_mode_ticks != -1) return;
+    if (_temperature_last_read_c == (float)0xFFFFFFFF) return; // Ignore when the temp is not first read without affecting the timer.
+    // Reset whenever the temperature is high enough, so that way, we need multiple hours in a row before going into deep sleep.    
+    if (_temperature_last_read_c >= MOVEMENT_TEMPERATURE_ASSUME_WEARING) movement_state.le_mode_and_not_worn_hours = 0;
+    else if (MOVEMENT_HOURS_BEFORE_DEEPSLEEP > movement_state.le_mode_and_not_worn_hours) movement_state.le_mode_and_not_worn_hours++;
+    else {
+        // Re-check temperature in case the user wore the watch after the last reading.
+        float temperature = movement_get_temperature();
+        if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
+            movement_state.is_deep_sleeping = true;
+        }
+        movement_state.le_mode_and_not_worn_hours = 0;
+    }
+}
+
 static void _movement_handle_top_of_minute(void) {
     watch_date_time_t utc_now = movement_get_utc_date_time();
     watch_date_time_t date_time = watch_utility_date_time_convert_zone(utc_now, 0, movement_get_current_timezone_offset());
@@ -253,6 +277,10 @@ static void _movement_handle_top_of_minute(void) {
 
             // TODO: handle other advisory types
         }
+    }
+    // Don't turn off the display during hour where people are unlikely to wear it
+    if (date_time.unit.minute == 0 && date_time.unit.hour >= 8 && date_time.unit.hour < 22) {
+        _check_for_deep_sleep();
     }
     movement_state.woke_from_alarm_handler = false;
 }
@@ -438,10 +466,28 @@ void movement_request_sleep(void) {
     /// But could this lead to a race condition where the callback decrements to -1 before the loop?
     /// This is the safest way but consider more testing here.
     movement_state.le_mode_ticks = 1;
+    _woke_up_for_buzzer = false;
+}
+
+void movement_request_deep_sleep(void) {
+    if (movement_state.le_mode_ticks != -1) {
+        movement_request_sleep();
+    }
+    movement_state.is_deep_sleeping = true;
+    watch_disable_display();
+}
+
+void movement_request_deep_sleep_on_next_tick(void) {
+    _movement_request_deep_sleep_on_next_tick = true;
+}
+
+bool movement_is_deep_sleeping(void) {
+    return movement_state.is_deep_sleeping;
 }
 
 void movement_request_wake() {
     movement_state.needs_wake = true;
+    movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
 }
 
@@ -455,6 +501,7 @@ static void end_buzzing_and_disable_buzzer(void) {
 }
 
 void movement_play_signal(void) {
+    if (movement_state.is_deep_sleeping) return;
     void *maybe_disable_buzzer = end_buzzing_and_disable_buzzer;
     if (watch_is_buzzer_or_led_enabled()) {
         maybe_disable_buzzer = end_buzzing;
@@ -474,10 +521,12 @@ void movement_play_signal(void) {
 }
 
 void movement_play_alarm(void) {
+    if (movement_state.is_deep_sleeping) return;
     movement_play_alarm_beeps(5, BUZZER_NOTE_C8);
 }
 
 void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note) {
+    if (movement_state.is_deep_sleeping) return;
     if (rounds == 0) rounds = 1;
     if (rounds > 20) rounds = 20;
     movement_request_wake();
@@ -619,6 +668,14 @@ void movement_set_low_energy_timeout(uint8_t value) {
     movement_state.settings.bit.le_interval = value;
 }
 
+movement_low_energy_screen_off_t movement_get_low_energy_screen_off_setting(void) {
+    return movement_state.settings.bit.screen_off_after_le;
+}
+
+void movement_set_low_energy_screen_off_setting(movement_low_energy_screen_off_t value) {
+    movement_state.settings.bit.screen_off_after_le = value;
+}
+
 movement_color_t movement_backlight_color(void) {
     return (movement_color_t) {
         .red = movement_state.settings.bit.led_red_color,
@@ -732,13 +789,13 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 float movement_get_temperature(void) {
+    float temperature_c = (float)0xFFFFFFFF;
 #if __EMSCRIPTEN__
 #include <emscripten.h>
-    return EM_ASM_DOUBLE({
+    temperature_c = EM_ASM_DOUBLE({
         return temp_c || 25.0;
     });
-#endif
-    float temperature_c = (float)0xFFFFFFFF;
+#else
 
     if (movement_state.has_thermistor) {
         thermistor_driver_enable();
@@ -749,7 +806,8 @@ float movement_get_temperature(void) {
             val = val >> 4;
             temperature_c = 25 + (float)val / 16.0;
     }
-
+#endif
+    _temperature_last_read_c = temperature_c;
     return temperature_c;
 }
 
@@ -809,8 +867,10 @@ void app_init(void) {
         movement_state.settings.bit.to_interval = MOVEMENT_DEFAULT_TIMEOUT_INTERVAL;
 #ifdef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
         movement_state.settings.bit.le_interval = 0;
+        movement_state.settings.bit.screen_off_after_le = MOVEMENT_LE_SCREEN_OFF_DISABLE;
 #else
         movement_state.settings.bit.le_interval = MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL;
+        movement_state.settings.bit.screen_off_after_le = MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE;
 #endif
         movement_state.settings.bit.led_duration = MOVEMENT_DEFAULT_LED_DURATION;
 
@@ -837,11 +897,7 @@ void app_init(void) {
     }
 
     // populate the DST offset cache
-<<<<<<< HEAD
     _movement_update_dst_offset_cache(date_time);
-=======
-    _movement_update_dst_offset_cache();
->>>>>>> default_temp_in_simulator
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 
@@ -1278,6 +1334,7 @@ void cb_alarm_btn_interrupt(void) {
 
 void cb_alarm_btn_extwake(void) {
     // wake up!
+    movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
 }
 
@@ -1336,6 +1393,10 @@ void cb_tick(void) {
     } else {
         movement_state.subsecond++;
     }
+    if (_movement_request_deep_sleep_on_next_tick) {
+        _movement_request_deep_sleep_on_next_tick = false;
+        movement_request_deep_sleep();
+    }
 }
 
 void cb_accelerometer_event(void) {
@@ -1354,5 +1415,6 @@ void cb_accelerometer_event(void) {
 void cb_accelerometer_wake(void) {
     event.event_type = EVENT_ACCELEROMETER_WAKE;
     // also: wake up!
+    movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
 }

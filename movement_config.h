@@ -97,15 +97,15 @@ const watch_face_t watch_faces[] = {
 /* Set the timeout before switching to low energy mode
  * Valid values are:
  * 0: Never
- * 1: 10 minutes
- * 2: 1 hour
- * 3: 2 hours
+ * 1: 5 seconds
+ * 2: 10 minutes
+ * 3: 1 hour
  * 4: 6 hours
  * 5: 12 hours
  * 6: 1 day
  * 7: 7 days
  */
-#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 1
+#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
 
 /*
  * If true and we're in LE mode and it's the top of the hour

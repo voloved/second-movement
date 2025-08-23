@@ -367,7 +367,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
             if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
                 && state->current_page == state->screen_off_screen) {
                 state->retain_curr_pos = true;
-                movement_request_screen_forced_off_on_next_tick();
+                movement_request_deep_sleep_on_next_tick();
             }else {
                 state->current_page = (state->current_page + 1) % state->num_settings;
             }

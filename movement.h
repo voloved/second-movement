@@ -278,7 +278,7 @@ typedef struct {
     bool has_scheduled_background_task;
 
     // Dont' allow the display to be on while this is true;
-    bool is_screen_forced_off;
+    bool is_deep_sleeping;
 
     // stuff for subsecond tracking
     uint8_t tick_frequency;
@@ -329,9 +329,9 @@ void movement_schedule_background_task_for_face(uint8_t watch_face_index, watch_
 void movement_cancel_background_task_for_face(uint8_t watch_face_index);
 
 void movement_request_sleep(void);
-void movement_request_screen_forced_off(void);
-void movement_request_screen_forced_off_on_next_tick(void);
-bool movement_is_screen_forced_off(void);
+void movement_request_deep_sleep(void);
+void movement_request_deep_sleep_on_next_tick(void);
+bool movement_is_deep_sleeping(void);
 void movement_request_wake(void);
 
 /** @brief Plays the given sequence of notes in a non-blocking way.

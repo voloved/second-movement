@@ -86,7 +86,7 @@ typedef struct {
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
     volatile bool is_sleeping;
-    volatile bool movement_request_screen_forced_off_on_next_tick;
+    volatile bool movement_request_deep_sleep_on_next_tick;
     volatile bool woke_for_buzzer;
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
@@ -368,7 +368,7 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
 
 static void _check_for_deep_sleep(void) {
     if(movement_state.settings.bit.screen_off_after_le != MOVEMENT_LE_SCREEN_OFF_ENABLE) return;
-    if (movement_state.is_screen_forced_off) return;
+    if (movement_state.is_deep_sleeping) return;
     if (!movement_volatile_state.is_sleeping) return;
     if (temperature_last_read_c == (float)0xFFFFFFFF) return; // Ignore when the temp is not first read without affecting the timer.
     // Reset whenever the temperature is high enough, so that way, we need multiple hours in a row before going into deep sleep.    
@@ -378,7 +378,7 @@ static void _check_for_deep_sleep(void) {
         // Re-check temperature in case the user wore the watch after the last reading.
         float temperature = movement_get_temperature();
         if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
-            movement_state.is_screen_forced_off = true;
+            movement_state.is_deep_sleeping = true;
         }
         movement_state.le_mode_and_not_worn_hours = 0;
     }
@@ -611,25 +611,25 @@ void movement_request_sleep(void) {
     movement_volatile_state.woke_for_buzzer = false;
 }
 
-void movement_request_screen_forced_off(void) {
+void movement_request_deep_sleep(void) {
     if (!movement_volatile_state.is_sleeping) {
         movement_volatile_state.enter_sleep_mode = true;
     }
-    movement_state.is_screen_forced_off = true;
+    movement_state.is_deep_sleeping = true;
     watch_disable_display();
 }
 
-void movement_request_screen_forced_off_on_next_tick(void) {
-    movement_volatile_state.movement_request_screen_forced_off_on_next_tick = true;
+void movement_request_deep_sleep_on_next_tick(void) {
+    movement_volatile_state.movement_request_deep_sleep_on_next_tick = true;
 }
 
-bool movement_is_screen_forced_off(void) {
-    return movement_state.is_screen_forced_off;
+bool movement_is_deep_sleeping(void) {
+    return movement_state.is_deep_sleeping;
 }
 
 void movement_request_wake() {
     movement_volatile_state.exit_sleep_mode = true;
-    movement_state.is_screen_forced_off = false;
+    movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
 }
 
@@ -707,7 +707,7 @@ void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note) {
 }
 
 void movement_play_sequence(int8_t *note_sequence, uint8_t priority) {
-    if (movement_state.is_screen_forced_off) return;
+    if (movement_state.is_deep_sleeping) return;
     // Priority is used to ensure that lower priority sequences don't cancel higher priority ones
     // Priotity order: alarm(2) > signal(1) > note(0)
     if (priority < movement_volatile_state.pending_sequence_priority) {
@@ -1078,7 +1078,7 @@ void app_init(void) {
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
-    movement_state.is_screen_forced_off = false;
+    movement_state.is_deep_sleeping = false;
     movement_state.has_thermistor = thermistor_driver_init();
 
     bool settings_file_exists = filesystem_file_exists("settings.u32");
@@ -1206,7 +1206,7 @@ void app_setup(void) {
 #endif
     }
 
-    if (!movement_volatile_state.is_sleeping && !movement_state.is_screen_forced_off) {
+    if (!movement_volatile_state.is_sleeping && !movement_state.is_deep_sleeping) {
         movement_update_dst_offset_cache_if_needed(movement_get_utc_date_time());
         watch_disable_extwake_interrupt(HAL_GPIO_BTN_ALARM_pin());
 
@@ -1628,10 +1628,10 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
-    if (movement_volatile_state.movement_request_screen_forced_off_on_next_tick) {
-        movement_volatile_state.movement_request_screen_forced_off_on_next_tick = false;
+    if (movement_volatile_state.movement_request_deep_sleep_on_next_tick) {
+        movement_volatile_state.movement_request_deep_sleep_on_next_tick = false;
         movement_request_sleep();
-        movement_request_screen_forced_off();
+        movement_request_deep_sleep();
     }
 }
 

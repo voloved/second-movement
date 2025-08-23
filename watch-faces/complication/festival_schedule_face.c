@@ -169,8 +169,7 @@ static uint8_t _find_first_available_act(uint8_t first_stage_to_check, watch_dat
 
 static void _display_act(festival_schedule_state_t *state){
     char buf[MAX_LENGTH + 1];
-    bool is_custom_display = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
-    uint8_t max_pop_display = is_custom_display ? 199 : 39;
+    uint8_t max_pop_display = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 99 : 39;
     uint8_t popularity = festival_acts[state->curr_act].popularity;
     state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
     _text_looping = festival_acts[state->curr_act].artist;
@@ -178,20 +177,13 @@ static void _display_act(festival_schedule_state_t *state){
     _is_text_looping = MAX_LENGTH < _text_looping_len;
     _text_pos = FREQ * -1;
     watch_clear_display();
+    watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
     sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (popularity <= max_pop_display && popularity > 0) {
-        if (is_custom_display) {
-            sprintf(buf, "%.2s%3d", festival_stage[state->curr_stage], popularity);
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "");
-            printf("%s\n", buf);
-        } else {
-            sprintf(buf, "%2d", popularity);
-            watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
-            watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-        }
+        sprintf(buf, "%2d", popularity);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     } else {
-        watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
     loops_occurred = 0;

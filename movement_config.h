@@ -123,6 +123,9 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LED_DURATION 1
 
+#define MOVEMENT_HOURLY_CHIME_START 8  // First hour we chime
+#define MOVEMENT_HOURLY_CHIME_END 20  // First hour we don't chime
+
 /* Optionally debounce button presses (disable by default).
  * A value of 4 is a good starting point if you have issues
  * with multiple button presses firing.

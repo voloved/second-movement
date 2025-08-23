@@ -1058,6 +1058,11 @@ static void _sleep_mode_app_loop(void) {
         event.event_type = EVENT_LOW_ENERGY_UPDATE;
         watch_faces[movement_state.current_face_idx].loop(event, watch_face_contexts[movement_state.current_face_idx]);
 
+        // Show the sleep indicator if the current watch face wouldn't have shown it otherwise.
+        if (!watch_sleep_animation_is_running()) {
+            watch_set_sleep_indicator_if_possible();
+        }
+
         // if we need to wake immediately, do it!
         if (movement_state.needs_wake) return;
         // otherwise enter sleep mode, and when the extwake handler is called, it will reset le_mode_ticks and force us out at the next loop.
@@ -1111,7 +1116,6 @@ bool app_loop(void) {
         event.event_type = EVENT_NONE;
         event.subsecond = 0;
         _woke_up_for_buzzer = false;
-        watch_set_sleep_indicator_if_possible();
 
         // _sleep_mode_app_loop takes over at this point and loops until le_mode_ticks is reset by the extwake handler,
         // or wake is requested using the movement_request_wake function.

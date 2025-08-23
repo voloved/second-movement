@@ -122,13 +122,13 @@ static void low_energy_setting_display(uint8_t subsecond) {
                 watch_display_text(WATCH_POSITION_BOTTOM, " Never");
                 break;
             case 1:
-                watch_display_text(WATCH_POSITION_BOTTOM, "10n&in");
+                watch_display_text(WATCH_POSITION_BOTTOM, " 5 sec");
                 break;
             case 2:
-                watch_display_text(WATCH_POSITION_BOTTOM, "1 hour");
+                watch_display_text(WATCH_POSITION_BOTTOM, "10n&in");
                 break;
             case 3:
-                watch_display_text(WATCH_POSITION_BOTTOM, "2 hour");
+                watch_display_text(WATCH_POSITION_BOTTOM, "1 hour");
                 break;
             case 4:
                 watch_display_text(WATCH_POSITION_BOTTOM, "6 hour");

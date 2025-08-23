@@ -62,7 +62,7 @@ void _wake_up_simulator(void);
 volatile movement_state_t movement_state;
 void * watch_face_contexts[MOVEMENT_NUM_FACES];
 watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
-const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 600, 3600, 7200, 21600, 43200, 86400, 604800};
+const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 5, 600, 3600, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 
 typedef struct {

@@ -312,6 +312,7 @@ static void _movement_handle_scheduled_tasks(void) {
     }
 }
 
+#if defined(MOVEMENT_DEFAULT_LATITUDE) && defined(MOVEMENT_DEFAULT_LONGITUDE)
 static movement_location_t load_location_from_filesystem() {
     movement_location_t location = {0};
 
@@ -328,6 +329,7 @@ static void persist_location_to_filesystem(movement_location_t new_location) {
         filesystem_write_file("location.u32", (char *) &new_location.reg, sizeof(movement_location_t));
     }
 }
+#endif
 
 void movement_request_tick_frequency(uint8_t freq) {
     // Movement uses the 128 Hz tick internally

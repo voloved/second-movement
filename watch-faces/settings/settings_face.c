@@ -254,6 +254,7 @@ static void blue_led_setting_advance(void) {
     movement_set_backlight_color(color);
 }
 
+#ifdef BUILD_GIT_HASH
 static void  git_hash_setting_display(uint8_t subsecond) {
     (void) subsecond;
     char buf[8];
@@ -266,6 +267,7 @@ static void  git_hash_setting_display(uint8_t subsecond) {
 static void git_hash_setting_advance(void) {
     return;
 }
+#endif
 
 void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;

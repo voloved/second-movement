@@ -378,7 +378,7 @@ static void _check_for_deep_sleep(void) {
         // Re-check temperature in case the user wore the watch after the last reading.
         float temperature = movement_get_temperature();
         if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
-            movement_state.is_deep_sleeping = true;
+            movement_request_deep_sleep();
         }
         movement_state.le_mode_and_not_worn_hours = 0;
     }
@@ -626,7 +626,7 @@ void movement_request_sleep(void) {
 
 void movement_request_deep_sleep(void) {
     if (!movement_volatile_state.is_sleeping) {
-        movement_volatile_state.enter_sleep_mode = true;
+        movement_request_sleep();
     }
     movement_state.is_deep_sleeping = true;
     watch_disable_display();
@@ -1647,7 +1647,6 @@ void cb_tick(void) {
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
     if (movement_volatile_state.movement_request_deep_sleep_on_next_tick) {
         movement_volatile_state.movement_request_deep_sleep_on_next_tick = false;
-        movement_request_sleep();
         movement_request_deep_sleep();
     }
 }

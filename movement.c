@@ -247,7 +247,7 @@ static void _check_for_deep_sleep(void) {
         // Re-check temperature in case the user wore the watch after the last reading.
         float temperature = movement_get_temperature();
         if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
-            movement_state.is_deep_sleeping = true;
+            movement_request_deep_sleep();
         }
         movement_state.le_mode_and_not_worn_hours = 0;
     }

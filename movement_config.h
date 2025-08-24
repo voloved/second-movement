@@ -49,8 +49,12 @@ const watch_face_t watch_faces[] = {
     higher_lower_game_face,
     lander_face,
     simon_face,
+#ifdef BUILD_TO_SHARE
+    tarot_face,
+#else
     party_face,
     festival_schedule_face,
+#endif
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -61,7 +65,12 @@ const watch_face_t watch_faces[] = {
  * Some folks also like to use this to hide the preferences and time set faces from the normal rotation.
  * If you don't want any faces to be excluded, set this to 0 and a long Mode press will have no effect.
  */
+
+#ifdef BUILD_TO_SHARE
+#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 6)
+#else
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 7)
+#endif
 #define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 5) // or (0)
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
@@ -127,14 +136,6 @@ const watch_face_t watch_faces[] = {
 
 #define MOVEMENT_HOURLY_CHIME_START 8  // First hour we chime
 #define MOVEMENT_HOURLY_CHIME_END 20  // First hour we don't chime
-
-/* The latitude and longitude used for the wearers location
- * Set signed values in 1/100ths of a degree
- * Set lat and long for Raleigh (3578, -7864)
- * Double JJ Ranch (4354, -8636)
- */
-#define MOVEMENT_DEFAULT_LATITUDE 3578
-#define MOVEMENT_DEFAULT_LONGITUDE -7864
 
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C
 #define MOVEMENT_HOURS_BEFORE_DEEPSLEEP 5

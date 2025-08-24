@@ -1022,13 +1022,13 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 float movement_get_temperature(void) {
+    float temperature_c = (float)0xFFFFFFFF;
 #if __EMSCRIPTEN__
 #include <emscripten.h>
-    return EM_ASM_DOUBLE({
+    temperature_c = EM_ASM_DOUBLE({
         return temp_c || 25.0;
     });
-#endif
-    float temperature_c = (float)0xFFFFFFFF;
+#else
 
     if (movement_state.has_thermistor) {
         thermistor_driver_enable();
@@ -1039,6 +1039,7 @@ float movement_get_temperature(void) {
             val = val >> 4;
             temperature_c = 25 + (float)val / 16.0;
     }
+#endif
 
     temperature_last_read_c = temperature_c;
     return temperature_c;

@@ -535,7 +535,7 @@ void endless_runner_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         *context_ptr = malloc(sizeof(endless_runner_state_t));
         memset(*context_ptr, 0, sizeof(endless_runner_state_t));
         endless_runner_state_t *state = (endless_runner_state_t *)*context_ptr;
-        state->difficulty = DIFF_FUEL_1;
+        state->difficulty = DIFF_EASY;
         state->tap_control_on = false;
     }
 }

@@ -89,6 +89,23 @@ watch_date_time_t watch_rtc_get_date_time(void) {
 rtc_date_time_t watch_get_init_date_time(void) {
     rtc_date_time_t date_time = {0};
 
+#ifdef BUILD_TIMEZONE
+    int32_t time_zone_offset = BUILD_TIMEZONE * 60;
+#else
+    int32_t time_zone_offset = EM_ASM_INT({
+        return new Date().getTimezoneOffset() * 60 * 1000; // ms
+    });
+#endif
+    date_time.reg = EM_ASM_INT({
+        const date = new Date(Date.now() + $0);
+        return date.getSeconds() |
+            (date.getMinutes() << 6) |
+            (date.getHours() << 12) |
+            (date.getDate() << 17) |
+            ((date.getMonth() + 1) << 22) |
+            ((date.getFullYear() - 2020) << 26);
+    }, time_zone_offset);
+
 #ifdef BUILD_YEAR
     date_time.unit.year = BUILD_YEAR;
 #else

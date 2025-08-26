@@ -85,6 +85,7 @@ typedef struct {
     volatile bool has_pending_sequence;
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
+    volatile bool ignore_alarm_on_wake;
     volatile bool is_sleeping;
     volatile bool enter_deep_sleep_mode;
     volatile bool woke_for_buzzer;
@@ -1553,6 +1554,11 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
 #endif
         if ((counter - button->down_timestamp) >= MOVEMENT_LONG_PRESS_TICKS) {
             event_type = button->down_event + 3;
+            movement_volatile_state.ignore_alarm_on_wake = false;
+        } else if (movement_volatile_state.ignore_alarm_on_wake && !pin_level && button->timeout_index == ALARM_BUTTON_TIMEOUT) {
+            watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);
+            movement_volatile_state.schedule_next_comp = true;
+            movement_volatile_state.ignore_alarm_on_wake = false;
         } else {
             event_type = button->down_event + 1;
         }
@@ -1592,6 +1598,15 @@ static movement_event_type_t _process_button_longpress_timeout(movement_button_t
     // if (movement_volatile_state.pending_events & 1 << up_event) {
     //     return EVENT_NONE;
     // }
+
+    // If we just woke, there's an edge-case where the _process_button_event event missed the btn up event
+    // so this guards against that
+    if (movement_volatile_state.ignore_alarm_on_wake && button->timeout_index == ALARM_BUTTON_TIMEOUT) {
+        bool pin_level = HAL_GPIO_BTN_ALARM_read();
+        if (!pin_level) {
+            return EVENT_NONE;
+        }
+    }
 
     uint32_t counter = watch_rtc_get_counter();
     movement_event_type_t longpress_event;
@@ -1637,6 +1652,13 @@ void cb_sleep_timeout_interrupt(void) {
 void cb_alarm_btn_extwake(void) {
     // wake up!
     movement_request_wake();
+    // Allow Alarm button Long presses to still trigger
+    movement_volatile_state.ignore_alarm_on_wake = true;
+    movement_button_t* button = &movement_volatile_state.alarm_button;
+    button->is_down = true;
+    button->down_timestamp = watch_rtc_get_counter();
+    watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONG_PRESS_TICKS, button->timeout_index);
+    movement_volatile_state.schedule_next_comp = true;
 }
 
 void cb_minute_alarm_fired(void) {

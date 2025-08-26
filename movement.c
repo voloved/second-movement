@@ -86,7 +86,7 @@ typedef struct {
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
     volatile bool is_sleeping;
-    volatile bool movement_request_deep_sleep_on_next_tick;
+    volatile bool enter_deep_sleep_mode;
     volatile bool woke_for_buzzer;
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
@@ -393,6 +393,11 @@ static void _movement_handle_top_of_minute(void) {
         _movement_update_dst_offset_cache(utc_now);
     }
 
+    // Don't turn off the display during hour where people are unlikely to wear it
+    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
+        _check_for_deep_sleep();
+    }
+
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
         // For each face that offers an advisory...
         if (watch_faces[i].advise != NULL) {
@@ -408,10 +413,6 @@ static void _movement_handle_top_of_minute(void) {
 
             // TODO: handle other advisory types
         }
-    }
-    // Don't turn off the display during hour where people are unlikely to wear it
-    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
-        _check_for_deep_sleep();
     }
 }
 
@@ -624,7 +625,7 @@ void movement_request_sleep(void) {
     movement_volatile_state.woke_for_buzzer = false;
 }
 
-void movement_request_deep_sleep(void) {
+static void movement_begin_deep_sleep(void) {
     if (!movement_volatile_state.is_sleeping) {
         movement_request_sleep();
     }
@@ -632,8 +633,8 @@ void movement_request_deep_sleep(void) {
     watch_disable_display();
 }
 
-void movement_request_deep_sleep_on_next_tick(void) {
-    movement_volatile_state.movement_request_deep_sleep_on_next_tick = true;
+void movement_request_deep_sleep(void) {
+    movement_volatile_state.enter_deep_sleep_mode = true;
 }
 
 bool movement_is_deep_sleeping(void) {
@@ -655,18 +656,22 @@ void cb_buzzer_stop(void) {
     movement_volatile_state.pending_sequence_priority = 0;
 }
 
+static inline bool buzzing_not_allowed(void) {
+    return movement_state.is_deep_sleeping || movement_volatile_state.enter_deep_sleep_mode;
+}
+
 void watch_buzzer_play_sequence(int8_t *note_sequence, void (*callback_on_end)(void)) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     watch_buzzer_play_sequence_with_volume(note_sequence, callback_on_end, movement_button_volume());
 }
 
 void watch_buzzer_play_raw_source(watch_buzzer_raw_source_t raw_source, void* userdata, watch_cb_t callback_on_end) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     watch_buzzer_play_raw_source_with_volume(raw_source, userdata, callback_on_end, movement_button_volume());
 }
 
 void watch_buzzer_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     watch_buzzer_play_note_with_volume(note, duration_ms, movement_button_volume());
 }
 
@@ -723,7 +728,7 @@ void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note) {
 }
 
 void movement_play_sequence(int8_t *note_sequence, uint8_t priority) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     // Priority is used to ensure that lower priority sequences don't cancel higher priority ones
     // Priotity order: alarm(2) > signal(1) > note(0)
     if (priority < movement_volatile_state.pending_sequence_priority) {
@@ -1459,6 +1464,10 @@ bool app_loop(void) {
     }
 
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
+    if (movement_volatile_state.enter_deep_sleep_mode) {
+        movement_volatile_state.enter_deep_sleep_mode = false;
+        movement_begin_deep_sleep();
+    }
     // if we have timed out of our low energy mode countdown, enter low energy mode.
     if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing) {
         movement_volatile_state.enter_sleep_mode = false;
@@ -1646,10 +1655,6 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
-    if (movement_volatile_state.movement_request_deep_sleep_on_next_tick) {
-        movement_volatile_state.movement_request_deep_sleep_on_next_tick = false;
-        movement_request_deep_sleep();
-    }
 }
 
 void cb_accelerometer_event(void) {

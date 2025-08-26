@@ -330,7 +330,6 @@ void movement_cancel_background_task_for_face(uint8_t watch_face_index);
 
 void movement_request_sleep(void);
 void movement_request_deep_sleep(void);
-void movement_request_deep_sleep_on_next_tick(void);
 bool movement_is_deep_sleeping(void);
 void movement_request_wake(void);
 

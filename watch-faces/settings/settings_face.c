@@ -358,13 +358,18 @@ void settings_face_activate(void *context) {
 
 bool settings_face_loop(movement_event_t event, void *context) {
     settings_state_t *state = (settings_state_t *)context;
+    bool can_enter_deep_sleep = movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
+                                && state->current_page == state->screen_off_screen;
 
     switch (event.event_type) {
+        case EVENT_LIGHT_BUTTON_UP:
+            if (can_enter_deep_sleep) {
+                movement_request_deep_sleep();
+            }
+            break;
         case EVENT_LIGHT_BUTTON_DOWN:
-            if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
-                && state->current_page == state->screen_off_screen) {
-                movement_request_deep_sleep_on_next_tick();
-            }else {
+            if (!can_enter_deep_sleep) {
+                // Don't enter deep sleep until after the light buton isn't pressed to avoid missed flags when in sleep
                 state->current_page = (state->current_page + 1) % state->num_settings;
             }
             // fall through

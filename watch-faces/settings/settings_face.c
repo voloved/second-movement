@@ -276,7 +276,6 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         settings_state_t *state = (settings_state_t *)*context_ptr;
         int8_t current_setting = 0;
         state->current_page = 0;
-        state->retain_curr_pos = false;
         state->num_settings = 6; // baseline, without LED settings
 #ifdef BUILD_GIT_HASH
         state->num_settings++;
@@ -348,10 +347,7 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 }
 
 void settings_face_activate(void *context) {
-    settings_state_t *state = (settings_state_t *)context;
-    if (!state->retain_curr_pos || state->current_page >= state->num_settings) {
-        state->current_page = 0;
-    }
+    (void) context;
     movement_request_tick_frequency(4); // we need to manually blink some pixels
 }
 
@@ -364,7 +360,6 @@ bool settings_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
                 && state->current_page == state->screen_off_screen) {
-                state->retain_curr_pos = true;
                 movement_request_deep_sleep_on_next_tick();
             }else {
                 state->current_page = (state->current_page + 1) % state->num_settings;
@@ -403,7 +398,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
 
 void settings_face_resign(void *context) {
     settings_state_t *state = (settings_state_t *)context;
-    state->retain_curr_pos = false;
+    state->current_page = 0;
     movement_force_led_off();
     movement_store_settings();
 }

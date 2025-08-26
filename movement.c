@@ -863,7 +863,8 @@ void app_init(void) {
     } else {
         // Otherwise set default values.
         movement_state.settings.bit.version = 0;
-        movement_state.settings.bit.clock_mode_24h = MOVEMENT_DEFAULT_24H_MODE;
+        movement_state.settings.bit.clock_mode_24h = MOVEMENT_DEFAULT_24H_MODE == 1;
+        movement_state.settings.bit.clock_mode_toggle = MOVEMENT_DEFAULT_24H_MODE == 2;
         movement_state.settings.bit.time_zone = UTZ_UTC;
         movement_state.settings.bit.led_red_color = MOVEMENT_DEFAULT_RED_COLOR;
         movement_state.settings.bit.led_green_color = MOVEMENT_DEFAULT_GREEN_COLOR;

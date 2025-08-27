@@ -1357,6 +1357,7 @@ void cb_alarm_btn_extwake(void) {
     // wake up!
     movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
+    cb_alarm_btn_interrupt();
 }
 
 void cb_alarm_fired(void) {

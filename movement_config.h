@@ -36,7 +36,9 @@ const watch_face_t watch_faces[] = {
     probability_face,
     sunrise_sunset_face,
     moon_phase_face,
+#ifdef BUILD_TO_SHARE
     activity_logging_face,
+#endif
 // Start of Secondary Faces
     settings_face,
     set_time_face,
@@ -136,6 +138,16 @@ const watch_face_t watch_faces[] = {
 
 #define MOVEMENT_HOURLY_CHIME_START 8  // First hour we chime
 #define MOVEMENT_HOURLY_CHIME_END 20  // First hour we don't chime
+
+#ifndef BUILD_TO_SHARE
+/* The latitude and longitude used for the wearers location
+ * Set signed values in 1/100ths of a degree
+ * Set lat and long for Raleigh (3578, -7864)
+ * Double JJ Ranch (4354, -8636)
+ */
+#define MOVEMENT_DEFAULT_LATITUDE 3578
+#define MOVEMENT_DEFAULT_LONGITUDE -7864
+#endif
 
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C
 #define MOVEMENT_HOURS_BEFORE_DEEPSLEEP 5

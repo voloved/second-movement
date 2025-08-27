@@ -164,7 +164,11 @@ inline void watch_set_buzzer_on(void) {
 
 inline void watch_set_buzzer_off(void) {
     HAL_GPIO_BUZZER_pmuxdis();
+#ifdef WATCH_BUZZER_IS_BOOSTED
+    HAL_GPIO_BUZZER_clr();
+#else
     HAL_GPIO_BUZZER_off();
+#endif
 }
 
 void watch_buzzer_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {

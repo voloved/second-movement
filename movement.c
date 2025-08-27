@@ -1060,6 +1060,7 @@ void app_setup(void) {
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         event.subsecond = 0;
         event.event_type = EVENT_ACTIVATE;
+        watch_clear_sleep_indicator_if_possible();
     }
 }
 
@@ -1147,7 +1148,6 @@ bool app_loop(void) {
         // ourselves, but first, we check to see if we woke up for the buzzer:
         _woke_up_for_buzzer = movement_state.is_buzzing;
         if (!_woke_up_for_buzzer) {
-            watch_clear_sleep_indicator_if_possible();
             event.event_type = EVENT_ACTIVATE;
         }
         _reset_debounce_ticks();  // Likely unneeded, but good to reset the debounce timers on wake.

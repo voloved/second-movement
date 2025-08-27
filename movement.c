@@ -1305,9 +1305,9 @@ void app_setup(void) {
             watch_faces[i].setup(i, &watch_face_contexts[i]);
         }
 
-        watch_clear_sleep_indicator_if_possible();
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
+        watch_clear_sleep_indicator_if_possible();
     }
 }
 

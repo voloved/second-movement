@@ -82,9 +82,11 @@ typedef struct {
 static const long_lat_presets_t longLatPresets[] =
 {
     { .name = "  "},  // Default, the long and lat get replaced by what's set in the watch
+#ifndef BUILD_TO_SHARE
 //    { .name = "Ny", .latitude = 4072, .longitude = -7401, .timezone = UTZ_NEW_YORK },  // New York City, NY
-    { .name = "LA", .latitude = 3405, .longitude = -11824, .timezone = UTZ_LOS_ANGELES },  // Los Angeles, CA
     { .name = "dE", .latitude = 4221, .longitude = -8305, .timezone = UTZ_NEW_YORK },  // Detroit, MI
+    { .name = "LA", .latitude = 3405, .longitude = -11824, .timezone = UTZ_LOS_ANGELES },  // Los Angeles, CA
+#endif
 };
 
 #endif // SUNRISE_SUNSET_FACE_H_

@@ -169,7 +169,9 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     state->lap_counter = counter;
                     movement_request_tick_frequency(2);
 #else
-                    movement_illuminate_led();
+                    state->status = SW_STATUS_STOPPED;
+                    state->stop_counter = counter;
+                    movement_request_tick_frequency(1);
 #endif
                     return;
                 default:

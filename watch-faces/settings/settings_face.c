@@ -360,7 +360,7 @@ bool settings_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             if (movement_get_low_energy_screen_off_setting() == MOVEMENT_LE_SCREEN_OFF_NOW 
                 && state->current_page == state->screen_off_screen) {
-                movement_request_deep_sleep_on_next_tick();
+                movement_request_deep_sleep();
             }else {
                 state->current_page = (state->current_page + 1) % state->num_settings;
             }

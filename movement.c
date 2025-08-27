@@ -71,7 +71,7 @@ watch_date_time_t scheduled_tasks[MOVEMENT_NUM_FACES];
 const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 5, 600, 3600, 21600, 43200, 86400, 604800};
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 static bool _woke_up_for_buzzer;
-static bool _movement_request_deep_sleep_on_next_tick;
+static bool _enter_deep_sleep_mode;
 movement_event_t event;
 
 static watch_date_time_t _dst_last_cache;
@@ -261,6 +261,11 @@ static void _movement_handle_top_of_minute(void) {
         _movement_update_dst_offset_cache(utc_now);
     }
 
+    // Don't turn off the display during hour where people are unlikely to wear it
+    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
+        _check_for_deep_sleep();
+    }
+
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
         // For each face that offers an advisory...
         if (watch_faces[i].advise != NULL) {
@@ -276,10 +281,6 @@ static void _movement_handle_top_of_minute(void) {
 
             // TODO: handle other advisory types
         }
-    }
-    // Don't turn off the display during hour where people are unlikely to wear it
-    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
-        _check_for_deep_sleep();
     }
     movement_state.woke_from_alarm_handler = false;
 }
@@ -481,7 +482,7 @@ void movement_request_sleep(void) {
     _woke_up_for_buzzer = false;
 }
 
-void movement_request_deep_sleep(void) {
+static void movement_begin_deep_sleep(void) {
     if (movement_state.le_mode_ticks != -1) {
         movement_request_sleep();
     }
@@ -489,8 +490,8 @@ void movement_request_deep_sleep(void) {
     watch_disable_display();
 }
 
-void movement_request_deep_sleep_on_next_tick(void) {
-    _movement_request_deep_sleep_on_next_tick = true;
+void movement_request_deep_sleep(void) {
+    _enter_deep_sleep_mode = true;
 }
 
 bool movement_is_deep_sleeping(void) {
@@ -512,8 +513,12 @@ static void end_buzzing_and_disable_buzzer(void) {
     watch_disable_buzzer();
 }
 
+static inline bool buzzing_not_allowed(void) {
+    return movement_state.is_deep_sleeping || _enter_deep_sleep_mode;
+}
+
 void movement_play_signal(void) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     void *maybe_disable_buzzer = end_buzzing_and_disable_buzzer;
     if (watch_is_buzzer_or_led_enabled()) {
         maybe_disable_buzzer = end_buzzing;
@@ -533,12 +538,12 @@ void movement_play_signal(void) {
 }
 
 void movement_play_alarm(void) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     movement_play_alarm_beeps(5, BUZZER_NOTE_C8);
 }
 
 void movement_play_alarm_beeps(uint8_t rounds, watch_buzzer_note_t alarm_note) {
-    if (movement_state.is_deep_sleeping) return;
+    if (buzzing_not_allowed()) return;
     if (rounds == 0) rounds = 1;
     if (rounds > 20) rounds = 20;
     movement_request_wake();
@@ -1121,6 +1126,11 @@ bool app_loop(void) {
     if (event.event_type == EVENT_TICK && movement_state.has_scheduled_background_task) _movement_handle_scheduled_tasks();
 
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
+    if (_enter_deep_sleep_mode) {
+        _enter_deep_sleep_mode = false;
+        movement_begin_deep_sleep();
+    }
+
     // if we have timed out of our low energy mode countdown, enter low energy mode.
     if (movement_state.le_mode_ticks == 0) {
         movement_state.le_mode_ticks = -1;
@@ -1413,10 +1423,6 @@ void cb_tick(void) {
         movement_state.subsecond = 0;
     } else {
         movement_state.subsecond++;
-    }
-    if (_movement_request_deep_sleep_on_next_tick) {
-        _movement_request_deep_sleep_on_next_tick = false;
-        movement_request_deep_sleep();
     }
 }
 

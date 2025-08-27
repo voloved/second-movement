@@ -31,6 +31,8 @@
 #include "watch_utility.h"
 #include "watch_rtc.h"
 
+#define ALLOW_LAP false
+
 /*
     This watch face implements the original F-91W stopwatch functionality
     including counting hundredths of seconds and lap timing. There are two
@@ -162,9 +164,13 @@ static void state_transition(fast_stopwatch_state_t *state, rtc_counter_t counte
                     movement_request_tick_frequency(1);
                     return;
                 case EVENT_LIGHT_BUTTON_DOWN:
+#if ALLOW_LAP && !defined(BUILD_TO_SHARE)
                     state->status = SW_STATUS_RUNNING_LAPPING;
                     state->lap_counter = counter;
                     movement_request_tick_frequency(2);
+#else
+                    movement_illuminate_led();
+#endif
                     return;
                 default:
                     return;

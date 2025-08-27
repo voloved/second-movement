@@ -264,8 +264,9 @@ bool clock_face_loop(movement_event_t event, void *context) {
                 char buf[2 + 1];
                 movement_set_clock_mode_24h(((movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES));
                 current = movement_get_local_date_time();
-                bool indicate_pm = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H && clock_is_pm(current);
-                if (indicate_pm) current = clock_24h_to_12h(current);
+                bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H;
+                bool indicate_pm = in_12h_mode && clock_is_pm(current);
+                if (in_12h_mode) current = clock_24h_to_12h(current);
                 clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
                 clock_indicate_24h();
                 snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d", current.unit.hour);

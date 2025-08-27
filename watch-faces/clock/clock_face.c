@@ -192,6 +192,20 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     watch_display_text(WATCH_POSITION_BOTTOM, buf + 2);
 }
 
+static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
+    char buf[2 + 1];
+    movement_set_clock_mode_24h(((movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES));
+    bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H;
+    bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
+    if (in_12h_mode) {
+        date_time = clock_24h_to_12h(date_time);
+    }
+    clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
+    clock_indicate_24h();
+    snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d", date_time.unit.hour);
+    watch_display_text(WATCH_POSITION_HOURS, buf);
+}
+
 static void clock_start_tick_tock_animation(void) {
     if (!watch_sleep_animation_is_running()) {
         watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
@@ -261,16 +275,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_BUTTON_UP:
             if (movement_clock_mode_toggle()) {
-                char buf[2 + 1];
-                movement_set_clock_mode_24h(((movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES));
-                current = movement_get_local_date_time();
-                bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H;
-                bool indicate_pm = in_12h_mode && clock_is_pm(current);
-                if (in_12h_mode) current = clock_24h_to_12h(current);
-                clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
-                clock_indicate_24h();
-                snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d", current.unit.hour);
-                watch_display_text(WATCH_POSITION_HOURS, buf);
+                clock_toggle_mode_displayed(current);
             }
             break;
         case EVENT_BACKGROUND_TASK:

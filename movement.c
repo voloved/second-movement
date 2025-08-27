@@ -30,9 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "app.h"
 #include "watch.h"
 #include "watch_utility.h"

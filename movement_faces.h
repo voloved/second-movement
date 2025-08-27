@@ -54,8 +54,6 @@
 #include "tally_face.h"
 #include "party_face.h"
 #include "festival_schedule_face.h"
-#include "endless_runner_face.h"
-#include "wordle_face.h"
 #include "ish_face.h"
 #include "breathing_face.h"
 #include "close_enough_face.h"

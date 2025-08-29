@@ -68,6 +68,7 @@ typedef struct {
     watch_cb_t cb_longpress;
     movement_timeout_index_t timeout_index;
     volatile bool is_down;
+    volatile bool ignore_on_wake;
     volatile rtc_counter_t down_timestamp;
 #if MOVEMENT_DEBOUNCE_TICKS
     volatile rtc_counter_t up_timestamp;
@@ -83,7 +84,6 @@ typedef struct {
     volatile bool has_pending_sequence;
     volatile bool enter_sleep_mode;
     volatile bool exit_sleep_mode;
-    volatile bool ignore_alarm_on_wake;
     volatile bool is_sleeping;
     volatile bool enter_deep_sleep_mode;
     volatile bool woke_for_buzzer;
@@ -1084,18 +1084,21 @@ void app_init(void) {
 
     movement_volatile_state.mode_button.down_event = EVENT_MODE_BUTTON_DOWN;
     movement_volatile_state.mode_button.is_down = false;
+    movement_volatile_state.mode_button.ignore_on_wake = false;
     movement_volatile_state.mode_button.down_timestamp = 0;
     movement_volatile_state.mode_button.timeout_index = MODE_BUTTON_TIMEOUT;
     movement_volatile_state.mode_button.cb_longpress = cb_mode_btn_timeout_interrupt;
 
     movement_volatile_state.light_button.down_event = EVENT_LIGHT_BUTTON_DOWN;
     movement_volatile_state.light_button.is_down = false;
+    movement_volatile_state.light_button.ignore_on_wake = false;
     movement_volatile_state.light_button.down_timestamp = 0;
     movement_volatile_state.light_button.timeout_index = LIGHT_BUTTON_TIMEOUT;
     movement_volatile_state.light_button.cb_longpress = cb_light_btn_timeout_interrupt;
 
     movement_volatile_state.alarm_button.down_event = EVENT_ALARM_BUTTON_DOWN;
     movement_volatile_state.alarm_button.is_down = false;
+    movement_volatile_state.alarm_button.ignore_on_wake = false;
     movement_volatile_state.alarm_button.down_timestamp = 0;
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
@@ -1554,11 +1557,11 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
 #endif
         if ((counter - button->down_timestamp) >= MOVEMENT_LONG_PRESS_TICKS) {
             event_type = button->down_event + 3;
-            movement_volatile_state.ignore_alarm_on_wake = false;
-        } else if (movement_volatile_state.ignore_alarm_on_wake && !pin_level && button->timeout_index == ALARM_BUTTON_TIMEOUT) {
+            button->ignore_on_wake = false;
+        } else if (button->ignore_on_wake && !pin_level) {
             watch_rtc_disable_comp_callback_no_schedule(button->timeout_index);
             movement_volatile_state.schedule_next_comp = true;
-            movement_volatile_state.ignore_alarm_on_wake = false;
+            button->ignore_on_wake = false;
         } else {
             event_type = button->down_event + 1;
         }
@@ -1585,6 +1588,24 @@ void cb_alarm_btn_interrupt(void) {
     movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.alarm_button);
 }
 
+static bool read_btn_pin_level(movement_timeout_index_t timeout_index) {
+    bool pin_level = false;
+    switch (timeout_index) {
+        case LIGHT_BUTTON_TIMEOUT:
+            pin_level = HAL_GPIO_BTN_LIGHT_read();
+            break;
+        case MODE_BUTTON_TIMEOUT:
+            pin_level = HAL_GPIO_BTN_MODE_read();
+            break;
+        case ALARM_BUTTON_TIMEOUT:
+            pin_level = HAL_GPIO_BTN_ALARM_read();
+            break;
+        default:
+            break;
+    }
+    return pin_level;
+}
+
 static movement_event_type_t _process_button_longpress_timeout(movement_button_t* button) {
     // Looks like all these checks are not needed for the longpress detection to work reliably.
     // Keep the code around for now in case problems arise long-term.
@@ -1601,8 +1622,8 @@ static movement_event_type_t _process_button_longpress_timeout(movement_button_t
 
     // If we just woke, there's an edge-case where the _process_button_event event missed the btn up event
     // so this guards against that
-    if (movement_volatile_state.ignore_alarm_on_wake && button->timeout_index == ALARM_BUTTON_TIMEOUT) {
-        bool pin_level = HAL_GPIO_BTN_ALARM_read();
+    if (button->ignore_on_wake) {
+        bool pin_level = read_btn_pin_level(button->timeout_index);
         if (!pin_level) {
             return EVENT_NONE;
         }
@@ -1649,19 +1670,27 @@ void cb_sleep_timeout_interrupt(void) {
     movement_request_sleep();
 }
 
+static void btn_act_on_long_presses_only(movement_button_t* button) {
+    button->ignore_on_wake = true;
+    button->is_down = true;
+    button->down_timestamp = watch_rtc_get_counter();
+    watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONG_PRESS_TICKS, button->timeout_index);
+    movement_volatile_state.schedule_next_comp = true;
+}
+
 void cb_mode_btn_extwake(void) {
     movement_request_wake();
-    cb_mode_btn_interrupt();
+    btn_act_on_long_presses_only(&movement_volatile_state.mode_button);
 }
 
 void cb_light_btn_extwake(void) {
     movement_request_wake();
-    cb_light_btn_interrupt();
+    btn_act_on_long_presses_only(&movement_volatile_state.light_button);
 }
 
 void cb_alarm_btn_extwake(void) {
     movement_request_wake();
-    cb_alarm_btn_interrupt();
+    btn_act_on_long_presses_only(&movement_volatile_state.alarm_button);
 }
 
 void cb_minute_alarm_fired(void) {

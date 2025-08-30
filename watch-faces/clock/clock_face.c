@@ -275,7 +275,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_BUTTON_UP:
             if (movement_clock_mode_toggle()) {
-                clock_toggle_mode_displayed(current);
+                clock_toggle_mode_displayed(movement_get_local_date_time());
             }
             break;
         case EVENT_BACKGROUND_TASK:

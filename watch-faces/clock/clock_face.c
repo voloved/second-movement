@@ -250,6 +250,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
+            state->just_woke = true;
             clock_start_tick_tock_animation();
             clock_display_low_energy(movement_get_local_date_time());
             break;
@@ -271,12 +272,21 @@ bool clock_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_PRESS:
+            state->just_woke = false;
             clock_toggle_time_signal(state);
             break;
         case EVENT_ALARM_BUTTON_UP:
-            if (movement_clock_mode_toggle()) {
+            if (state->just_woke) {
+                state->just_woke = false;
+            } else if (movement_clock_mode_toggle()) {
                 clock_toggle_mode_displayed(movement_get_local_date_time());
             }
+            break;
+        case EVENT_LIGHT_BUTTON_DOWN:
+            movement_illuminate_led();
+            // fall through
+        case EVENT_MODE_BUTTON_DOWN:
+            state->just_woke = false;
             break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:
@@ -291,7 +301,8 @@ bool clock_face_loop(movement_event_t event, void *context) {
 }
 
 void clock_face_resign(void *context) {
-    (void) context;
+    clock_state_t *state = (clock_state_t *) context;
+    state->just_woke = false;
 }
 
 movement_watch_face_advisory_t clock_face_advise(void *context) {

@@ -576,6 +576,10 @@ void movement_move_to_face(uint8_t watch_face_index) {
 
 void movement_move_to_next_face(void) {
     uint16_t face_max;
+    if ((MOVEMENT_TERIARY_FACE_INDEX > 0) && (movement_state.current_face_idx == MOVEMENT_NUM_FACES - 1)) {
+        go_to_teriary_face();
+        return;
+    }
     if (MOVEMENT_TERIARY_FACE_INDEX & MOVEMENT_SECONDARY_FACE_INDEX) {
         face_max = (movement_state.current_face_idx < (int16_t)MOVEMENT_SECONDARY_FACE_INDEX) ? MOVEMENT_SECONDARY_FACE_INDEX : 
                 (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) ? MOVEMENT_TERIARY_FACE_INDEX : MOVEMENT_NUM_FACES;
@@ -586,11 +590,7 @@ void movement_move_to_next_face(void) {
     } else {
         face_max = MOVEMENT_NUM_FACES;
     }
-    if (MOVEMENT_TERIARY_FACE_INDEX & (movement_state.current_face_idx == MOVEMENT_NUM_FACES - 1)) {
-        go_to_teriary_face();
-    } else {
-        movement_move_to_face((movement_state.current_face_idx + 1) % face_max);
-    }
+    movement_move_to_face((movement_state.current_face_idx + 1) % face_max);
 }
 
 void movement_schedule_background_task(watch_date_time_t date_time) {

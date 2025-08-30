@@ -815,8 +815,19 @@ watch_date_time_t movement_get_date_time_in_zone(uint8_t zone_index) {
 }
 
 watch_date_time_t movement_get_local_date_time(void) {
+    static struct {
+        unix_timestamp_t timestamp;
+        rtc_date_time_t datetime;
+    } cached_date_time = {.datetime.reg=0, .timestamp=0};
+
     unix_timestamp_t timestamp = watch_rtc_get_unix_time();
-    return watch_utility_date_time_from_unix_time(timestamp, movement_get_current_timezone_offset());
+
+    if (timestamp != cached_date_time.timestamp) {
+        cached_date_time.timestamp = timestamp;
+        cached_date_time.datetime = watch_utility_date_time_from_unix_time(timestamp, movement_get_current_timezone_offset());
+    }
+
+    return cached_date_time.datetime;
 }
 
 uint32_t movement_get_utc_timestamp(void) {
@@ -829,8 +840,7 @@ void movement_set_utc_date_time(watch_date_time_t date_time) {
 
 void movement_set_local_date_time(watch_date_time_t date_time) {
     int32_t current_offset = movement_get_current_timezone_offset();
-    watch_date_time_t utc_date_time = watch_utility_date_time_convert_zone(date_time, current_offset, 0);
-    movement_set_utc_date_time(utc_date_time);
+    movement_set_utc_timestamp(watch_utility_date_time_to_unix_time(date_time, current_offset));
 }
 
 bool movement_in_chime_interval(uint8_t hour) {

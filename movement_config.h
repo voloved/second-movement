@@ -44,7 +44,9 @@ const watch_face_t watch_faces[] = {
     set_time_face,
     temperature_logging_face,
     voltage_face,
+#ifdef I2C_SERCOM
     accelerometer_status_face,
+#endif
 // Start of Teriary Faces
     endless_runner_face,
     wordle_face,
@@ -73,7 +75,12 @@ const watch_face_t watch_faces[] = {
 #else
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 7)
 #endif
+
+#ifdef I2C_SERCOM
 #define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 5) // or (0)
+#else
+#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 4) // or (0)
+#endif
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
 #define SIGNAL_TUNE_SONG_OF_THE_STORMS
@@ -125,7 +132,11 @@ const watch_face_t watch_faces[] = {
  * then turn off the screen and other tasks.
  * Only runs if Temperature Logging Face is installed.
 */
-#define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE 0
+#ifdef BUILD_TO_SHARE
+#define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE MOVEMENT_LE_SCREEN_OFF_DISABLE
+#else
+#define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE MOVEMENT_LE_SCREEN_OFF_ENABLE
+#endif
 
 /* Set the led duration
  * Valid values are:

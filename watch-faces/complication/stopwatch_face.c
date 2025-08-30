@@ -107,14 +107,14 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
-            movement_illuminate_led();
             if (!stopwatch_state->running) {
                 stopwatch_state->start_time.reg = 0;
                 stopwatch_state->seconds_counted = 0;
                 watch_display_text(WATCH_POSITION_BOTTOM, "000000");
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                break;
             }
-            break;
+            // fall through
         case EVENT_ALARM_BUTTON_DOWN:
             if (movement_button_should_sound()) {
                 watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 50, movement_button_volume());

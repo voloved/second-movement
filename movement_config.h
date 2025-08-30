@@ -102,7 +102,11 @@ const watch_face_t watch_faces[] = {
 /* Enable or disable the sound on mode button press */
 #define MOVEMENT_DEFAULT_BUTTON_SOUND false
 
+#ifdef WATCH_BUZZER_IS_BOOSTED
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_SOFT
+#else
+#define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_LOUD
+#endif
 
 /* Set the timeout before switching back to the main watch face
  * Valid values are:

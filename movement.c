@@ -645,6 +645,9 @@ void movement_request_wake() {
     movement_volatile_state.exit_sleep_mode = true;
     movement_state.is_deep_sleeping = false;
     _movement_reset_inactivity_countdown();
+#if __EMSCRIPTEN__
+    _wake_up_simulator();
+#endif
 }
 
 void cb_buzzer_start(void) {

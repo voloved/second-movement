@@ -582,7 +582,9 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             disable_tap_control(state);
             check_and_reset_hi_score(state);
-            display_title(state);
+            if (game_state.curr_screen != SCREEN_TIME) {
+                display_title(state);
+            }
             break;
         case EVENT_TICK:
             switch (game_state.curr_screen)
@@ -603,7 +605,10 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
                 enable_tap_control(state);
                 begin_playing(state);
             }
-            else if (game_state.curr_screen == SCREEN_TITLE || game_state.curr_screen == SCREEN_LOSE) {
+            else if (game_state.curr_screen == SCREEN_TITLE 
+                  || game_state.curr_screen == SCREEN_LOSE
+                  || game_state.curr_screen == SCREEN_TIME) {
+                watch_clear_display();
                 display_score_screen(state);
             }
             break;

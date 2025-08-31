@@ -103,7 +103,7 @@ movement_volatile_state_t movement_volatile_state;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
-static float temperature_last_read_c = (float)0xFFFFFFFF;
+static float _temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
@@ -370,17 +370,19 @@ static void _check_for_deep_sleep(void) {
     if(movement_state.settings.bit.screen_off_after_le != MOVEMENT_LE_SCREEN_OFF_ENABLE) return;
     if (movement_state.is_deep_sleeping) return;
     if (!movement_volatile_state.is_sleeping) return;
-    if (temperature_last_read_c == (float)0xFFFFFFFF) return; // Ignore when the temp is not first read without affecting the timer.
-    // Reset whenever the temperature is high enough, so that way, we need multiple hours in a row before going into deep sleep.    
-    if (temperature_last_read_c >= MOVEMENT_TEMPERATURE_ASSUME_WEARING) movement_state.le_mode_and_not_worn_hours = 0;
-    else if (MOVEMENT_HOURS_BEFORE_DEEPSLEEP > movement_state.le_mode_and_not_worn_hours) movement_state.le_mode_and_not_worn_hours++;
-    else {
+    if (_temperature_last_read_c == (float)0xFFFFFFFF) return;
+    if (_temperature_last_read_c >= MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
+        movement_state.le_mode_and_not_worn_hours = 0;
+    } else if (MOVEMENT_HOURS_BEFORE_DEEPSLEEP > movement_state.le_mode_and_not_worn_hours) {
+        movement_state.le_mode_and_not_worn_hours++;
+    } else {
         // Re-check temperature in case the user wore the watch after the last reading.
         float temperature = movement_get_temperature();
-        if (temperature < MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
+        if (temperature >= MOVEMENT_TEMPERATURE_ASSUME_WEARING) {
+            movement_state.le_mode_and_not_worn_hours = 0;
+        } else {
             movement_request_deep_sleep();
         }
-        movement_state.le_mode_and_not_worn_hours = 0;
     }
 }
 
@@ -394,7 +396,7 @@ static void _movement_handle_top_of_minute(void) {
     }
 
     // Don't turn off the display during hour where people are unlikely to wear it
-    if (date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour)) {
+    if (movement_in_chime_interval(date_time.unit.hour)) {
         _check_for_deep_sleep();
     }
 
@@ -1058,7 +1060,7 @@ float movement_get_temperature(void) {
     }
 #endif
 
-    temperature_last_read_c = temperature_c;
+    _temperature_last_read_c = temperature_c;
     return temperature_c;
 }
 
@@ -1222,6 +1224,7 @@ void app_setup(void) {
 
         // populate the DST offset cache
         _movement_update_dst_offset_cache(movement_get_utc_date_time());
+        movement_get_temperature();  // To initialize _temperature_last_read_c
 
 #ifdef BUILD_TIMEZONE
         for (int i = 0; i < NUM_ZONE_NAMES; i++) {
@@ -1329,6 +1332,11 @@ void app_setup(void) {
 static void _sleep_mode_app_loop(void) {
     // as long as we are in low energy mode, we wake up here, update the screen, and go right back to sleep.
     while (movement_volatile_state.is_sleeping) {
+        if (movement_volatile_state.enter_deep_sleep_mode) {
+            movement_volatile_state.enter_deep_sleep_mode = false;
+            movement_begin_deep_sleep();
+        }
+
         // if we need to wake immediately, do it!
         if (movement_volatile_state.exit_sleep_mode) {
             movement_volatile_state.exit_sleep_mode = false;

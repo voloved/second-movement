@@ -172,6 +172,7 @@ static void _alarm_update_alarm_enabled(alarm_state_t *state) {
     watch_date_time_t tmrw;
     bool now_init = false;
     uint8_t weekday_idx;
+    uint8_t weekday_idx_tmrw;
     uint16_t now_minutes_of_day;
     uint16_t alarm_minutes_of_day;
     bool alarming_today;
@@ -187,6 +188,7 @@ static void _alarm_update_alarm_enabled(alarm_state_t *state) {
                     tmrw = watch_utility_date_time_from_unix_time(watch_utility_date_time_to_unix_time(now, 0) + 86400, 0);
                     now_init = true;
                     weekday_idx = _get_weekday_idx(now);
+                    weekday_idx_tmrw = (weekday_idx + 1) % 7;
                     now_minutes_of_day = now.unit.hour * 60 + now.unit.minute;
                 }
                 alarm_minutes_of_day = state->alarm[i].hour * 60 + state->alarm[i].minute;
@@ -197,7 +199,7 @@ static void _alarm_update_alarm_enabled(alarm_state_t *state) {
                     || ((state->alarm[i].day == ALARM_DAY_WORKDAY
                         || (state->alarm[i].day == ALARM_DAY_WORKDAY_NO_HOLIDAYS 
                         && ((alarming_today && !is_holiday(now, weekday_idx))
-                        || (!alarming_today && !is_holiday(tmrw, weekday_idx)))))
+                        || (!alarming_today && !is_holiday(tmrw, weekday_idx_tmrw)))))
                         && (weekday_idx < 4
                         || (weekday_idx == 4 && alarming_today)
                         || (weekday_idx == 6 && !alarming_today)))

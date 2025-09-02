@@ -98,6 +98,7 @@ int8_t *obstacle_arr_seg;
 
 static game_state_t game_state;
 static const uint8_t _num_bits_obst_pattern = sizeof(game_state.obst_pattern) * 8;
+static int8_t _ticks_show_title = 0;
 
 int8_t start_tune[] = {
     BUZZER_NOTE_C5, 15,
@@ -340,16 +341,19 @@ static void disable_tap_control(endless_runner_state_t *state) {
 }
 
 static void display_title(endless_runner_state_t *state) {
+    movement_request_tick_frequency(1);
     game_state.curr_screen = SCREEN_TITLE;
     watch_clear_colon();
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "ENdLS", "ER  ");
     watch_display_text(WATCH_POSITION_BOTTOM, "RUNNER");
     display_sound_indicator(state -> soundOn);
+    _ticks_show_title = 1;
 }
 
 static void display_score_screen(endless_runner_state_t *state) {
     uint16_t hi_score = state -> hi_score;
     uint8_t difficulty = state -> difficulty;
+    movement_request_tick_frequency(1);
     bool sound_on = state -> soundOn;
     memset(&game_state, 0, sizeof(game_state));
     game_state.curr_screen = SCREEN_SCORE;
@@ -588,6 +592,11 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
             switch (game_state.curr_screen)
             {
             case SCREEN_TITLE:
+                if (_ticks_show_title > 0) {_ticks_show_title--;}
+                else {
+                    watch_clear_display();
+                    display_score_screen(state);
+                }
             case SCREEN_SCORE:
             case SCREEN_LOSE:
             case SCREEN_TIME:
@@ -649,6 +658,7 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             if (game_state.curr_screen != SCREEN_TIME) {
+                movement_request_tick_frequency(1);
                 watch_display_text_with_fallback(WATCH_POSITION_TOP, "RUN  ", "ER  ");
                 display_sound_indicator(state -> soundOn);
                 display_difficulty(state->difficulty);

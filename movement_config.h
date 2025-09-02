@@ -36,9 +36,7 @@ const watch_face_t watch_faces[] = {
     probability_face,
     sunrise_sunset_face,
     moon_phase_face,
-#ifdef BUILD_TO_SHARE
     activity_logging_face,
-#endif
 // Start of Secondary Faces
     settings_face,
     set_time_face,

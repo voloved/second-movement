@@ -347,7 +347,7 @@ static void display_title(endless_runner_state_t *state) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "ENdLS", "ER  ");
     watch_display_text(WATCH_POSITION_BOTTOM, "RUNNER");
     display_sound_indicator(state -> soundOn);
-    _ticks_show_title = 2;
+    _ticks_show_title = 1;
 }
 
 static void display_score_screen(endless_runner_state_t *state) {

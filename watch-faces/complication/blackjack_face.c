@@ -153,6 +153,7 @@ static void give_card(hand_info_t *hand_info) {
     modify_score_from_aces(hand_info);
 }
 
+#ifdef BUILD_TO_SHARE
 static void set_segment_at_position(segment_t segment, uint8_t position) {
     digit_mapping_t segmap;
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
@@ -164,9 +165,14 @@ static void set_segment_at_position(segment_t segment, uint8_t position) {
     const uint8_t seg = segmap.segment[segment].address.seg;
     watch_set_pixel(com_pin, seg);
 }
+#endif
 
 static void display_card_at_position(uint8_t card, uint8_t display_position) {
     switch (card) {
+        case ACE:
+            watch_display_character(watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 'A' : 'a', display_position);
+            break;
+#ifdef BUILD_TO_SHARE
         case KING:
             watch_display_character(' ', display_position);
             set_segment_at_position(A, display_position);
@@ -181,9 +187,11 @@ static void display_card_at_position(uint8_t card, uint8_t display_position) {
         case JACK:
             watch_display_character('-', display_position);
             break;
-        case ACE:
-            watch_display_character(watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 'A' : 'a', display_position);
-            break;
+#else
+        case KING:
+        case QUEEN:
+        case JACK:
+#endif
         case 10:
             watch_display_character('0', display_position);
             break;

@@ -32,12 +32,13 @@
 #include "blackjack_face.h"
 #include "watch_common_display.h"
 
-#define KING   12
-#define QUEEN  11
-#define JACK   10
+#define ACE    14
+#define KING   13
+#define QUEEN  12
+#define JACK   11
 
-#define MIN_CARD_VALUE 1
-#define MAX_CARD_VALUE KING
+#define MIN_CARD_VALUE 2
+#define MAX_CARD_VALUE ACE
 #define CARD_RANK_COUNT (MAX_CARD_VALUE - MIN_CARD_VALUE + 1)
 #define CARD_SUIT_COUNT 4
 #define DECK_SIZE (CARD_SUIT_COUNT * CARD_RANK_COUNT)
@@ -46,23 +47,30 @@
 #define MAX_PLAYER_CARDS_DISPLAY 4
 #define BOARD_DISPLAY_START 4
 
-uint8_t score_player = 0;
-uint8_t score_dealer = 0;
-uint8_t hand_player[BLACKJACK_MAX_HAND_SIZE] = {0xFF};
-uint8_t hand_dealer[BLACKJACK_MAX_HAND_SIZE] = {0xFF};
-uint8_t idx_player = 0;
-uint8_t idx_dealer = 0;
+typedef struct {
+    uint8_t score;
+    uint8_t idx_hand;
+    int8_t high_aces_in_hand;
+    uint8_t hand[BLACKJACK_MAX_HAND_SIZE];
+} hand_info_t;
 
 typedef enum {
     BJ_TITLE_SCREEN,
     BJ_PLAYING,
     BJ_DEALER_PLAYING,
+    BJ_BUST,
     BJ_RESULT,
 } game_state_t;
+
+typedef enum {
+    A, B, C, D, E, F, G
+} segment_t;
 
 static game_state_t game_state;
 static uint8_t deck[DECK_SIZE] = {0};
 static uint8_t current_card = 0;
+hand_info_t player;
+hand_info_t dealer;
 
 static uint8_t generate_random_number(uint8_t num_values) {
     // Emulator: use rand. Hardware: use arc4random.
@@ -103,86 +111,129 @@ static void reset_deck(void) {
 static uint8_t get_next_card(void) {
     if (current_card >= DECK_SIZE)
         reset_deck();
-    uint8_t card = deck[current_card++];
-    if (card > 10) return 10;
-    return card;
+    return deck[current_card++];
+}
+
+static uint8_t get_card_value(uint8_t card) {
+    switch (card)
+    {
+    case ACE:
+        return 11;
+    case KING:
+    case QUEEN:
+    case JACK:
+        return 10;
+    default:
+        return card;
+    }
+}
+
+static void modify_score_from_aces(hand_info_t *hand_info) {
+    while (hand_info->score > 21 && hand_info->high_aces_in_hand > 0) {
+        hand_info->score -= 10;
+        hand_info->high_aces_in_hand--;
+    }
 }
 
 static void reset_hands(void) {
-    score_player = 0;
-    score_dealer = 0;
-    idx_player = 0;
-    idx_dealer = 0;
-    memset(hand_player, 0xFF, sizeof(hand_player));
-    memset(hand_dealer, 0xFF, sizeof(hand_dealer));
+    memset(&player, 0, sizeof(player));
+    memset(&dealer, 0, sizeof(dealer));
     reset_deck();
 }
 
-static void give_player_card(void) {
+static void give_card(hand_info_t *hand_info) {
     uint8_t card = get_next_card();
-    hand_player[idx_player++] = card;
-    score_player += card;
+    if (card == ACE) hand_info->high_aces_in_hand++;
+    hand_info->hand[hand_info->idx_hand++] = card;
+    uint8_t card_value = get_card_value(card);
+    hand_info->score += card_value;
+    modify_score_from_aces(hand_info);
 }
 
-static void give_dealer_card(void) {
-    uint8_t card = get_next_card();
-    hand_dealer[idx_dealer++] = card;
-    score_dealer += card;
+static void set_segment_at_position(segment_t segment, uint8_t position) {
+    digit_mapping_t segmap;
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+        segmap = Custom_LCD_Display_Mapping[position];
+    } else {
+        segmap = Classic_LCD_Display_Mapping[position];
+    }
+    const uint8_t com_pin = segmap.segment[segment].address.com;
+    const uint8_t seg = segmap.segment[segment].address.seg;
+    watch_set_pixel(com_pin, seg);
+}
+
+static void display_card_at_position(uint8_t card, uint8_t display_position) {
+    switch (card) {
+        case KING:
+            watch_display_character(' ', display_position);
+            set_segment_at_position(A, display_position);
+            set_segment_at_position(D, display_position);
+            set_segment_at_position(G, display_position);
+            break;
+        case QUEEN:
+            watch_display_character(' ', display_position);
+            set_segment_at_position(A, display_position);
+            set_segment_at_position(D, display_position);
+            break;
+        case JACK:
+            watch_display_character('-', display_position);
+            break;
+        case ACE:
+            watch_display_character(watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 'A' : 'a', display_position);
+            break;
+        case 10:
+            watch_display_character('0', display_position);
+            break;
+        default: {
+            const char display_char = card + '0';
+            watch_display_character(display_char, display_position);
+            break;
+        }
+    }
 }
 
 static void display_player_hand(void) { 
-    uint8_t cards_to_display = idx_player > MAX_PLAYER_CARDS_DISPLAY ? MAX_PLAYER_CARDS_DISPLAY : idx_player;
+    uint8_t cards_to_display = player.idx_hand > MAX_PLAYER_CARDS_DISPLAY ? MAX_PLAYER_CARDS_DISPLAY : player.idx_hand;
     for (uint8_t i=cards_to_display; i>0; i--) {
-        uint8_t card = hand_player[idx_player-i];
-        if (card == 10) card = 0;
-        const char display_char = card + '0';
-        watch_display_character(display_char, BOARD_DISPLAY_START + cards_to_display - i);
+        uint8_t card = player.hand[player.idx_hand-i];
+        display_card_at_position(card, BOARD_DISPLAY_START + cards_to_display - i);
     }
 }
 
 static void display_dealer_hand(void) {
-    uint8_t card = hand_dealer[idx_dealer - 1];
-    if (card == 10) card = 0;
-    const char display_char = card + '0';
-    watch_display_character(display_char, 0);
+    uint8_t card = dealer.hand[dealer.idx_hand - 1];
+    display_card_at_position(card, 0);
 }
 
-static void display_player_score(void) {
-    char buf[3];
-    sprintf(buf, "%2d", score_player);
-    watch_display_text(WATCH_POSITION_SECONDS, buf);
-}
-
-static void display_dealer_score(void) {
-    char buf[3];
-    sprintf(buf, "%2d", score_dealer);
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+static void display_score(uint8_t score, watch_position_t pos) {
+    char buf[4];
+    sprintf(buf, "%2d", score);
+    watch_display_text(pos, buf);
 }
 
 static void display_win(void) {
     game_state = BJ_RESULT;
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WlN ", " WIN");
-    display_player_score();
-    display_dealer_score();
+    display_score(player.score, WATCH_POSITION_SECONDS);
+    display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
 }
 
 static void display_lose(void) {
     game_state = BJ_RESULT;
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LOSE", "lOSE");
-    display_player_score();
-    display_dealer_score();
+    display_score(player.score, WATCH_POSITION_SECONDS);
+    display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
 }
 
 static void display_tie(void) {
     game_state = BJ_RESULT;
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "TlE ", " TIE");
-    display_player_score();
+    display_score(player.score, WATCH_POSITION_SECONDS);
 }
 
 static void display_bust(void) {
     game_state = BJ_RESULT;
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8UST ", " BUST");
-    display_player_score();
 }
 
 static void display_title(void) {
@@ -191,57 +242,59 @@ static void display_title(void) {
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " JACK ", "BLaKJK");
 }
 
-static void begin_playing(void) {
+static void begin_playing(bool tap_control_on) {
     watch_clear_display();
+    if (tap_control_on) {
+        watch_set_indicator(WATCH_INDICATOR_SIGNAL);
+    }
     game_state = BJ_PLAYING;
     reset_hands();
     // Give player their first 2 cards
-    give_player_card();
-    give_player_card();
+    give_card(&player);
+    give_card(&player);
     display_player_hand();
-    display_player_score();
-    give_dealer_card();
+    display_score(player.score, WATCH_POSITION_SECONDS);
+    give_card(&dealer);
     display_dealer_hand();
-    display_dealer_score();
+    display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
 }
 
 static void perform_hit(void) {
-    if (score_player == 21) {
+    if (player.score == 21) {
         return; // Assume hitting on 21 is a mistake and ignore
     }
-    give_player_card();
-    if (score_player > 21) {
-        display_bust();
-    } else {
-        display_player_hand();
-        display_player_score();
+    give_card(&player);
+    if (player.score > 21) {
+        game_state = BJ_BUST;
     }
+    display_player_hand();
+    display_score(player.score, WATCH_POSITION_SECONDS);
 }
 
 static void perform_stand(void) {
     game_state = BJ_DEALER_PLAYING;
     watch_display_text(WATCH_POSITION_BOTTOM, "Stnd");
-    display_player_score();
+    display_score(player.score, WATCH_POSITION_SECONDS);
 }
 
 static void dealer_performs_hits(void) {
-    give_dealer_card();
+    give_card(&dealer);
     display_dealer_hand();
-    if (score_dealer > 21) {
+    if (dealer.score > 21) {
         display_win();
-    } else if (score_dealer > score_player) {
+    } else if (dealer.score > player.score) {
         display_lose();
     } else {
         display_dealer_hand();
-        display_dealer_score();
+        display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
     } 
 }
 
 static void see_if_dealer_hits(void) {
-    if (score_dealer > 16) {
-        if (score_dealer > score_player) {
+    if (dealer.score > 16) {
+        if (dealer.score > player.score) {
             display_lose();
-        } else if (score_dealer < score_player) {
+        } else if (dealer.score < player.score) {
             display_win();
         } else {
             display_tie();
@@ -251,11 +304,11 @@ static void see_if_dealer_hits(void) {
     }
 }
 
-void handle_button_presses(bool hit) {
+static void handle_button_presses(bool tap_control_on, bool hit) {
     switch (game_state)
     {
     case BJ_TITLE_SCREEN:
-        begin_playing();
+        begin_playing(tap_control_on);
         break;
     case BJ_PLAYING:
         if (hit) {
@@ -266,6 +319,9 @@ void handle_button_presses(bool hit) {
         break;
     case BJ_DEALER_PLAYING:
         see_if_dealer_hits();
+        break;
+    case BJ_BUST:
+        display_bust();
         break;
     case BJ_RESULT:
         display_title();
@@ -309,22 +365,30 @@ bool blackjack_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             if (state->tap_control_on) {
-                movement_enable_tap_detection_if_available();
+                bool tap_could_enable = movement_enable_tap_detection_if_available();
+                if (tap_could_enable) {
+                    watch_set_indicator(WATCH_INDICATOR_SIGNAL);
+                } else {
+                    state->tap_control_on = false;
+                }
             }
             break;
         case EVENT_TICK:
             if (game_state == BJ_DEALER_PLAYING) {
                 see_if_dealer_hits();
             }
+            else if (game_state == BJ_BUST) {
+                display_bust();
+            }
             break;
         case EVENT_LIGHT_BUTTON_UP:
         case EVENT_DOUBLE_TAP:
-            handle_button_presses(false);
+            handle_button_presses(state->tap_control_on, false);
         case EVENT_LIGHT_BUTTON_DOWN:
             break;
         case EVENT_ALARM_BUTTON_UP:
         case EVENT_SINGLE_TAP:
-            handle_button_presses(true);
+            handle_button_presses(state->tap_control_on, true);
             break;
         case EVENT_ALARM_LONG_PRESS:
             if (game_state == BJ_TITLE_SCREEN) {

@@ -150,7 +150,7 @@ bool set_time_face_loop(movement_event_t event, void *context) {
     if (current_page == SET_TIME_TZ) {
         uint8_t curr_idx = movement_get_timezone_index();
         sprintf(buf, "%2d", curr_idx % 100);
-        if (buf[0] == '4' && watch_get_lcd_type() != WATCH_LCD_TYPE_CUSTOM) buf[0] = 'W'; // W looks the closest like 4
+        if (buf[0] == '4' && (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC)) buf[0] = 'W'; // W looks the closest like 4
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         if (_display_tz_offset) {
             uint8_t hours = abs(current_offset) / 3600;

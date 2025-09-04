@@ -31,6 +31,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include "clock_face.h"
 #include "watch.h"
@@ -50,6 +51,17 @@ static movement_location_t load_location_from_filesystem() {
     filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
     return location;
 }
+
+#if __EMSCRIPTEN__
+static void print_time_debug(watch_date_time_t date_time, const char *time_name) {
+    // Such as: print_time_debug(date_time, "Now");
+    //          print_time_debug(rise_set_info.time_rise, "Rise");
+    //          print_time_debug(rise_set_info.time_set, "Set");
+    printf("%s: %d:%02d  %d-%d-%d\n", time_name, date_time.unit.hour,
+            date_time.unit.minute, date_time.unit.month,
+            date_time.unit.day, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR);
+}
+#endif
 
 static watch_date_time_t _get_rise_set_time(double rise_set_val, double hours_from_utc, watch_date_time_t date_time) {
     watch_date_time_t scratch_time;
@@ -76,40 +88,40 @@ static watch_date_time_t _get_rise_set_time(double rise_set_val, double hours_fr
     return scratch_time;
 }
 
-static int8_t _compare_dates_times(watch_date_time_t dt1, watch_date_time_t dt2, bool check_date_only) {
+static int16_t _compare_dates_times(watch_date_time_t dt1, watch_date_time_t dt2, bool check_date_only) {
     // Returns 0 if they're the same; Positive if dt1 is newer than dt2; Negative o/w
-    if (dt1.unit.year != dt2.unit.year) return dt1.unit.year - dt2.unit.year;
-    if (dt1.unit.month != dt2.unit.month) return dt1.unit.month - dt2.unit.month;
-    if (dt1.unit.day != dt2.unit.day) return dt1.unit.day - dt2.unit.day;
-    if (check_date_only) return 0;
-    if (dt1.unit.hour != dt2.unit.hour) return dt1.unit.hour - dt2.unit.hour;
-    return dt1.unit.minute - dt2.unit.minute;
+    if (check_date_only) {
+        return (dt1.reg >> 12) - (dt2.reg >> 12);
+    }
+    return (dt1.reg >> 6) - (dt2.reg >> 6);
 }
 
 static int8_t _get_if_daytime_result(watch_date_time_t date_time, clock_rise_set_t rise_set_info) {
-    // Returns 0 if nighttime; 1 if daytime; -1 if stale;
-    int8_t sunrise_occurred = _compare_dates_times(rise_set_info.time_rise, date_time, false);
-    if (sunrise_occurred >= 0) return 0;
-    int8_t sunset_occurred = _compare_dates_times(rise_set_info.time_set, date_time, false);
-    if (sunset_occurred >= 0) return 1;
+    // Returns 0 if current time is after sunset; 1 if current time is after sunrise; -1 if predates sunrise;
+    int16_t sunset_occurred = _compare_dates_times(date_time, rise_set_info.time_set, false);
+    if (sunset_occurred >= 0) return 0;
+    int16_t sunrise_occurred = _compare_dates_times(date_time, rise_set_info.time_rise, false);
+    if (sunrise_occurred >= 0) return 1;
     return -1;
 }
 
-static bool _get_if_daytime(watch_date_time_t date_time, watch_date_time_t date_time_prev, clock_rise_set_t *rise_set_info) {
+static bool _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *rise_set_info) {
+    int8_t is_daytime;
     if (rise_set_info->location.reg == 0) {  // No location set
         return true;
     }
     uint8_t tz_idx = movement_get_timezone_index();
-    int8_t date_changed = _compare_dates_times(date_time_prev, date_time, true);
+    int8_t date_changed = _compare_dates_times(rise_set_info->time_set, date_time, true);
     if (tz_idx == rise_set_info->tz_idx && date_changed == 0) {
-        int8_t is_daytime = _get_if_daytime_result(date_time, *rise_set_info);
-        if (is_daytime == 1) return true;
-        else if (is_daytime == 0) return false;
+        is_daytime = _get_if_daytime_result(date_time, *rise_set_info);
+        return is_daytime == 1;
     }
     rise_set_info->tz_idx = tz_idx;
-    double lat = (double)rise_set_info->location.bit.latitude / 100.0;
-    double lon = (double)rise_set_info->location.bit.longitude / 100.0;
-    int32_t tz = movement_get_current_timezone_offset_for_zone(rise_set_info->tz_idx);
+    int16_t lat_centi = (int16_t)rise_set_info->location.bit.latitude;
+    int16_t lon_centi = (int16_t)rise_set_info->location.bit.longitude;
+    double lat = (double)lat_centi / 100.0;
+    double lon = (double)lon_centi / 100.0;
+    int32_t tz = movement_get_current_timezone_offset_for_zone(tz_idx);
     watch_date_time_t utc_now = watch_utility_date_time_convert_zone(date_time, tz, 0); // the current date / time in UTC
     double rise, set;
     uint8_t result = sun_rise_set(utc_now.unit.year + WATCH_RTC_REFERENCE_YEAR, utc_now.unit.month, utc_now.unit.day, lon, lat, &rise, &set);
@@ -119,7 +131,8 @@ static bool _get_if_daytime(watch_date_time_t date_time, watch_date_time_t date_
     double hours_from_utc = ((double)tz) / 3600.0;
     rise_set_info->time_rise = _get_rise_set_time(rise, hours_from_utc, date_time);
     rise_set_info->time_set =  _get_rise_set_time(set, hours_from_utc, date_time);
-    return (bool)_get_if_daytime_result(date_time, *rise_set_info);
+    is_daytime = _get_if_daytime_result(date_time, *rise_set_info);
+    return is_daytime == 1;
 }
 
 static void clock_indicate(watch_indicator_t indicator, bool on) {
@@ -298,6 +311,12 @@ static void clock_stop_tick_tock_animation(void) {
     }
 }
 
+static void display_nighttime(clock_state_t *state, watch_date_time_t date_time) {
+    bool is_daytime = _get_if_daytime(date_time, &state->rise_set_info);
+    if (is_daytime) watch_clear_sleep_indicator_if_possible();
+    else watch_set_sleep_indicator_if_possible();
+}
+
 void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
 
@@ -306,7 +325,7 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         clock_state_t *state = (clock_state_t *) *context_ptr;
         state->time_signal_enabled = true;
         state->watch_face_index = watch_face_index;
-        state->date_time.previous.reg = 0xFFFFFFFF;
+        memset(&state->rise_set_info, 0, sizeof(clock_rise_set_t));
     }
 }
 
@@ -321,13 +340,18 @@ void clock_face_activate(void *context) {
 
     watch_set_colon();
 
-    movement_location_t movement_location = load_location_from_filesystem();
-    state->rise_set_info.location.reg = movement_location.reg;
+    // this ensures that none of the timestamp fields will match, so we can re-render them all.
+    state->date_time.previous.reg = 0xFFFFFFFF;
+
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ) {
+        movement_location_t movement_location = load_location_from_filesystem();
+        state->rise_set_info.location.reg = movement_location.reg;
+    }
 }
 
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
-    watch_date_time_t current, previous;
+    watch_date_time_t current;
 
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
@@ -337,20 +361,18 @@ bool clock_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
         case EVENT_ACTIVATE:
-            previous.reg = state->date_time.previous.reg;
-            // this ensures that none of the timestamp fields will match, so we can re-render them all.
-            state->date_time.previous.reg = 0xFFFFFFFF;
             current = movement_get_local_date_time();
+
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
+                (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {
+                display_nighttime(state, current);
+            }
 
             clock_display_clock(state, current);
 
             clock_check_battery_periodically(state, current);
 
             state->date_time.previous = current;
-
-            bool is_daytime = _get_if_daytime(current, previous, &state->rise_set_info);
-            if (is_daytime) watch_clear_sleep_indicator_if_possible();
-            else watch_set_sleep_indicator_if_possible();
 
             break;
         case EVENT_ALARM_LONGER_PRESS:

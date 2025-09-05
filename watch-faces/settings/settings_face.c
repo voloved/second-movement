@@ -168,14 +168,35 @@ static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
                 break;
         }
     }
-    else {
-        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
-    }
 }
 
 static void low_energy_deep_sleep_setting_advance(void) {
     movement_low_energy_screen_off_t next_mode = (movement_get_low_energy_screen_off_setting() + 1) % MOVEMENT_LE_SCREEN_OFF_MODES;
     movement_set_low_energy_screen_off_setting(next_mode);
+}
+
+static void hourly_chime_setting_display(uint8_t subsecond) {
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIME", "CH  ");
+    if (subsecond % 2) {
+        switch (movement_get_hourly_chime_times()) {
+            case MOVEMENT_HC_ALWAYS:
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Always"," Alway");
+                break;
+            case MOVEMENT_HC_DAYTIME:
+                watch_display_text(WATCH_POSITION_BOTTOM, "8-20  ");
+                break;
+            case MOVEMENT_HC_SUN:
+                watch_display_text(WATCH_POSITION_BOTTOM, "Sun  ");
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+static void hourly_chime_setting_advance(void) {
+    movement_low_energy_screen_off_t next_mode = (movement_get_hourly_chime_times() + 1) % MOVEMENT_HC_MODES;
+    movement_set_hourly_chime_times(next_mode);
 }
 
 static void led_duration_setting_display(uint8_t subsecond) {
@@ -278,7 +299,7 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         settings_state_t *state = (settings_state_t *)*context_ptr;
         int8_t current_setting = 0;
         state->current_page = 0;
-        state->num_settings = 7; // baseline, without LED settings
+        state->num_settings = 8; // baseline, without LED settings
 #ifdef BUILD_GIT_HASH
         state->num_settings++;
 #endif
@@ -314,6 +335,9 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         state->screen_off_screen = current_setting;
         current_setting++;
 #endif
+        state->settings_screens[current_setting].display = hourly_chime_setting_display;
+        state->settings_screens[current_setting].advance = hourly_chime_setting_advance;
+        current_setting++;
         state->settings_screens[current_setting].display = led_duration_setting_display;
         state->settings_screens[current_setting].advance = led_duration_setting_advance;
         current_setting++;

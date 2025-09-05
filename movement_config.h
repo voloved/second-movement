@@ -152,8 +152,17 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LED_DURATION 1
 
-#define MOVEMENT_HOURLY_CHIME_START 8  // First hour we chime
-#define MOVEMENT_HOURLY_CHIME_END 20  // First hour we don't chime
+/* Set when hourly chiming will occur
+ * Valid values are:
+ * MOVEMENT_HC_ALWAYS: Always chime
+ * MOVEMENT_HC_DAYTIME: begin chiming at MOVEMENT_DAYTIME_START and don't chime at MOVEMENT_DAYTIME_END
+ * MOVEMENT_HC_SUN: Chime between sunrise and sunset
+ */
+#define MOVEMENT_DEFAULT_HOURLY_CHIME MOVEMENT_HC_DAYTIME
+
+// If you change this, modify the MOVEMENT_HC_DAYTIME text in settings
+#define MOVEMENT_DAYTIME_START 8
+#define MOVEMENT_DAYTIME_END 20
 
 #ifndef BUILD_TO_SHARE
 /* The latitude and longitude used for the wearers location

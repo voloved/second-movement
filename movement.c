@@ -396,7 +396,7 @@ static void _movement_handle_top_of_minute(void) {
     }
 
     // Don't turn off the display during hour where people are unlikely to wear it
-    if (movement_in_chime_interval(date_time.unit.hour)) {
+    if (movement_in_daytime_interval(date_time.unit.hour)) {
         _check_for_deep_sleep();
     }
 
@@ -848,8 +848,8 @@ void movement_set_local_date_time(watch_date_time_t date_time) {
     movement_set_utc_timestamp(watch_utility_date_time_to_unix_time(date_time, current_offset));
 }
 
-bool movement_in_chime_interval(uint8_t hour) {
-    return hour >= MOVEMENT_HOURLY_CHIME_START && hour < MOVEMENT_HOURLY_CHIME_END;
+bool movement_in_daytime_interval(uint8_t hour) {
+    return hour >= MOVEMENT_DAYTIME_START && hour < MOVEMENT_DAYTIME_END;
 }
 
 void movement_set_utc_timestamp(uint32_t timestamp) {
@@ -949,6 +949,14 @@ uint8_t movement_get_backlight_dwell(void) {
 
 void movement_set_backlight_dwell(uint8_t value) {
     movement_state.settings.bit.led_duration = value;
+}
+
+movement_hourly_chime_t movement_get_hourly_chime_times(void) {
+    return movement_state.settings.bit.hourly_chime_times;
+}
+
+void movement_set_hourly_chime_times(uint8_t value) {
+    movement_state.settings.bit.hourly_chime_times = value;
 }
 
 void movement_store_settings(void) {
@@ -1161,6 +1169,7 @@ void app_init(void) {
         movement_state.settings.bit.screen_off_after_le = MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE;
 #endif
         movement_state.settings.bit.led_duration = MOVEMENT_DEFAULT_LED_DURATION;
+        movement_state.settings.bit.hourly_chime_times = MOVEMENT_DEFAULT_HOURLY_CHIME;
 
 #if defined(MOVEMENT_DEFAULT_LATITUDE) && defined(MOVEMENT_DEFAULT_LONGITUDE)
         // If there's no location set on the watch already, set it to a default.

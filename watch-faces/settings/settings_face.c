@@ -167,7 +167,9 @@ static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
         }
     }
     else {
-        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
+        // IDK why, but writing D in the 0th position on custom LCD puts an
+        // underscore in the 5th position. This overwrites it.
+        watch_display_text(WATCH_POSITION_BOTTOM, "  ");
     }
 }
 
@@ -177,17 +179,17 @@ static void low_energy_deep_sleep_setting_advance(void) {
 }
 
 static void hourly_chime_setting_display(uint8_t subsecond) {
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIME", "CH  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIME", "CH");
     if (subsecond % 2) {
         switch (movement_get_hourly_chime_times()) {
             case MOVEMENT_HC_ALWAYS:
                 watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Always"," Alway");
                 break;
             case MOVEMENT_HC_DAYTIME:
-                watch_display_text(WATCH_POSITION_BOTTOM, "8-20  ");
+                watch_display_text(WATCH_POSITION_BOTTOM, "8-20");
                 break;
             case MOVEMENT_HC_SUN:
-                watch_display_text(WATCH_POSITION_BOTTOM, "Sun  ");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Sun", "Sun");
                 break;
             default:
                 break;

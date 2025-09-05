@@ -411,7 +411,23 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
 
     if (state->time_signal_enabled) {
         watch_date_time_t date_time = movement_get_local_date_time();
-        retval.wants_background_task = date_time.unit.minute == 0 && movement_in_chime_interval(date_time.unit.hour);
+        if (date_time.unit.minute == 0) {
+            movement_hourly_chime_t hour_chime_option = movement_get_hourly_chime_times();
+            switch (hour_chime_option)
+            {
+            case MOVEMENT_HC_ALWAYS:
+                retval.wants_background_task = true;
+                break;
+            case MOVEMENT_HC_DAYTIME:
+                retval.wants_background_task = movement_in_daytime_interval(date_time.unit.hour);
+                break;
+            case MOVEMENT_HC_SUN:
+                retval.wants_background_task = _get_if_daytime(date_time, &state->rise_set_info);
+                break;
+            default:
+                break;
+            }
+        }
     }
 
     return retval;

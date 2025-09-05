@@ -485,9 +485,8 @@ void movement_request_tick_frequency(uint8_t freq) {
 }
 
 uint8_t movement_get_color_val(uint8_t led_color) {
-    // this bitwise math turns #000 into #000000, #111 into #11111111, etc.
-    if (led_color == 0x07) return 0xFF;
-    return led_color | (led_color << 2) | (led_color << 5);
+    // this bitwise math turns #000 into #000000, #11 into #11111111, etc.
+    return led_color | (led_color << 2) | (led_color << 4) | (led_color << 6);
 }
 
 void movement_illuminate_led(void) {

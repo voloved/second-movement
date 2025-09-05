@@ -88,9 +88,9 @@ typedef union {
         uint32_t le_interval : 3;            // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
         uint32_t screen_off_after_le : 2;    // If true and we're in LE mode and it's the top of the hour after movement_le_deep_sleep_deadline and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
         uint32_t led_duration : 3;           // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
-        uint32_t led_red_color : 3;          // for general purpose illumination, the red LED value (0-7)
-        uint32_t led_green_color : 3;        // for general purpose illumination, the green LED value (0-7)
-        uint32_t led_blue_color : 3;         // for general purpose illumination, the green LED value (0-7)
+        uint32_t led_red_color : 2;          // for general purpose illumination, the red LED value (0-7)
+        uint32_t led_green_color : 2;        // for general purpose illumination, the green LED value (0-7)
+        uint32_t led_blue_color : 2;         // for general purpose illumination, the green LED value (0-7)
         uint32_t time_zone : 6;              // an integer representing an index in the time zone table.
 
         // while Movement itself doesn't implement a clock or display units, it may make sense to include some
@@ -100,8 +100,9 @@ typedef union {
         uint32_t clock_mode_24h : 1;            // indicates whether clock should use 12 or 24 hour mode.
         uint32_t clock_mode_toggle : 1;         // If true, then pressing the alarm button toggles 24H mode
         uint32_t use_imperial_units : 1;        // indicates whether to use metric units (the default) or imperial.
-        uint32_t hourly_chime_times : 4;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
-    } bit;
+        uint32_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
+        uint32_t unused : 1;
+      } bit;
     uint32_t reg;
 } movement_settings_t;
 

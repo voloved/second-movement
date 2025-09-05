@@ -396,7 +396,7 @@ static void _movement_handle_top_of_minute(void) {
     }
 
     // Don't turn off the display during hour where people are unlikely to wear it
-    if (movement_in_daytime_interval(date_time.unit.hour)) {
+    if (date_time.unit.minute == 0 && movement_in_daytime_interval(date_time.unit.hour)) {
         _check_for_deep_sleep();
     }
 

@@ -45,6 +45,9 @@
  *      a beep when pressed, and if so, how loud it should be. Options are
  *      "Y" for yes and "N" for no.
  *
+ *  SI / SIG - Button/Chime/Alarm volume.
+ *      This setting allows you to choose the volume for the alarm, chime, and button..
+ *
  *  TO / Tmout - Timeout.
  *      Sets the time until screens that time out (like Settings and Time Set)
  *      snap back to the first screen. 60 seconds is a good default for the
@@ -58,6 +61,12 @@
  *      lose the seconds indicator while it is asleep. This setting allows
  *      you to make a tradeoff between the device’s responsiveness and its
  *      longevity.
+ *
+ *  LEds / DPSLP - Low Energy Deep Sleep mode.
+ *      If on, then we turn the display off after 5 hours of the watch
+ *      being in deep sleep and not being worn.
+ *      The Now option will put the watch intosleep mode is
+ *      the display turned off when the Light button is pressed.
  *
  *  LT / LED - Light Duration and Color
  *      The first LED screen lets you choose how long the LED should stay lit

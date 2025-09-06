@@ -49,30 +49,54 @@ static void clock_setting_advance(void) {
     movement_set_clock_mode_24h(next_mode);
 }
 
-static void beep_btn_setting_display(uint8_t subsecond) {
+static void beep_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BTN", "BT");
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "beep  ", " beep ");
     if (subsecond % 2) {
         if (movement_button_should_sound()) {
-            watch_display_text(WATCH_POSITION_TOP_RIGHT, " Y");
+            if (movement_button_volume() == WATCH_BUZZER_VOLUME_LOUD) {
+                // H for HIGH
+                watch_display_text(WATCH_POSITION_TOP_RIGHT, " H");
+            }
+            else {
+                // L for LOW
+                watch_display_text(WATCH_POSITION_TOP_RIGHT, " L");
+            }
         } else {
+            // N for NONE
             watch_display_text(WATCH_POSITION_TOP_RIGHT, " N");
         }
     }
 }
 
-static void beep_btn_setting_advance(void) {
-    if (!movement_button_should_sound())
-        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 50, movement_button_volume());
-    movement_set_button_should_sound(!movement_button_should_sound());
-    beep_btn_setting_display(1);
+static void beep_setting_advance(void) {
+    if (!movement_button_should_sound()) {
+        // was muted. make it soft.
+        movement_set_button_should_sound(true);
+        movement_set_button_volume(WATCH_BUZZER_VOLUME_SOFT);
+        beep_setting_display(1);
+        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 50, WATCH_BUZZER_VOLUME_SOFT);
+    } else if (movement_button_volume() == WATCH_BUZZER_VOLUME_SOFT) {
+        // was soft. make it loud.
+        movement_set_button_volume(WATCH_BUZZER_VOLUME_LOUD);
+        beep_setting_display(1);
+        watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 50, WATCH_BUZZER_VOLUME_LOUD);
+    } else {
+        // was loud. make it silent.
+        movement_set_button_should_sound(false);
+        beep_setting_display(1);
+#ifdef WATCH_BUZZER_IS_BOOSTED
+        // Default to beeps being quiet on the Sensorwatch Pro
+        movement_set_button_volume(WATCH_BUZZER_VOLUME_SOFT);
+#endif
+    }
 }
 
-static void beep_vol_setting_display(uint8_t subsecond) {
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "VOL", "VO");
+static void signal_setting_display(uint8_t subsecond) {
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SIG", "SI");
     watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "beep  ", " beep ");
     if (subsecond % 2) {
-        if (movement_button_volume() == WATCH_BUZZER_VOLUME_LOUD) {
+        if (movement_signal_volume() == WATCH_BUZZER_VOLUME_LOUD) {
             // H for HIGH
             watch_display_text(WATCH_POSITION_TOP_RIGHT, " H");
         }
@@ -83,11 +107,17 @@ static void beep_vol_setting_display(uint8_t subsecond) {
     }
 }
 
-static void beep_vol_setting_advance(void) {
-    watch_buzzer_volume_t volume = !movement_button_volume();
-    movement_set_button_volume(volume);
-    watch_buzzer_play_note_with_volume(BUZZER_NOTE_C7, 50, volume);
-    beep_vol_setting_display(1);
+static void signal_setting_advance(void) {
+    if (movement_signal_volume() == WATCH_BUZZER_VOLUME_SOFT) {
+        // was soft. make it loud.
+        movement_set_signal_volume(WATCH_BUZZER_VOLUME_LOUD);
+    } else {
+        // was loud. make it soft.
+        movement_set_signal_volume(WATCH_BUZZER_VOLUME_SOFT);
+    }
+
+    signal_setting_display(1);
+    movement_play_signal();
 }
 
 static void timeout_setting_display(uint8_t subsecond) {
@@ -319,14 +349,14 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 #endif
 
         state->settings_screens = malloc(state->num_settings * sizeof(settings_screen_t));
-        state->settings_screens[current_setting].display = beep_btn_setting_display;
-        state->settings_screens[current_setting].advance = beep_btn_setting_advance;
-        current_setting++;
-        state->settings_screens[current_setting].display = beep_vol_setting_display;
-        state->settings_screens[current_setting].advance = beep_vol_setting_advance;
-        current_setting++;
         state->settings_screens[current_setting].display = clock_setting_display;
         state->settings_screens[current_setting].advance = clock_setting_advance;
+        current_setting++;
+        state->settings_screens[current_setting].display = beep_setting_display;
+        state->settings_screens[current_setting].advance = beep_setting_advance;
+        current_setting++;
+        state->settings_screens[current_setting].display = signal_setting_display;
+        state->settings_screens[current_setting].advance = signal_setting_advance;
         current_setting++;
         state->settings_screens[current_setting].display = timeout_setting_display;
         state->settings_screens[current_setting].advance = timeout_setting_advance;

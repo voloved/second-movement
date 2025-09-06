@@ -105,8 +105,10 @@ const watch_face_t watch_faces[] = {
 
 #ifdef WATCH_BUZZER_IS_BOOSTED
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_SOFT
+#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_LOUD
 #else
 #define MOVEMENT_DEFAULT_BUTTON_VOLUME WATCH_BUZZER_VOLUME_LOUD
+#define MOVEMENT_DEFAULT_SIGNAL_VOLUME WATCH_BUZZER_VOLUME_LOUD
 #endif
 
 /* Set the timeout before switching back to the main watch face
@@ -176,5 +178,11 @@ const watch_face_t watch_faces[] = {
 
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C
 #define MOVEMENT_HOURS_BEFORE_DEEPSLEEP 5
+
+/* Optionally debounce button presses (disable by default).
+ * A value of 4 is a good starting point if you have issues
+ * with multiple button presses firing.
+*/
+#define MOVEMENT_DEBOUNCE_TICKS 4
 
 #endif // MOVEMENT_CONFIG_H_

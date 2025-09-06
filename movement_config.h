@@ -32,11 +32,13 @@ const watch_face_t watch_faces[] = {
     stopwatch_face,
     countdown_face,
     advanced_alarm_face,
+    sunrise_sunset_face,
     tally_face,
     probability_face,
-    sunrise_sunset_face,
     moon_phase_face,
+#ifdef I2C_SERCOM
     activity_logging_face,
+#endif
 // Start of Secondary Faces
     settings_face,
     set_time_face,
@@ -48,6 +50,7 @@ const watch_face_t watch_faces[] = {
 // Start of Teriary Faces
     endless_runner_face,
     wordle_face,
+    blackjack_face,
     higher_lower_game_face,
     lander_face,
     simon_face,

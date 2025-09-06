@@ -42,8 +42,8 @@ const watch_face_t watch_faces[] = {
 // Start of Secondary Faces
     settings_face,
     set_time_face,
-    temperature_logging_face,
     voltage_face,
+    temperature_logging_face,
 #ifdef I2C_SERCOM
     accelerometer_status_face,
 #endif

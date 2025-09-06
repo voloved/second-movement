@@ -63,11 +63,10 @@ static void print_time_debug(watch_date_time_t date_time, const char *time_name)
 }
 #endif
 
-static watch_date_time_t _get_rise_set_time(double rise_set_val, double hours_from_utc, watch_date_time_t date_time) {
+static watch_date_time_t _get_rise_set_time(double rise_set_val, watch_date_time_t date_time) {
     watch_date_time_t scratch_time;
     double minutes, seconds;
     scratch_time.reg = date_time.reg;
-    rise_set_val += hours_from_utc;
     minutes = 60.0 * fmod(rise_set_val, 1);
     seconds = 60.0 * fmod(minutes, 1);
     scratch_time.unit.hour = floor(rise_set_val);
@@ -129,8 +128,10 @@ static bool _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *rise_
         return true;
     }
     double hours_from_utc = ((double)tz) / 3600.0;
-    rise_set_info->time_rise = _get_rise_set_time(rise, hours_from_utc, date_time);
-    rise_set_info->time_set =  _get_rise_set_time(set, hours_from_utc, date_time);
+    rise += hours_from_utc;
+    set += hours_from_utc;
+    rise_set_info->time_rise = _get_rise_set_time(rise, date_time);
+    rise_set_info->time_set =  _get_rise_set_time(set, date_time);
     is_daytime = _get_if_daytime_result(date_time, *rise_set_info);
     return is_daytime == 1;
 }
@@ -322,7 +323,7 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(clock_state_t));
-        memset(*context_ptr, 0, sizeof(clock_rise_set_t));
+        memset(*context_ptr, 0, sizeof(clock_state_t));
         clock_state_t *state = (clock_state_t *) *context_ptr;
         state->time_signal_enabled = true;
         state->watch_face_index = watch_face_index;

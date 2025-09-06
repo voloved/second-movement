@@ -32,9 +32,9 @@ const watch_face_t watch_faces[] = {
     fast_stopwatch_face,
     countdown_face,
     advanced_alarm_face,
+    sunrise_sunset_face,
     tally_face,
     probability_face,
-    sunrise_sunset_face,
     moon_phase_face,
 #ifdef I2C_SERCOM
     activity_logging_face,

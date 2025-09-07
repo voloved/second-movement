@@ -417,6 +417,8 @@ void movement_set_utc_date_time(watch_date_time_t date_time);
 void movement_set_local_date_time(watch_date_time_t date_time);
 void movement_set_utc_timestamp(uint32_t timestamp);
 
+uint8_t get_daytime_start_hour(void);
+uint8_t get_daytime_end_hour(void);
 bool movement_in_daytime_interval(uint8_t hour);
 bool movement_button_should_sound(void);
 void movement_set_button_should_sound(bool value);

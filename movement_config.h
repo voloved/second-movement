@@ -162,7 +162,6 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_HOURLY_CHIME MOVEMENT_HC_DAYTIME
 
-// If you change this, modify the MOVEMENT_HC_DAYTIME text in settings
 #define MOVEMENT_DAYTIME_START 8
 #define MOVEMENT_DAYTIME_END 20
 

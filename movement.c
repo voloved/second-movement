@@ -858,6 +858,15 @@ void movement_set_local_date_time(watch_date_time_t date_time) {
     movement_set_utc_timestamp(watch_utility_date_time_to_unix_time(date_time, current_offset));
 }
 
+uint8_t get_daytime_start_hour(void) {
+    return MOVEMENT_DAYTIME_START;
+}
+
+uint8_t get_daytime_end_hour(void) {
+    return MOVEMENT_DAYTIME_END;
+}
+
+
 bool movement_in_daytime_interval(uint8_t hour) {
     return hour >= MOVEMENT_DAYTIME_START && hour < MOVEMENT_DAYTIME_END;
 }

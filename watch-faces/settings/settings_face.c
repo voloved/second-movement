@@ -212,13 +212,15 @@ static void low_energy_deep_sleep_setting_advance(void) {
 
 static void hourly_chime_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIME", "CH");
+    char buf[9];
     if (subsecond % 2) {
         switch (movement_get_hourly_chime_times()) {
             case MOVEMENT_HC_ALWAYS:
                 watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Always"," Alway");
                 break;
             case MOVEMENT_HC_DAYTIME:
-                watch_display_text(WATCH_POSITION_BOTTOM, "8-20");
+                sprintf(buf, "%d-%d", get_daytime_start_hour(), get_daytime_end_hour());
+                watch_display_text(WATCH_POSITION_BOTTOM, buf);
                 break;
             case MOVEMENT_HC_SUN:
                 watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Sun", "Sun");

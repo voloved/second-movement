@@ -104,10 +104,11 @@ static int8_t _get_if_daytime_result(watch_date_time_t date_time, clock_rise_set
     return -1;
 }
 
-static bool _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *rise_set_info) {
+static int8_t _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *rise_set_info) {
+    // 0 is nighttime; 1 is daytime; -1 unknown
     int8_t is_daytime;
     if (rise_set_info->location.reg == 0) {  // No location set
-        return true;
+        return -1;
     }
     uint8_t tz_idx = movement_get_timezone_index();
     int8_t date_changed = _compare_dates_times(rise_set_info->time_set, date_time, true);
@@ -125,7 +126,7 @@ static bool _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *rise_
     double rise, set;
     uint8_t result = sun_rise_set(utc_now.unit.year + WATCH_RTC_REFERENCE_YEAR, utc_now.unit.month, utc_now.unit.day, lon, lat, &rise, &set);
     if (result != 0) { // Failed to calculate sun rise/set
-        return true;
+        return -1;
     }
     double hours_from_utc = ((double)tz) / 3600.0;
     rise += hours_from_utc;
@@ -313,8 +314,8 @@ static void clock_stop_tick_tock_animation(void) {
 }
 
 static void display_nighttime(clock_state_t *state, watch_date_time_t date_time) {
-    bool is_daytime = _get_if_daytime(date_time, &state->rise_set_info);
-    if (is_daytime) watch_clear_sleep_indicator_if_possible();
+    int8_t is_daytime = _get_if_daytime(date_time, &state->rise_set_info);
+    if (is_daytime != 0) watch_clear_sleep_indicator_if_possible();
     else watch_set_sleep_indicator_if_possible();
 }
 
@@ -424,16 +425,22 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
         watch_date_time_t date_time = movement_get_local_date_time();
         if (date_time.unit.minute == 0) {
             movement_hourly_chime_t hour_chime_option = movement_get_hourly_chime_times();
+            int8_t is_daytime;
             switch (hour_chime_option)
             {
             case MOVEMENT_HC_ALWAYS:
                 retval.wants_background_task = true;
                 break;
+            case MOVEMENT_HC_SUN:
+                is_daytime = _get_if_daytime(date_time, &state->rise_set_info);
+                if (is_daytime != -1) {
+                    retval.wants_background_task = _get_if_daytime(date_time, &state->rise_set_info) == 1;
+                    break;
+                };
+                // fall through
+                // if daytime not found to use hardcoded values
             case MOVEMENT_HC_DAYTIME:
                 retval.wants_background_task = movement_in_daytime_interval(date_time.unit.hour);
-                break;
-            case MOVEMENT_HC_SUN:
-                retval.wants_background_task = _get_if_daytime(date_time, &state->rise_set_info);
                 break;
             default:
                 break;

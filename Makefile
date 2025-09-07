@@ -18,6 +18,13 @@ ifndef BOARD
   $(info Setting Board to: $(BOARD))
 endif
 
+ifeq ($(BOARD),lite)
+    DISPLAY = classic
+    override BOARD = sensorwatch_red
+    $(info Setting Board to: $(BOARD))
+    $(info Setting Display to: $(DISPLAY))
+endif
+
 # Set this to the type of display in your watch: classic or custom. Commented out to force a choice when building.
 # DISPLAY=classic
 ifeq ($(DISPLAY),:0)

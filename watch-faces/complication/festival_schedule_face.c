@@ -111,19 +111,7 @@ static uint8_t _get_next_act_num(uint8_t act_num, bool get_prev){
 
 // Returns 0 if they're the same; Positive if dt1 is newer than dt2; Negative o/w
 static int _compare_dates_times(watch_date_time_t dt1, watch_date_time_t dt2) {
-    if (dt1.unit.year != dt2.unit.year) {
-        return dt1.unit.year - dt2.unit.year;
-    }
-    if (dt1.unit.month != dt2.unit.month) {
-        return dt1.unit.month - dt2.unit.month;
-    }
-    if (dt1.unit.day != dt2.unit.day) {
-        return dt1.unit.day - dt2.unit.day;
-    }
-    if (dt1.unit.hour != dt2.unit.hour) {
-        return dt1.unit.hour - dt2.unit.hour;
-    }
-    return dt1.unit.minute - dt2.unit.minute;
+    return (dt1.reg >> 6) - (dt2.reg >> 6);
 }
 
 // Returns -1 if already passed, o/w days until start.

@@ -90,7 +90,7 @@ static watch_date_time_t _get_rise_set_time(double rise_set_val, watch_date_time
 static int16_t _compare_dates_times(watch_date_time_t dt1, watch_date_time_t dt2, bool check_date_only) {
     // Returns 0 if they're the same; Positive if dt1 is newer than dt2; Negative o/w
     if (check_date_only) {
-        return (dt1.reg >> 12) - (dt2.reg >> 12);
+        return (dt1.reg >> 17) - (dt2.reg >> 17);
     }
     return (dt1.reg >> 6) - (dt2.reg >> 6);
 }
@@ -124,9 +124,19 @@ static int8_t _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *ris
     int32_t tz = movement_get_current_timezone_offset_for_zone(tz_idx);
     watch_date_time_t utc_now = watch_utility_date_time_convert_zone(date_time, tz, 0); // the current date / time in UTC
     double rise, set;
-    uint8_t result = sun_rise_set(utc_now.unit.year + WATCH_RTC_REFERENCE_YEAR, utc_now.unit.month, utc_now.unit.day, lon, lat, &rise, &set);
-    if (result != 0) { // Failed to calculate sun rise/set
-        return -1;
+    int8_t result = sun_rise_set(utc_now.unit.year + WATCH_RTC_REFERENCE_YEAR, utc_now.unit.month, utc_now.unit.day, lon, lat, &rise, &set);
+    if (result == 1) { // Sun is always up.
+        // Make the rise time always be smaller than the current time
+        date_time.reg &= ~0x1FFFF;
+        rise_set_info->time_rise = date_time;
+        date_time.reg |= 0x1FFFF;
+         rise_set_info->time_set =  date_time;
+        return 1;
+    } else if (result == -1) { //Sun is always down
+        // Make the code think we're always past the sunset
+        date_time.reg &= ~0x1FFFF;
+         rise_set_info->time_set =  date_time;
+        return 0;
     }
     double hours_from_utc = ((double)tz) / 3600.0;
     rise += hours_from_utc;

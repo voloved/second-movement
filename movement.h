@@ -70,6 +70,13 @@ typedef enum {
     MOVEMENT_HC_MODES
 } movement_hourly_chime_t;
 
+typedef enum {
+    MOVEMENT_SC_OFF = 0,
+    MOVEMENT_SC_ALWAYS,
+    MOVEMENT_SC_DAYTIME,
+    MOVEMENT_SC_NOT_INSTALLED
+} movement_step_count_option_t;
+
 /// struct for Movement LED color
 typedef struct {
     uint8_t red : 4;
@@ -314,6 +321,9 @@ typedef struct {
     // threshold for considering the wearer is in motion
     uint8_t accelerometer_motion_threshold;
     uint8_t le_mode_and_not_worn_hours;
+
+    uint8_t count_steps    : 7;
+    uint8_t counting_steps : 1;
 } movement_state_t;
 
 void movement_move_to_face(uint8_t watch_face_index);
@@ -429,6 +439,13 @@ void movement_set_button_volume(watch_buzzer_volume_t value);
 watch_buzzer_volume_t movement_signal_volume(void);
 void movement_set_signal_volume(watch_buzzer_volume_t value);
 
+movement_step_count_option_t movement_get_count_steps(void);
+void movement_set_count_steps(movement_step_count_option_t value);
+
+uint8_t get_step_count_start_hour(void);
+uint8_t get_step_count_end_hour(void);
+bool movement_in_step_counter_interval(uint8_t hour);
+
 movement_clock_mode_t movement_clock_mode_24h(void);
 void movement_set_clock_mode_24h(movement_clock_mode_t value);
 
@@ -475,6 +492,13 @@ bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate);
 // gets and sets the accelerometer motion threshold
 uint8_t movement_get_accelerometer_motion_threshold(void);
 bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold);
+
+// if the board has an accelerometer, these functions will enable or disable step_counting
+bool movement_enable_step_count(void);
+bool movement_disable_step_count(void);
+bool movement_step_count_is_enabled(void);
+void movement_reset_step_count(void);
+uint16_t movement_get_step_count(void);
 
 // If the board has a temperature sensor, this function will give you the temperature in degrees celsius.
 // If the board has multiple temperature sensors, it will use the most accurate one available.

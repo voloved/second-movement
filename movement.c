@@ -45,6 +45,7 @@
 #include "evsys.h"
 #include "delay.h"
 #include "thermistor_driver.h"
+#include "count_steps.h"
 
 #include "movement_config.h"
 
@@ -100,6 +101,14 @@ typedef struct {
 } movement_volatile_state_t;
 
 movement_volatile_state_t movement_volatile_state;
+
+typedef struct {
+    int8_t count;
+    int8_t readings[COUNT_STEPS_NUM_TUPLES * 3];
+} accel_data_t;
+
+accel_data_t _accel_data;
+static uint16_t _total_step_count = 0;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
@@ -854,6 +863,26 @@ void movement_set_local_date_time(watch_date_time_t date_time) {
     movement_set_utc_timestamp(watch_utility_date_time_to_unix_time(date_time, current_offset));
 }
 
+uint8_t get_step_count_start_hour(void) {
+    return MOVEMENT_STEP_COUNT_START;
+}
+
+uint8_t get_step_count_end_hour(void) {
+    return MOVEMENT_STEP_COUNT_END;
+}
+
+bool movement_in_step_counter_interval(uint8_t hour) {
+    switch (movement_get_count_steps())
+    {
+    case MOVEMENT_SC_ALWAYS:
+        return true;
+    case MOVEMENT_SC_DAYTIME:
+        return hour >= MOVEMENT_STEP_COUNT_START && hour < MOVEMENT_STEP_COUNT_END;
+    default:
+        return false;
+    }
+}
+
 uint8_t get_daytime_start_hour(void) {
     return MOVEMENT_DAYTIME_START;
 }
@@ -901,6 +930,15 @@ watch_buzzer_volume_t movement_signal_volume(void) {
 }
 void movement_set_signal_volume(watch_buzzer_volume_t value) {
     movement_state.settings.bit.signal_volume = value;
+}
+
+movement_step_count_option_t movement_get_count_steps(void) {
+    if (movement_state.has_lis2dw) return MOVEMENT_SC_NOT_INSTALLED;
+    return movement_state.count_steps;
+}
+
+void movement_set_count_steps(movement_step_count_option_t value) {
+    movement_state.count_steps = value;
 }
 
 movement_clock_mode_t movement_clock_mode_24h(void) {
@@ -1071,6 +1109,71 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
     return false;
 }
 
+bool movement_enable_step_count(void) {
+    if (movement_state.has_lis2dw) {
+        // ramp data rate up to 400 Hz and high performance mode
+        lis2dw_set_low_noise_mode(true);
+        lis2dw_set_data_rate(LIS2DW_DATA_RATE_25_HZ);
+        lis2dw_set_filter_type(LIS2DW_FILTER_LOW_PASS);
+        lis2dw_set_low_power_mode(LIS2DW_LP_MODE_2);
+        lis2dw_set_bandwidth_filtering(LIS2DW_BANDWIDTH_FILTER_DIV2);
+        lis2dw_set_range(LIS2DW_RANGE_4_G);
+        lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+        movement_state.counting_steps = true;
+        lis2dw_enable_fifo();
+        lis2dw_clear_fifo();
+        return true;
+    }
+    movement_state.counting_steps = false;
+    return false;
+}
+
+bool movement_disable_step_count(void) {
+    movement_state.counting_steps = false;
+    lis2dw_clear_fifo();
+    lis2dw_disable_fifo();
+    return movement_disable_tap_detection_if_available();
+}
+
+bool movement_step_count_is_enabled(void) {
+    return movement_state.counting_steps;
+}
+
+static uint8_t movement_count_new_steps(void)
+{
+    lis2dw_fifo_t fifo;
+    uint8_t new_steps = 0;
+
+    lis2dw_read_fifo(&fifo);
+    if (fifo.count == 0) {
+        return new_steps;
+    }
+
+    /* Add up samples in fifo */
+    for (uint8_t i = 0; i < fifo.count; i++) {
+        _accel_data.readings[_accel_data.count*3+0] = (int8_t)(fifo.readings[i].x / 2);
+        _accel_data.readings[_accel_data.count*3+1] = (int8_t)(fifo.readings[i].y / 2);
+        _accel_data.readings[_accel_data.count*3+2] = (int8_t)(fifo.readings[i].z / 2);
+        _accel_data.count++;
+        if (_accel_data.count >= COUNT_STEPS_NUM_TUPLES) {
+            new_steps = count_steps(_accel_data.readings);
+            _total_step_count += new_steps;
+            memset(&_accel_data, 0, sizeof(_accel_data));
+            //_accel_data.count = 0;
+        }
+    }
+    lis2dw_clear_fifo();
+    return new_steps;
+}
+
+void movement_reset_step_count(void) {
+    _total_step_count = 0;
+}
+
+uint16_t movement_get_step_count(void) {
+    return _total_step_count;
+}
+
 float movement_get_temperature(void) {
     float temperature_c = (float)0xFFFFFFFF;
 #if __EMSCRIPTEN__
@@ -1225,6 +1328,7 @@ void app_init(void) {
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 
+    movement_state.count_steps = MOVEMENT_DEFAULT_COUNT_STEPS;
     movement_state.light_on = false;
     movement_state.next_available_backup_register = 2;
     _movement_reset_inactivity_countdown();
@@ -1704,6 +1808,7 @@ void cb_alarm_btn_extwake(void) {
 
 void cb_minute_alarm_fired(void) {
     movement_volatile_state.minute_alarm_fired = true;
+    if (movement_state.counting_steps) movement_count_new_steps();
 
 #if __EMSCRIPTEN__
     _wake_up_simulator();

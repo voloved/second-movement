@@ -368,6 +368,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
             state->just_woke = true;
+            if (movement_step_count_is_enabled()) movement_disable_step_count();
             clock_start_tick_tock_animation();
             clock_display_low_energy(movement_get_local_date_time());
             break;
@@ -378,6 +379,17 @@ bool clock_face_loop(movement_event_t event, void *context) {
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
                 (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {
                 display_nighttime(state, current);
+            }
+
+            if (movement_get_count_steps()) {
+                bool in_count_step_hours = movement_in_step_counter_interval(current.unit.hour);
+                if (!movement_step_count_is_enabled()) {
+                    if (in_count_step_hours) {
+                        movement_enable_step_count();
+                    }
+                } else if (!in_count_step_hours) {
+                    movement_disable_step_count();
+                }
             }
 
             clock_display_clock(state, current);
@@ -425,6 +437,9 @@ bool clock_face_loop(movement_event_t event, void *context) {
 void clock_face_resign(void *context) {
     clock_state_t *state = (clock_state_t *) context;
     state->just_woke = false;
+    if (movement_get_count_steps()) {
+        movement_disable_step_count();
+    }
 }
 
 movement_watch_face_advisory_t clock_face_advise(void *context) {

@@ -90,6 +90,7 @@ typedef struct {
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
+    volatile bool tick_fired_second;
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
@@ -933,7 +934,7 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
 }
 
 movement_step_count_option_t movement_get_count_steps(void) {
-    if (movement_state.has_lis2dw) return MOVEMENT_SC_NOT_INSTALLED;
+    if (!movement_state.has_lis2dw) return MOVEMENT_SC_NOT_INSTALLED;
     return movement_state.count_steps;
 }
 
@@ -1218,6 +1219,7 @@ void app_init(void) {
     movement_volatile_state.turn_led_off = false;
 
     movement_volatile_state.minute_alarm_fired = false;
+    movement_volatile_state.tick_fired_second = false;
     movement_volatile_state.minute_counter = 0;
 
     movement_volatile_state.enter_sleep_mode = false;
@@ -1600,6 +1602,12 @@ bool app_loop(void) {
         event_type++;
     }
 
+    if (movement_volatile_state.tick_fired_second)
+    {
+        movement_volatile_state.tick_fired_second = false;
+        if (movement_state.counting_steps) movement_count_new_steps();
+    }
+
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {
         movement_volatile_state.minute_alarm_fired = false;
@@ -1808,7 +1816,6 @@ void cb_alarm_btn_extwake(void) {
 
 void cb_minute_alarm_fired(void) {
     movement_volatile_state.minute_alarm_fired = true;
-    if (movement_state.counting_steps) movement_count_new_steps();
 
 #if __EMSCRIPTEN__
     _wake_up_simulator();
@@ -1823,6 +1830,7 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
+    movement_volatile_state.tick_fired_second = movement_volatile_state.subsecond == 0;
 }
 
 void cb_accelerometer_event(void) {

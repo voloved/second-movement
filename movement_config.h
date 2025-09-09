@@ -29,6 +29,9 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
+#if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
+    step_counter_face,
+#endif
     fast_stopwatch_face,
     countdown_face,
     advanced_alarm_face,
@@ -156,7 +159,7 @@ const watch_face_t watch_faces[] = {
 
 /* If True, then we count steps in the main face when not sleeping.
 */
-#define MOVEMENT_DEFAULT_COUNT_STEPS true
+#define MOVEMENT_DEFAULT_COUNT_STEPS MOVEMENT_SC_OFF
 
 /* If the settings are set to use this start and end hor,
     We only count steps when the step counter face is on.

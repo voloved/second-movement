@@ -281,11 +281,7 @@ static bool _movement_check_dst_changeover_occurring_now(watch_date_time_t date_
     }
     // See if the current time is during DST
     for(uint8_t i = 0; i < rules_len; i++) {
-        if (date_time.unit.month != dst_occur_date[i].unit.month) continue;
-        if (date_time.unit.day != dst_occur_date[i].unit.day) continue;
-        if (date_time.unit.hour != dst_occur_date[i].unit.hour) continue;
-        if (date_time.unit.minute != dst_occur_date[i].unit.minute) continue;
-        return true;
+        if ((date_time.reg >> 6) == (dst_occur_date[i].reg >> 6)) return true;
     }
     return false;
 }

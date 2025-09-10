@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2025 <#author_name#>
+ * Copyright (c) 2025 David Volovskiy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,40 @@
 #include <string.h>
 #include "step_counter_face.h"
 
+#define STEP_COUNTER_LOGGING_CYC (STEP_COUNTER_NUM_DATA_POINTS + 1)
+
 static uint16_t display_step_count_now(void) {
     char buf[10];
     uint16_t step_count = movement_get_step_count();
     sprintf(buf, "%6d", step_count);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     return step_count;
+}
+
+static void _step_counter_face_log_data(step_counter_state_t *logger_state) {
+    watch_date_time_t date_time = movement_get_local_date_time();
+    size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
+
+    logger_state->data[pos].day = date_time.unit.day;
+    logger_state->data[pos].step_count = movement_get_step_count();
+    logger_state->data_points++;
+}
+
+static void _step_counter_face_logging_update_display(step_counter_state_t *logger_state) {
+    if (logger_state->display_index == logger_state->data_points) {
+        logger_state->step_count_prev = display_step_count_now();
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "ST");
+        return;
+    }
+    char buf[9];
+    int8_t pos = logger_state->data_points - logger_state->display_index - 1;
+    watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
+    // we are displaying the step_counter
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "STP", "ST");
+    sprintf(buf, "%2d", logger_state->data[pos].day);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    sprintf(buf, "%6d", logger_state->data[pos].step_count);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 void step_counter_face_setup(uint8_t watch_face_index, void ** context_ptr) {
@@ -43,40 +71,60 @@ void step_counter_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 }
 
 void step_counter_face_activate(void *context) {
-    (void)context;
+    step_counter_state_t *logger_state = (step_counter_state_t *)context;
+    logger_state->display_index = logger_state->data_points;
 }
 
 bool step_counter_face_loop(movement_event_t event, void *context) {
-    step_counter_state_t *state = (step_counter_state_t *)context;
+    step_counter_state_t *logger_state = (step_counter_state_t *)context;
+    bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
     uint16_t step_count;
-    char buf[10];
-
     switch (event.event_type) {
+        case EVENT_LIGHT_LONG_PRESS:
+            // light button shows the timestamp, but if you need the light, long press it.
+            movement_illuminate_led();
+            break;
+        case EVENT_LIGHT_BUTTON_DOWN:
+            break;
+        case EVENT_LIGHT_BUTTON_UP:
+            logger_state->display_index = (logger_state->display_index + logger_state->data_points - 1) % (logger_state->data_points + 1);
+            _step_counter_face_logging_update_display(logger_state);
+            break;
+        case EVENT_ALARM_BUTTON_UP:
+            logger_state->display_index = (logger_state->display_index + 1) % (logger_state->data_points + 1);
+            _step_counter_face_logging_update_display(logger_state);
+            break;
+        case EVENT_ALARM_LONG_PRESS:
+            if (displaying_curr_step_count) {
+                movement_reset_step_count();
+                logger_state->step_count_prev = display_step_count_now();
+            } else {
+                logger_state->display_index = logger_state->data_points;
+                _step_counter_face_logging_update_display(logger_state);
+            }
+            break;
         case EVENT_ACTIVATE:
             if (!movement_enable_step_count()) {  // Skip this face if not enabled
                 movement_move_to_next_face();
-                return false;
+            } else {
+                _step_counter_face_logging_update_display(logger_state);
             }
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "ST");
-            state->step_count_prev = display_step_count_now();
             break;
         case EVENT_TICK:
-            step_count = movement_get_step_count();
-            if (step_count != state->step_count_prev) {
-                state->step_count_prev = step_count;
-                sprintf(buf, "%6d",  step_count);
-                watch_display_text(WATCH_POSITION_BOTTOM, buf);
+            if(displaying_curr_step_count) {
+                step_count = movement_get_step_count();
+                if (step_count != logger_state->step_count_prev) {
+                    logger_state->step_count_prev = display_step_count_now();
+                }
+                break;
             }
-            break;
-        case EVENT_ALARM_BUTTON_UP:
-            movement_reset_step_count();
-            state->step_count_prev = display_step_count_now();
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             movement_disable_step_count();
             break;
         case EVENT_BACKGROUND_TASK:
+            _step_counter_face_log_data(logger_state);
             movement_reset_step_count();
             break;
         default:
@@ -94,7 +142,7 @@ movement_watch_face_advisory_t step_counter_face_advise(void *context) {
     (void) context;
     movement_watch_face_advisory_t retval = { 0 };
     watch_date_time_t date_time = movement_get_local_date_time();
-    // To reset the step count at midnight
-    retval.wants_background_task = (date_time.unit.hour == 0 && date_time.unit.minute == 0);
+    // To reset the step count at midnight (or 11:59 as a hack to retain the current day's data)
+    retval.wants_background_task = (date_time.unit.hour == 11 && date_time.unit.minute == 59);
     return retval;
 }

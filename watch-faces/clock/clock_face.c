@@ -437,7 +437,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 void clock_face_resign(void *context) {
     clock_state_t *state = (clock_state_t *) context;
     state->just_woke = false;
-    if (movement_get_count_steps()) {
+    if (movement_step_count_is_enabled()) {
         movement_disable_step_count();
     }
 }

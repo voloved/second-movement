@@ -257,6 +257,9 @@ static void step_counter_setting_display(uint8_t subsecond) {
                 sprintf(buf, "%d-%d", get_step_count_start_hour(), get_step_count_end_hour());
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);
                 break;
+            case MOVEMENT_SC_RIECK:
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "RIECK"," RIECK");
+                break;
             default:
                 break;
         }

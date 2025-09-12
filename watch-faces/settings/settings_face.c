@@ -413,7 +413,7 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         state->settings_screens[current_setting].display = hourly_chime_setting_display;
         state->settings_screens[current_setting].advance = hourly_chime_setting_advance;
         current_setting++;
-#ifdef I2C_SERCOM
+#if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
         state->settings_screens[current_setting].display = step_counter_setting_display;
         state->settings_screens[current_setting].advance = step_counter_setting_advance;
         current_setting++;

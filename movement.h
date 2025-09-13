@@ -74,7 +74,6 @@ typedef enum {
     MOVEMENT_SC_OFF = 0,
     MOVEMENT_SC_ALWAYS,
     MOVEMENT_SC_DAYTIME,
-    MOVEMENT_SC_RIECK,
     MOVEMENT_SC_NOT_INSTALLED
 } movement_step_count_option_t;
 

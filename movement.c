@@ -877,7 +877,6 @@ bool movement_in_step_counter_interval(uint8_t hour) {
     switch (movement_get_count_steps())
     {
     case MOVEMENT_SC_ALWAYS:
-    case MOVEMENT_SC_RIECK:
         return true;
     case MOVEMENT_SC_DAYTIME:
         return hour >= MOVEMENT_STEP_COUNT_START && hour < MOVEMENT_STEP_COUNT_END;
@@ -1155,12 +1154,6 @@ static uint8_t movement_count_new_steps(void)
             lis2dw_checked = false;
             watch_disable_i2c();
         }
-        return new_steps;
-    }
-
-    if (movement_state.count_steps == MOVEMENT_SC_RIECK) {
-        new_steps = count_steps_rieck(&fifo);
-        lis2dw_clear_fifo();
         return new_steps;
     }
 

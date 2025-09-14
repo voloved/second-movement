@@ -384,7 +384,7 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 #ifdef WATCH_BLUE_TCC_CHANNEL
         state->num_settings++;
 #endif
-#ifdef I2C_SERCOM
+#if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
         state->num_settings++;
 #endif
 

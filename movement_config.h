@@ -165,7 +165,11 @@ const watch_face_t watch_faces[] = {
  * MOVEMENT_SC_DAYTIME: Count steps between MOVEMENT_STEP_COUNT_START and MOVEMENT_STEP_COUNT_END
  * MOVEMENT_SC_NOT_INSTALLED: The LIS2DW isn't installed (the code handles this without it needing to be manally set)
  */
+#ifdef BUILD_TO_SHARE
 #define MOVEMENT_DEFAULT_COUNT_STEPS MOVEMENT_SC_OFF
+#else
+#define MOVEMENT_DEFAULT_COUNT_STEPS MOVEMENT_SC_DAYTIME
+#endif
 
 /* If the settings are set to use this start and end hor,
     We only count steps when the step counter face is on.

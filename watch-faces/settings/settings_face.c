@@ -236,7 +236,7 @@ static void hourly_chime_setting_advance(void) {
     movement_set_hourly_chime_times(next_mode);
 }
 
-#ifdef I2C_SERCOM
+#if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
 static void step_counter_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "ST");
     movement_step_count_option_t step_count_setting = movement_get_count_steps();

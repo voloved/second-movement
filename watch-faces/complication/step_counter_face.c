@@ -35,6 +35,7 @@ static const watch_date_time_t distant_future = {
     .unit = {0, 0, 0, 1, 1, 63}
 };
 
+static bool sensor_not_seen;
 static const uint16_t sec_inactivity_allow_sleep = STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN * 60;
 
 static uint32_t get_step_count(void) {
@@ -46,8 +47,12 @@ static uint32_t get_step_count(void) {
 static uint16_t display_step_count_now(void) {
     char buf[10];
     uint32_t step_count = get_step_count();
-    sprintf(buf, "%6lu", step_count);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    if (sensor_not_seen) {
+        watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
+    } else {
+        sprintf(buf, "%6lu", step_count);
+        watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    }
     return step_count;
 }
 
@@ -98,8 +103,7 @@ void step_counter_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 }
 
 void step_counter_face_activate(void *context) {
-    step_counter_state_t *logger_state = (step_counter_state_t *)context;
-    logger_state->display_index = logger_state->data_points;
+    (void) context;
 }
 
 bool step_counter_face_loop(movement_event_t event, void *context) {
@@ -131,14 +135,12 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ACTIVATE:
-            if (!movement_enable_step_count()) {  // Skip this face if not enabled
-                movement_move_to_next_face();
-            } else {
-                logger_state->sec_inactivity = 0;
-                logger_state->can_sleep = false;
-                movement_schedule_background_task(distant_future);
-                _step_counter_face_logging_update_display(logger_state);
-            }
+            sensor_not_seen = !movement_enable_step_count();
+            logger_state->display_index = logger_state->data_points;
+            logger_state->sec_inactivity = 0;
+            logger_state->can_sleep = false;
+            movement_schedule_background_task(distant_future);
+            _step_counter_face_logging_update_display(logger_state);
             break;
         case EVENT_TICK:
             if(displaying_curr_step_count) {
@@ -160,7 +162,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
-            movement_disable_step_count();
+            if (movement_step_count_is_enabled()) {
+                movement_disable_step_count();
+            }
             break;
         case EVENT_BACKGROUND_TASK:
             _step_counter_face_log_data(logger_state);
@@ -175,7 +179,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 
 void step_counter_face_resign(void *context) {
     (void) context;
-    movement_disable_step_count();
+    if (movement_step_count_is_enabled()) {
+        movement_disable_step_count();
+    }
     movement_cancel_background_task();
 }
 

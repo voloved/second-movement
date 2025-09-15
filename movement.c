@@ -1342,11 +1342,13 @@ bool app_loop(void) {
         event_type++;
     }
 
+#ifdef I2C_SERCOM
     if (movement_volatile_state.tick_fired_second)
     {
         movement_volatile_state.tick_fired_second = false;
         if (movement_state.counting_steps) movement_count_new_steps();
     }
+#endif
 
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {

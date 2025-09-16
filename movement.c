@@ -46,6 +46,7 @@
 #include "delay.h"
 #include "thermistor_driver.h"
 #include "count_steps.h"
+#include "lis2duxs12_reg.h"  // from ST's driver
 
 #include "movement_config.h"
 
@@ -90,7 +91,6 @@ typedef struct {
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
-    volatile bool tick_fired_second;
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
@@ -104,11 +104,28 @@ typedef struct {
 movement_volatile_state_t movement_volatile_state;
 
 static uint32_t _total_step_count = 0;
-#ifdef I2C_SERCOM
-count_steps_magnitude_data_t _accel_data;
-static const uint8_t movement_max_step_fifo_misreads = 3;
-static uint8_t movement_step_fifo_misreads = 0;
-#endif
+
+static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
+    (void)handle;
+    for (uint16_t i = 0; i < len; i++) {
+        watch_i2c_write8(LIS2DUXS12_I2C_ADD_H >> 1, reg + i, bufp[i]);
+    }
+    return 0;
+}
+
+static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
+    (void)handle;
+    for (uint16_t i = 0; i < len; i++) {
+        bufp[i] = watch_i2c_read8(LIS2DUXS12_I2C_ADD_H >> 1, reg + i);
+    }
+    return 0;
+}
+
+static lis2duxs12_ctx_t ctx = {
+    .read_reg  = platform_read,
+    .write_reg = platform_write,
+    .handle    = NULL
+};
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
@@ -1139,44 +1156,21 @@ bool movement_step_count_is_enabled(void) {
     return movement_state.counting_steps;
 }
 
-static uint8_t movement_count_new_steps(void)
-{
-    uint8_t new_steps = 0;
-#ifdef I2C_SERCOM
-    lis2dw_fifo_t fifo = {0};
-    lis2dw_read_fifo(&fifo);
-    lis2dw_clear_fifo();
-    if (fifo.count == 0 || fifo.count > LIS2DW_FIFO_MAX_COUNT) {
-        if (movement_step_fifo_misreads != CHAR_MAX) movement_step_fifo_misreads++;
-        if (movement_step_fifo_misreads >= movement_max_step_fifo_misreads 
-            && lis2dw_get_device_id() != LIS2DW_WHO_AM_I_VAL) {
-            movement_disable_step_count();
-        }
-        return new_steps;
-    }
-
-    movement_step_fifo_misreads = 0;
-    /* Add up samples in fifo */
-    for (uint8_t i = 0; i < fifo.count; i++) {
-        uint32_t magnitude = count_steps_approx_l2_norm(fifo.readings[i]);
-        // The algorithm wanted int8 inputs, but the readings are 12-bit, so we need to bit shift 4
-        _accel_data.magnitude[_accel_data.count] = (uint8_t)(magnitude >> 4);
-        _accel_data.count++;
-        if (_accel_data.count >= COUNT_STEPS_NUM_TUPLES) {
-            new_steps = count_steps(_accel_data.magnitude);
-            _total_step_count += new_steps;
-            _accel_data.count = 0;
-        }
-    }
-#endif
-    return new_steps;
-}
-
 void movement_reset_step_count(void) {
+    int32_t status = lis2duxs12_stpcnt_rst_step_set(&ctx);
     _total_step_count = 0;
+    printf("status: %lu\n", status);
 }
 
 uint32_t movement_get_step_count(void) {
+    uint16_t step_count = 0;
+#ifdef I2C_SERCOM
+    if (lis2duxs12_stpcnt_steps_get(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
+        _total_step_count = step_count;
+    }
+    _total_step_count = step_count;
+    return LIS2DUXS12_STATUS_OK;
+#endif
     return _total_step_count;
 }
 
@@ -1224,7 +1218,6 @@ void app_init(void) {
     movement_volatile_state.turn_led_off = false;
 
     movement_volatile_state.minute_alarm_fired = false;
-    movement_volatile_state.tick_fired_second = false;
     movement_volatile_state.minute_counter = 0;
 
     movement_volatile_state.enter_sleep_mode = false;
@@ -1607,14 +1600,6 @@ bool app_loop(void) {
         event_type++;
     }
 
-#ifdef I2C_SERCOM
-    if (movement_volatile_state.tick_fired_second)
-    {
-        movement_volatile_state.tick_fired_second = false;
-        if (movement_state.counting_steps) movement_count_new_steps();
-    }
-#endif
-
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {
         movement_volatile_state.minute_alarm_fired = false;
@@ -1837,7 +1822,6 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
-    movement_volatile_state.tick_fired_second = movement_volatile_state.subsecond == 0;
 }
 
 void cb_accelerometer_event(void) {

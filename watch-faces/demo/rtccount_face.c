@@ -77,48 +77,39 @@ static void _rtccount_face_draw(movement_event_t event, rtccount_state_t* state)
             break;
     }
 
-    watch_display_string(buf, 0);
+    watch_display_text(WATCH_POSITION_TOP_LEFT, buf);
 
-    snprintf(buf, sizeof(buf), "%u", event.subsecond);
-    uint32_t len = strlen(buf);
-    watch_display_string(buf, 4 - len);
+    snprintf(buf, sizeof(buf), "%2u", event.subsecond);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
 
     switch (state->status) {
         case RTCCOUNT_STATUS_COUNTER: {
-            snprintf(buf, sizeof(buf), "%lu", counter & COUNTER_MASK);
+            snprintf(buf, sizeof(buf), "%6lu", counter & COUNTER_MASK);
 
-            size_t len = strlen(buf);
-
-            watch_display_string(buf, 10 - len);
+            watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         }
 
         case RTCCOUNT_STATUS_COUNTER_SUB: {
-            snprintf(buf, sizeof(buf), "%lu", counter & 127);
+            snprintf(buf, sizeof(buf), "%6lu", counter & 127);
 
-            size_t len = strlen(buf);
-
-            watch_display_string(buf, 10 - len);
+            watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         }
 
         case RTCCOUNT_STATUS_MINUTES: {
-            snprintf(buf, sizeof(buf), "%lu", state->n_top_of_minute & COUNTER_MASK);
+            snprintf(buf, sizeof(buf), "%6lu", state->n_top_of_minute & COUNTER_MASK);
 
-            size_t len = strlen(buf);
-
-            watch_display_string(buf, 10 - len);
+            watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         }
 
         case RTCCOUNT_STATUS_MINUTES_DIFF: {
             uint32_t elapsed_minutes = (movement_get_utc_timestamp() - state->ref_timestamp) / 60;
 
-            snprintf(buf, sizeof(buf), "%lu", (elapsed_minutes - state->n_top_of_minute) & COUNTER_MASK);
+            snprintf(buf, sizeof(buf), "%6lu", (elapsed_minutes - state->n_top_of_minute) & COUNTER_MASK);
 
-            size_t len = strlen(buf);
-
-            watch_display_string(buf, 10 - len);
+            watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         }
 

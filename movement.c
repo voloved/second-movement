@@ -1129,9 +1129,11 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 bool movement_enable_step_count(void) {
     if (movement_state.has_lis2dux) {
         if(LIS2DUXS12Sensor_Enable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
+            printf("Failed LIS2DUXS12Sensor_Enable_X\r\n");
             return false;
         }
         if(LIS2DUXS12Sensor_Enable_Pedometer(&ctx, LIS2DUXS12_INT1_PIN) != LIS2DUXS12_STATUS_OK) {
+            printf("Failed LIS2DUXS12Sensor_Enable_Pedometer\r\n");
             return false;
         }
         movement_state.counting_steps = true;
@@ -1143,11 +1145,14 @@ bool movement_enable_step_count(void) {
 
 bool movement_disable_step_count(void) {
     bool retval = true;
+    printf("movement_disable_step_count\r\n");
     movement_state.counting_steps = false;
     if(LIS2DUXS12Sensor_Disable_Pedometer(&ctx) != LIS2DUXS12_STATUS_OK) {
+        printf("Failed LIS2DUXS12Sensor_Disable_Pedometer\r\n");
         retval = false;
     }
     if(LIS2DUXS12Sensor_Disable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
+        printf("Failed LIS2DUXS12Sensor_Disable_X\r\n");
         retval = false;
     }
     return retval;
@@ -1158,7 +1163,13 @@ bool movement_step_count_is_enabled(void) {
 }
 
 void movement_reset_step_count(void) {
-    LIS2DUXS12Sensor_Step_Counter_Reset(&ctx);
+#ifdef I2C_SERCOM
+    LIS2DUXS12StatusTypeDef result;
+    result = LIS2DUXS12Sensor_Step_Counter_Reset(&ctx);
+    if (result != LIS2DUXS12_STATUS_OK) {
+        printf("Failed LIS2DUXS12Sensor_Step_Counter_Reset\r\n");
+    }
+#endif
     _last_step_count = 0;
 }
 
@@ -1168,8 +1179,11 @@ uint32_t movement_get_step_count(void) {
     if (LIS2DUXS12Sensor_Get_Step_Count(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
         _last_step_count = step_count;
     }
+    else {
+        printf("Failed LIS2DUXS12Sensor_Get_Step_Count\r\n");
+    }
 #endif
-    printf("status: %lu\n", _last_step_count);
+    printf("Steps: %lu\r\n", _last_step_count);
     return _last_step_count;
 }
 
@@ -1446,16 +1460,19 @@ void app_setup(void) {
         }
 
         static bool lis2dux_checked = false;
+        printf("init lis2dux_checked: %d\r\n", lis2dux_checked);
         if (!lis2dux_checked) {
             watch_enable_i2c();
             if (LIS2DUXS12Sensor_Begin(&ctx) == LIS2DUXS12_STATUS_OK) {
-
+                printf("Began LIS2DUXS12Sensor :)\r\n");
                 movement_state.has_lis2dux = true;
             } else {
+                printf("Failed LIS2DUXS12Sensor_Begin\r\n");
                 movement_state.has_lis2dux = false;
                 watch_disable_i2c();
             }
             lis2dux_checked = true;
+            printf("lis2dux_checked: %d\r\n", lis2dux_checked);
         } else if (movement_state.has_lis2dux) {
             watch_enable_i2c();
             (LIS2DUXS12Sensor_Begin(&ctx));

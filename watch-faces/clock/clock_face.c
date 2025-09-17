@@ -46,22 +46,27 @@
 #define CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD 2400
 #endif
 
+#define PRINT_TIME_DEBUG false
+
 static movement_location_t load_location_from_filesystem() {
     movement_location_t location = {0};
     filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
     return location;
 }
 
-#if __EMSCRIPTEN__
 static void print_time_debug(watch_date_time_t date_time, const char *time_name) {
     // Such as: print_time_debug(date_time, "Now");
     //          print_time_debug(rise_set_info.time_rise, "Rise");
     //          print_time_debug(rise_set_info.time_set, "Set");
-    printf("%s: %d:%02d  %d-%d-%d\n", time_name, date_time.unit.hour,
-            date_time.unit.minute, date_time.unit.month,
+#if PRINT_TIME_DEBUG
+    printf("%s: %d:%02d:%02d  %d-%d-%d\r\n", time_name, date_time.unit.hour,
+            date_time.unit.minute, date_time.unit.second, date_time.unit.month,
             date_time.unit.day, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR);
-}
+#else
+    (void) date_time;
+    (void) time_name;
 #endif
+}
 
 static watch_date_time_t _get_rise_set_time(double rise_set_val, watch_date_time_t date_time) {
     watch_date_time_t scratch_time;
@@ -375,6 +380,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
         case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
+            print_time_debug(current, "Now");
 
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
                 (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {

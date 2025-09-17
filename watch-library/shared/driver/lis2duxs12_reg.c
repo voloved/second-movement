@@ -667,7 +667,6 @@ int32_t lis2duxs12_xl_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
   * @brief  OUTT data.[get]
   *
   * @param  ctx   communication interface handler.(ptr)
-  * @param  md    the sensor conversion parameters.(ptr)
   * @param  data  data retrieved from the sensor.(ptr)
   * @retval       interface status (MANDATORY: return 0 -> no Error)
   *
@@ -675,6 +674,7 @@ int32_t lis2duxs12_xl_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
 int32_t lis2duxs12_outt_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
                                  lis2duxs12_outt_data_t *data)
 {
+  (void) md;
   uint8_t buff[2];
   int32_t ret;
 
@@ -700,6 +700,7 @@ int32_t lis2duxs12_outt_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
 int32_t lis2duxs12_ah_qvar_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
                                     lis2duxs12_ah_qvar_data_t *data)
 {
+  (void) md;
   uint8_t buff[2];
   int32_t ret;
 
@@ -3753,29 +3754,6 @@ int32_t lis2duxs12_mlc_fifo_en_get(lis2duxs12_ctx_t *ctx, uint8_t *val)
   return ret;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * @brief  Read LIS2DUXS12 Accelerometer output data rate
  * @param  odr the pointer to the output data rate
@@ -3783,6 +3761,7 @@ int32_t lis2duxs12_mlc_fifo_en_get(lis2duxs12_ctx_t *ctx, uint8_t *val)
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float *odr)
 {
+#ifdef I2C_SERCOM
   LIS2DUXS12StatusTypeDef ret = LIS2DUXS12_STATUS_OK;
   lis2duxs12_md_t mode;
   /* Read actual output data rate from sensor. */
@@ -3840,6 +3819,11 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float 
       break;
   }
   return ret;
+#else
+  (void) ctx;
+  (void) odr;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -3851,6 +3835,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float 
  */
 static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(lis2duxs12_ctx_t *ctx, float_t Odr, LIS2DUXS12_Power_Mode_t Power)
 {
+#ifdef I2C_SERCOM
   lis2duxs12_md_t mode;
   if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
     return LIS2DUXS12_STATUS_ERROR;
@@ -3910,6 +3895,12 @@ static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(lis2duxs1
   /* Store the current Power Value */
   sensor.X_Last_Operating_Mode = Power;
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  (void) Odr;
+  (void) Power;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -3921,6 +3912,7 @@ static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(lis2duxs1
  */
 static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(float_t Odr, LIS2DUXS12_Power_Mode_t Power)
 {
+#ifdef I2C_SERCOM
   /* Store the new Odr Value */
   if (Power == LIS2DUXS12_ULTRA_LOW_POWER) {
     sensor.X_isEnabled = (Odr <= 1.5f) ? 1.5f
@@ -3941,6 +3933,11 @@ static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(float_t 
   /* Store the new Power Value */
   sensor.X_Last_Operating_Mode = Power;
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) Odr;
+  (void) Power;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -3982,6 +3979,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR(lis2duxs12_ctx_t *ctx, float_
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t *FullScale)
 {
+#ifdef I2C_SERCOM
   LIS2DUXS12StatusTypeDef ret  = LIS2DUXS12_STATUS_OK;
   lis2duxs12_md_t mode;
   /* Read actual full scale selection from sensor. */
@@ -4007,6 +4005,11 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t
       break;
   }
   return ret;
+#else
+  (void) ctx;
+  (void) FullScale;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -4016,6 +4019,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t FullScale)
 {
+#ifdef I2C_SERCOM
   lis2duxs12_md_t mode;
   if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
     return LIS2DUXS12_STATUS_ERROR;
@@ -4030,6 +4034,11 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t
     return LIS2DUXS12_STATUS_ERROR;
   }
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  (void) FullScale;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx) {
@@ -4067,6 +4076,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx) {
   X_isInitialized = 1;
   return LIS2DUXS12_STATUS_OK;
 #else
+  (void) ctx;
   return LIS2DUXS12_STATUS_ERROR;
 #endif
 }
@@ -4090,6 +4100,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_X(lis2duxs12_ctx_t *ctx) {
   sensor.X_isEnabled = 1;
   return LIS2DUXS12_STATUS_OK;
 #else
+  (void) ctx;
   return LIS2DUXS12_STATUS_ERROR;
 #endif
 }
@@ -4099,6 +4110,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_X(lis2duxs12_ctx_t *ctx) {
  * @retval 0 in case of success, an error code otherwise
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_X(lis2duxs12_ctx_t *ctx) {
+#ifdef I2C_SERCOM
   float_t Odr;
   /* Check if the component is already disabled */
   if (sensor.X_isEnabled == 0) {
@@ -4127,6 +4139,10 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_X(lis2duxs12_ctx_t *ctx) {
   sensor.X_isEnabled = 0;
 
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -4135,6 +4151,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_X(lis2duxs12_ctx_t *ctx) {
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx, LIS2DUXS12_SensorIntPin_t IntPin)
 {
+#ifdef I2C_SERCOM
   LIS2DUXS12StatusTypeDef ret = LIS2DUXS12_STATUS_OK;
   lis2duxs12_stpcnt_mode_t mode;
   lis2duxs12_emb_pin_int_route_t emb_pin_int;
@@ -4184,6 +4201,11 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx,
       break;
   }
   return ret;
+#else
+  (void) ctx;
+  (void) IntPin;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -4192,6 +4214,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx,
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx)
 {
+#ifdef I2C_SERCOM
   lis2duxs12_emb_pin_int_route_t emb_pin_int;
   lis2duxs12_stpcnt_mode_t mode;
   if (lis2duxs12_stpcnt_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
@@ -4222,6 +4245,10 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx
     return LIS2DUXS12_STATUS_ERROR;
   }
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -4231,10 +4258,16 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_Step_Count(lis2duxs12_ctx_t *ctx, uint16_t *StepCount)
 {
+#ifdef I2C_SERCOM
   if (lis2duxs12_stpcnt_steps_get(ctx, StepCount) != LIS2DUXS12_STATUS_OK) {
     return LIS2DUXS12_STATUS_ERROR;
   }
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  *StepCount = 0;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**
@@ -4243,10 +4276,15 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_Step_Count(lis2duxs12_ctx_t *ctx, u
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Step_Counter_Reset(lis2duxs12_ctx_t *ctx)
 {
+#ifdef I2C_SERCOM
   if (lis2duxs12_stpcnt_rst_step_set(ctx) != LIS2DUXS12_STATUS_OK) {
     return LIS2DUXS12_STATUS_ERROR;
   }
   return LIS2DUXS12_STATUS_OK;
+#else
+  (void) ctx;
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
 }
 
 /**

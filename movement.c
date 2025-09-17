@@ -103,7 +103,7 @@ typedef struct {
 
 movement_volatile_state_t movement_volatile_state;
 
-static uint32_t _total_step_count = 0;
+static uint32_t _last_step_count = 0;
 
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
     (void)handle;
@@ -950,7 +950,7 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
 }
 
 movement_step_count_option_t movement_get_count_steps(void) {
-    if (!movement_state.has_lis2dw) return MOVEMENT_SC_NOT_INSTALLED;
+    if (!movement_state.has_lis2dux) return MOVEMENT_SC_NOT_INSTALLED;
     return movement_state.count_steps;
 }
 
@@ -1127,18 +1127,14 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 bool movement_enable_step_count(void) {
-    if (movement_state.has_lis2dw) {
-        // ramp data rate up to 400 Hz and high performance mode
-        lis2dw_set_low_noise_mode(true);
-        lis2dw_set_data_rate(LIS2DW_DATA_RATE_25_HZ);
-        lis2dw_set_filter_type(LIS2DW_FILTER_LOW_PASS);
-        lis2dw_set_low_power_mode(LIS2DW_LP_MODE_2);
-        lis2dw_set_bandwidth_filtering(LIS2DW_BANDWIDTH_FILTER_DIV2);
-        lis2dw_set_range(LIS2DW_RANGE_4_G);
-        lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+    if (movement_state.has_lis2dux) {
+        if(LIS2DUXS12Sensor_Enable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
+            return false;
+        }
+        if(LIS2DUXS12Sensor_Enable_Pedometer(&ctx, LIS2DUXS12_INT1_PIN) != LIS2DUXS12_STATUS_OK) {
+            return false;
+        }
         movement_state.counting_steps = true;
-        lis2dw_enable_fifo();
-        lis2dw_clear_fifo();
         return true;
     }
     movement_state.counting_steps = false;
@@ -1146,10 +1142,15 @@ bool movement_enable_step_count(void) {
 }
 
 bool movement_disable_step_count(void) {
+    bool retval = true;
     movement_state.counting_steps = false;
-    lis2dw_clear_fifo();
-    lis2dw_disable_fifo();
-    return movement_disable_tap_detection_if_available();
+    if(LIS2DUXS12Sensor_Disable_Pedometer(&ctx) != LIS2DUXS12_STATUS_OK) {
+        retval = false;
+    }
+    if(LIS2DUXS12Sensor_Disable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
+        retval = false;
+    }
+    return retval;
 }
 
 bool movement_step_count_is_enabled(void) {
@@ -1157,21 +1158,19 @@ bool movement_step_count_is_enabled(void) {
 }
 
 void movement_reset_step_count(void) {
-    int32_t status = lis2duxs12_stpcnt_rst_step_set(&ctx);
-    _total_step_count = 0;
-    printf("status: %lu\n", status);
+    LIS2DUXS12Sensor_Step_Counter_Reset(&ctx);
+    _last_step_count = 0;
 }
 
 uint32_t movement_get_step_count(void) {
-    uint16_t step_count = 0;
 #ifdef I2C_SERCOM
-    if (lis2duxs12_stpcnt_steps_get(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
-        _total_step_count = step_count;
+    uint16_t step_count = 0;
+    if (LIS2DUXS12Sensor_Get_Step_Count(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
+        _last_step_count = step_count;
     }
-    _total_step_count = step_count;
-    return LIS2DUXS12_STATUS_OK;
 #endif
-    return _total_step_count;
+    printf("status: %lu\n", _last_step_count);
+    return _last_step_count;
 }
 
 float movement_get_temperature(void) {
@@ -1444,6 +1443,22 @@ void app_setup(void) {
             // If a watch face wants to check in on the A4 interrupt pin for motion status, it can call
             // movement_set_accelerometer_background_rate with another rate like LIS2DW_DATA_RATE_LOWEST or LIS2DW_DATA_RATE_25_HZ.
             lis2dw_set_data_rate(movement_state.accelerometer_background_rate);
+        }
+
+        static bool lis2dux_checked = false;
+        if (!lis2dux_checked) {
+            watch_enable_i2c();
+            if (LIS2DUXS12Sensor_Begin(&ctx)) {
+
+                movement_state.has_lis2dux = true;
+            } else {
+                movement_state.has_lis2dux = false;
+                watch_disable_i2c();
+            }
+            lis2dux_checked = true;
+        } else if (movement_state.has_lis2dux) {
+            watch_enable_i2c();
+            (LIS2DUXS12Sensor_Begin(&ctx));
         }
 #endif
 

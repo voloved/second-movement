@@ -18,6 +18,9 @@
  */
 
 #include "lis2duxs12_reg.h"
+#include "delay.h"
+
+static LIS2DUXS12Sensor sensor;
 
 /**
   * @defgroup    LIS2DUXS12
@@ -3748,6 +3751,502 @@ int32_t lis2duxs12_mlc_fifo_en_get(lis2duxs12_ctx_t *ctx, uint8_t *val)
   ret += lis2duxs12_mem_bank_set(ctx, LIS2DUXS12_MAIN_MEM_BANK);
 
   return ret;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * @brief  Read LIS2DUXS12 Accelerometer output data rate
+ * @param  odr the pointer to the output data rate
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float *odr)
+{
+  LIS2DUXS12StatusTypeDef ret = LIS2DUXS12_STATUS_OK;
+  lis2duxs12_md_t mode;
+  /* Read actual output data rate from sensor. */
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  switch (mode.odr) {
+    case LIS2DUXS12_OFF:
+    case LIS2DUXS12_TRIG_PIN:
+    case LIS2DUXS12_TRIG_SW:
+      *odr = 0.0f;
+      break;
+    case LIS2DUXS12_1Hz6_ULP:
+      *odr = 1.6f;
+      break;
+    case LIS2DUXS12_3Hz_ULP:
+      *odr = 3.0f;
+      break;
+    case LIS2DUXS12_6Hz_LP:
+    case LIS2DUXS12_6Hz_HP:
+      *odr = 6.0f;
+      break;
+    case LIS2DUXS12_12Hz5_LP:
+    case LIS2DUXS12_12Hz5_HP:
+      *odr = 12.5f;
+      break;
+    case LIS2DUXS12_25Hz_ULP:
+    case LIS2DUXS12_25Hz_LP:
+    case LIS2DUXS12_25Hz_HP:
+      *odr = 25.0f;
+      break;
+    case LIS2DUXS12_50Hz_LP:
+    case LIS2DUXS12_50Hz_HP:
+      *odr = 50.0f;
+      break;
+    case LIS2DUXS12_100Hz_LP:
+    case LIS2DUXS12_100Hz_HP:
+      *odr = 100.0f;
+      break;
+    case LIS2DUXS12_200Hz_LP:
+    case LIS2DUXS12_200Hz_HP:
+      *odr = 200.0f;
+      break;
+    case LIS2DUXS12_400Hz_LP:
+    case LIS2DUXS12_400Hz_HP:
+      *odr = 400.0f;
+      break;
+    case LIS2DUXS12_800Hz_LP:
+    case LIS2DUXS12_800Hz_HP:
+      *odr = 800.0f;
+      break;
+    default:
+      *odr = -1.0f;
+      ret = LIS2DUXS12_STATUS_ERROR;
+      break;
+  }
+  return ret;
+}
+
+/**
+ * @brief  Set LIS2DUXS12 Accelerometer output data rate when enabled
+ * @param  odr the output data rate to be set
+ * @param  mode the operating mode to be used
+ * @param  noise the low noise option
+ * @retval 0 in case of success, an error code otherwise
+ */
+static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(lis2duxs12_ctx_t *ctx, float_t Odr, LIS2DUXS12_Power_Mode_t Power)
+{
+  lis2duxs12_md_t mode;
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (Power == LIS2DUXS12_ULTRA_LOW_POWER) {
+    mode.odr = (Odr <= 1.6f) ? LIS2DUXS12_1Hz6_ULP
+               : (Odr <= 3.0f) ? LIS2DUXS12_3Hz_ULP
+               :                 LIS2DUXS12_25Hz_ULP;
+  } else if (Power == LIS2DUXS12_LOW_POWER) {
+    mode.odr = (Odr <=   6.0f) ? LIS2DUXS12_6Hz_LP
+               : (Odr <=  12.5f) ? LIS2DUXS12_12Hz5_LP
+               : (Odr <=  25.0f) ? LIS2DUXS12_25Hz_LP
+               : (Odr <=  50.0f) ? LIS2DUXS12_50Hz_LP
+               : (Odr <= 100.0f) ? LIS2DUXS12_100Hz_LP
+               : (Odr <= 200.0f) ? LIS2DUXS12_200Hz_LP
+               : (Odr <= 400.0f) ? LIS2DUXS12_400Hz_LP
+               :                   LIS2DUXS12_800Hz_LP;
+  } else if (Power == LIS2DUXS12_HIGH_PERFORMANCE) {
+    mode.odr = (Odr <=   6.0f) ? LIS2DUXS12_6Hz_HP
+               : (Odr <=  12.5f) ? LIS2DUXS12_12Hz5_HP
+               : (Odr <=  25.0f) ? LIS2DUXS12_25Hz_HP
+               : (Odr <=  50.0f) ? LIS2DUXS12_50Hz_HP
+               : (Odr <= 100.0f) ? LIS2DUXS12_100Hz_HP
+               : (Odr <= 200.0f) ? LIS2DUXS12_200Hz_HP
+               : (Odr <= 400.0f) ? LIS2DUXS12_400Hz_HP
+               :                   LIS2DUXS12_800Hz_HP;
+  } else {
+    /* Do nothing */
+  }
+  if (lis2duxs12_mode_set(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Store the current Odr Value */
+  sensor.X_Last_ODR = (mode.odr == LIS2DUXS12_1Hz6_ULP) ?   1.6f
+                    : (mode.odr == LIS2DUXS12_3Hz_ULP)  ?   3.0f
+                    : (mode.odr == LIS2DUXS12_6Hz_LP)      ?   6.0f
+                    : (mode.odr == LIS2DUXS12_6Hz_HP)   ?   6.0f
+                    : (mode.odr == LIS2DUXS12_12Hz5_LP)    ?  12.5f
+                    : (mode.odr == LIS2DUXS12_12Hz5_HP) ?  12.5f
+                    : (mode.odr == LIS2DUXS12_25Hz_ULP) ?  25.0f
+                    : (mode.odr == LIS2DUXS12_25Hz_LP)     ?  25.0f
+                    : (mode.odr == LIS2DUXS12_25Hz_HP)  ?  25.0f
+                    : (mode.odr == LIS2DUXS12_50Hz_LP)     ?  50.0f
+                    : (mode.odr == LIS2DUXS12_50Hz_HP)  ?  50.0f
+                    : (mode.odr == LIS2DUXS12_100Hz_LP)    ? 100.0f
+                    : (mode.odr == LIS2DUXS12_100Hz_HP) ? 100.0f
+                    : (mode.odr == LIS2DUXS12_200Hz_LP)    ? 200.0f
+                    : (mode.odr == LIS2DUXS12_200Hz_HP) ? 200.0f
+                    : (mode.odr == LIS2DUXS12_400Hz_LP)    ? 400.0f
+                    : (mode.odr == LIS2DUXS12_400Hz_HP) ? 400.0f
+                    : (mode.odr == LIS2DUXS12_800Hz_LP)    ? 800.0f
+                    : (mode.odr == LIS2DUXS12_800Hz_HP) ? 800.0f
+                    :                                     -1.0f;
+  if (sensor.X_Last_ODR == -1.0f) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Store the current Power Value */
+  sensor.X_Last_Operating_Mode = Power;
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Set LIS2DUXS12 Accelerometer output data rate when disabled
+ * @param  odr the output data rate to be set
+ * @param  mode the operating mode to be used
+ * @param  noise the low noise option
+ * @retval 0 in case of success, an error code otherwise
+ */
+static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(float_t Odr, LIS2DUXS12_Power_Mode_t Power)
+{
+  /* Store the new Odr Value */
+  if (Power == LIS2DUXS12_ULTRA_LOW_POWER) {
+    sensor.X_isEnabled = (Odr <= 1.5f) ? 1.5f
+                      : (Odr <= 3.0f) ? 3.0f
+                      :                25.0f;
+  } else if ((Power == LIS2DUXS12_LOW_POWER) || (Power == LIS2DUXS12_HIGH_PERFORMANCE)) {
+    sensor.X_isEnabled = (Odr <=   6.0f) ?   6.0f
+                      : (Odr <=  12.5f) ?  12.5f
+                      : (Odr <=  25.0f) ?  25.0f
+                      : (Odr <=  50.0f) ?  50.0f
+                      : (Odr <= 100.0f) ? 100.0f
+                      : (Odr <= 200.0f) ? 200.0f
+                      : (Odr <= 400.0f) ? 400.0f
+                      :                   800.0f;
+  } else {
+    /* Do nothing */
+  }
+  /* Store the new Power Value */
+  sensor.X_Last_Operating_Mode = Power;
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Set LIS2DUXS12 Accelerometer output data rate
+ * @param  odr the output data rate to be set
+ * @param  mode the operating mode to be used
+ * @param  noise the low noise option
+ * @retval 0 in case of success, an error code otherwise
+ */
+static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_With_Mode(lis2duxs12_ctx_t *ctx, float_t odr, LIS2DUXS12_Power_Mode_t Power)
+{
+  if (sensor.X_isEnabled == 1) {
+    if (LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(ctx, odr, Power) != LIS2DUXS12_STATUS_OK) {
+      return LIS2DUXS12_STATUS_ERROR;
+    }
+  } else {
+    if (LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(odr, Power) != LIS2DUXS12_STATUS_OK) {
+      return LIS2DUXS12_STATUS_ERROR;
+    }
+  }
+
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Set LIS2DUXS12 Accelerometer output data rate
+ * @param  odr the output data rate to be set
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR(lis2duxs12_ctx_t *ctx, float_t odr)
+{
+  return LIS2DUXS12Sensor_Set_X_ODR_With_Mode(ctx, odr, LIS2DUXS12_LOW_POWER);
+}
+
+/**
+ * @brief  Read LIS2DUXS12 Accelerometer full scale
+ * @param  full_scale the pointer to the full scale
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t *FullScale)
+{
+  LIS2DUXS12StatusTypeDef ret  = LIS2DUXS12_STATUS_OK;
+  lis2duxs12_md_t mode;
+  /* Read actual full scale selection from sensor. */
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  switch (mode.fs) {
+    case LIS2DUXS12_2g:
+      *FullScale =  2;
+      break;
+    case LIS2DUXS12_4g:
+      *FullScale =  4;
+      break;
+    case LIS2DUXS12_8g:
+      *FullScale =  8;
+      break;
+    case LIS2DUXS12_16g:
+      *FullScale = 16;
+      break;
+    default:
+      *FullScale = -1;
+      ret = LIS2DUXS12_STATUS_ERROR;
+      break;
+  }
+  return ret;
+}
+
+/**
+ * @brief  Set LIS2DUXS12 Accelerometer full scale
+ * @param  full_scale the full scale to be set
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t FullScale)
+{
+  lis2duxs12_md_t mode;
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Seems like MISRA C-2012 rule 14.3a violation but only from single file statical analysis point of view because
+     the parameter passed to the function is not known at the moment of analysis */
+  mode.fs = (FullScale <= 2) ? LIS2DUXS12_2g
+            : (FullScale <= 4) ? LIS2DUXS12_4g
+            : (FullScale <= 8) ? LIS2DUXS12_8g
+            :                    LIS2DUXS12_16g;
+  if (lis2duxs12_mode_set(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  return LIS2DUXS12_STATUS_OK;
+}
+
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx) {
+#ifdef I2C_SERCOM
+  if (lis2duxs12_device_id_get(ctx) != LIS2DUXS12_ID) {
+      return LIS2DUXS12_STATUS_ERROR;
+  }
+  delay_ms(25);
+  if (lis2duxs12_init_set(ctx, LIS2DUXS12_SENSOR_ONLY_ON) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* FIFO mode selection */
+  lis2duxs12_fifo_mode_t fifo_mode = {
+    .operation = LIS2DUXS12_BYPASS_MODE,
+    .store     = LIS2DUXS12_FIFO_1X,
+    .xl_only = 1,
+    .watermark = 0,
+  };
+  if (lis2duxs12_fifo_mode_set(ctx, fifo_mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+
+  /* Select default output data rate. */
+  sensor.X_Last_ODR = 100.0f;
+  /* Select default ultra low power (disabled). */
+  sensor.X_Last_Operating_Mode = LIS2DUXS12_LOW_POWER;
+  /* Output data rate: power down, full scale: 2g */
+  lis2duxs12_md_t mode = {
+    .odr = LIS2DUXS12_OFF,
+    .fs  = LIS2DUXS12_2g,
+  };
+  if (lis2duxs12_mode_set(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  X_isInitialized = 1;
+  return LIS2DUXS12_STATUS_OK;
+#else
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
+}
+
+/**
+ * @brief  Enable LIS2DUXS12 Accelerator
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_X(lis2duxs12_ctx_t *ctx) {
+#ifdef I2C_SERCOM
+  /* Check if the component is already enabled */
+  if (sensor.X_isEnabled == 1) {
+    return LIS2DUXS12_STATUS_OK;
+  }
+
+  /* Output data rate selection. */
+  if (LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(ctx, sensor.X_Last_ODR, sensor.X_Last_Operating_Mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+
+  sensor.X_isEnabled = 1;
+  return LIS2DUXS12_STATUS_OK;
+#else
+  return LIS2DUXS12_STATUS_ERROR;
+#endif
+}
+
+/**
+ * @brief  Disable LIS2DUXS12 Accelerator
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_X(lis2duxs12_ctx_t *ctx) {
+  float_t Odr;
+  /* Check if the component is already disabled */
+  if (sensor.X_isEnabled == 0) {
+    return LIS2DUXS12_STATUS_OK;
+  }
+  if (LIS2DUXS12Sensor_Get_X_ODR(ctx, &Odr) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (Odr == 800.0f) {
+    if (LIS2DUXS12Sensor_Set_X_ODR(ctx, 400.0f) != LIS2DUXS12_STATUS_OK) {
+      return LIS2DUXS12_STATUS_ERROR;
+    }
+    /* Wait for 3 ms based on datasheet */
+    delay_ms(3);
+  }
+  /* Output data rate selection - power down. */
+  lis2duxs12_md_t mode;
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  mode.odr = LIS2DUXS12_OFF;
+  if (lis2duxs12_mode_set(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+
+  sensor.X_isEnabled = 0;
+
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Enable pedometer
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx, LIS2DUXS12_SensorIntPin_t IntPin)
+{
+  LIS2DUXS12StatusTypeDef ret = LIS2DUXS12_STATUS_OK;
+  lis2duxs12_stpcnt_mode_t mode;
+  lis2duxs12_emb_pin_int_route_t emb_pin_int;
+  /* Output Data Rate selection */
+  if (LIS2DUXS12Sensor_Set_X_ODR(ctx, 25) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Full scale selection */
+  if (LIS2DUXS12Sensor_Set_X_FS(ctx, 4) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (lis2duxs12_init_set(ctx, LIS2DUXS12_SENSOR_EMB_FUNC_ON) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (lis2duxs12_stpcnt_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Enable pedometer algorithm. */
+  mode.step_counter_enable = PROPERTY_ENABLE;
+  mode.false_step_rej = PROPERTY_DISABLE;
+  mode.step_counter_in_fifo = PROPERTY_DISABLE;
+  /* Turn on embedded features */
+  if (lis2duxs12_stpcnt_mode_set(ctx, mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  switch (IntPin) {
+    case LIS2DUXS12_INT1_PIN:
+      if (lis2duxs12_emb_pin_int1_route_get(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+        return LIS2DUXS12_STATUS_ERROR;
+      }
+      emb_pin_int.step_det = PROPERTY_ENABLE;
+      if (lis2duxs12_emb_pin_int1_route_set(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+        return LIS2DUXS12_STATUS_ERROR;
+      }
+      break;
+    case LIS2DUXS12_INT2_PIN:
+      if (lis2duxs12_emb_pin_int2_route_get(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+        return LIS2DUXS12_STATUS_ERROR;
+      }
+      emb_pin_int.step_det = PROPERTY_ENABLE;
+      if (lis2duxs12_emb_pin_int2_route_set(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+        return LIS2DUXS12_STATUS_ERROR;
+      }
+      break;
+    default:
+      ret = LIS2DUXS12_STATUS_ERROR;
+      break;
+  }
+  return ret;
+}
+
+/**
+ * @brief  Disable pedometer
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx)
+{
+  lis2duxs12_emb_pin_int_route_t emb_pin_int;
+  lis2duxs12_stpcnt_mode_t mode;
+  if (lis2duxs12_stpcnt_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  /* Enable pedometer algorithm. */
+  mode.step_counter_enable = PROPERTY_DISABLE;
+  mode.false_step_rej = PROPERTY_DISABLE;
+  mode.step_counter_in_fifo = PROPERTY_DISABLE;
+
+  /* Turn off embedded features */
+  if (lis2duxs12_stpcnt_mode_set(ctx, mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+
+  if (lis2duxs12_emb_pin_int1_route_get(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  emb_pin_int.tilt = PROPERTY_DISABLE;
+  if (lis2duxs12_emb_pin_int1_route_set(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (lis2duxs12_emb_pin_int2_route_get(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  emb_pin_int.tilt = PROPERTY_DISABLE;
+  if (lis2duxs12_emb_pin_int2_route_set(ctx, &emb_pin_int) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Get step count
+ * @param  StepCount step counter
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_Step_Count(lis2duxs12_ctx_t *ctx, uint16_t *StepCount)
+{
+  if (lis2duxs12_stpcnt_steps_get(ctx, StepCount) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  return LIS2DUXS12_STATUS_OK;
+}
+
+/**
+ * @brief  Enable step counter reset
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Step_Counter_Reset(lis2duxs12_ctx_t *ctx)
+{
+  if (lis2duxs12_stpcnt_rst_step_set(ctx) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  return LIS2DUXS12_STATUS_OK;
 }
 
 /**

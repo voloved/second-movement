@@ -2086,16 +2086,6 @@ int32_t lis2duxs12_ah_qvar_data_get(lis2duxs12_ctx_t *ctx, lis2duxs12_md_t *md,
                                     lis2duxs12_ah_qvar_data_t *data);
 
 typedef enum {
-  LIS2DUXS12_STATUS_OK = 0,
-  LIS2DUXS12_STATUS_ERROR
-} LIS2DUXS12StatusTypeDef;
-
-typedef enum {
-  LIS2DUXS12_INT1_PIN,
-  LIS2DUXS12_INT2_PIN,
-} LIS2DUXS12_SensorIntPin_t;
-
-typedef enum {
   LIS2DUXS12_XL_ST_DISABLE  = 0x0,
   LIS2DUXS12_XL_ST_POSITIVE = 0x1,
   LIS2DUXS12_XL_ST_NEGATIVE = 0x2,
@@ -2560,6 +2550,62 @@ int32_t lis2duxs12_mlc_data_rate_get(lis2duxs12_ctx_t *ctx,
 
 int32_t lis2duxs12_mlc_fifo_en_set(lis2duxs12_ctx_t *ctx, uint8_t val);
 int32_t lis2duxs12_mlc_fifo_en_get(lis2duxs12_ctx_t *ctx, uint8_t *val);
+
+
+typedef enum {
+  LIS2DUXS12_STATUS_OK = 0,
+  LIS2DUXS12_STATUS_ERROR
+} LIS2DUXS12StatusTypeDef;
+
+typedef enum {
+  LIS2DUXS12_INT1_PIN,
+  LIS2DUXS12_INT2_PIN,
+} LIS2DUXS12_SensorIntPin_t;
+
+typedef enum {
+  LIS2DUXS12_ULTRA_LOW_POWER,
+  LIS2DUXS12_LOW_POWER,
+  LIS2DUXS12_HIGH_PERFORMANCE,
+} LIS2DUXS12_Power_Mode_t;
+
+typedef union {
+  int16_t i16bit[3];
+  uint8_t u8bit[6];
+} lis2duxs12_axis3bit16_t;
+
+typedef union {
+  int16_t i16bit;
+  uint8_t u8bit[2];
+} lis2duxs12_axis1bit16_t;
+
+typedef union {
+  int32_t i32bit[3];
+  uint8_t u8bit[12];
+} lis2duxs12_axis3bit32_t;
+
+typedef union {
+  int32_t i32bit;
+  uint8_t u8bit[4];
+} lis2duxs12_axis1bit32_t;
+
+typedef struct {
+    uint8_t X_isInitialized;
+    uint8_t X_isEnabled;
+    float X_Last_ODR;
+    LIS2DUXS12_Power_Mode_t X_Last_Operating_Mode;
+} LIS2DUXS12Sensor;
+
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float *odr);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR(lis2duxs12_ctx_t *ctx, float_t odr);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t *FullScale);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t FullScale);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_X(lis2duxs12_ctx_t *ctx);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_X(lis2duxs12_ctx_t *ctx);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx, LIS2DUXS12_SensorIntPin_t IntPin);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_Step_Count(lis2duxs12_ctx_t *ctx, uint16_t *StepCount);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Step_Counter_Reset(lis2duxs12_ctx_t *ctx);
 
 #ifdef __cplusplus
 }

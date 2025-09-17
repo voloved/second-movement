@@ -316,6 +316,9 @@ typedef struct {
 
     // boolean set if accelerometer is detected
     bool has_lis2dw;
+
+    // boolean set if LIS2DUX accelerometer is detected
+    bool has_lis2dux;
     // data rate for background accelerometer sensing
     lis2dw_data_rate_t accelerometer_background_rate;
     // threshold for considering the wearer is in motion

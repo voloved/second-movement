@@ -1448,7 +1448,7 @@ void app_setup(void) {
         static bool lis2dux_checked = false;
         if (!lis2dux_checked) {
             watch_enable_i2c();
-            if (LIS2DUXS12Sensor_Begin(&ctx)) {
+            if (LIS2DUXS12Sensor_Begin(&ctx) == LIS2DUXS12_STATUS_OK) {
 
                 movement_state.has_lis2dux = true;
             } else {

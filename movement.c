@@ -1113,9 +1113,9 @@ bool movement_enable_step_count(void) {
     if (movement_state.has_lis2dw) {
         // ramp data rate up to 400 Hz and high performance mode
         lis2dw_set_low_noise_mode(true);
-        lis2dw_set_data_rate(LIS2DW_DATA_RATE_25_HZ);
+        lis2dw_set_data_rate(LIS2DW_DATA_RATE_12_5_HZ);
         lis2dw_set_filter_type(LIS2DW_FILTER_LOW_PASS);
-        lis2dw_set_low_power_mode(LIS2DW_LP_MODE_2);
+        lis2dw_set_low_power_mode(LIS2DW_LP_MODE_1);
         lis2dw_set_bandwidth_filtering(LIS2DW_BANDWIDTH_FILTER_DIV2);
         lis2dw_set_range(LIS2DW_RANGE_4_G);
         lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
@@ -1139,6 +1139,9 @@ bool movement_step_count_is_enabled(void) {
     return movement_state.counting_steps;
 }
 
+
+#define SIMPLE_THRESHOLD                15000
+#define SIMPLE_SAMP_IGNORE_STEP         2
 static uint8_t movement_count_new_steps(void)
 {
     uint8_t new_steps = 0;
@@ -1158,20 +1161,20 @@ static uint8_t movement_count_new_steps(void)
     } else {
         movement_step_fifo_misreads = 0;
         /* Add up samples in fifo */
+        printf("magnitude: ");
         for (uint8_t i = 0; i < fifo.count; i++) {
             uint32_t magnitude = count_steps_approx_l2_norm(fifo.readings[i]);
-            // The algorithm wanted int8 inputs, but the readings are 12-bit, so we need to bit shift 4
-            _accel_data.magnitude[_accel_data.count] = (uint8_t)(magnitude >> 4);
-            _accel_data.count++;
-            if (_accel_data.count >= COUNT_STEPS_NUM_TUPLES) {
-                new_steps = count_steps(_accel_data.magnitude);
-                _total_step_count += new_steps;
-                _accel_data.count = 0;
+             printf("%lu; ", magnitude);
+            if (magnitude >= SIMPLE_THRESHOLD) {
+                new_steps += 1;
+                i += SIMPLE_SAMP_IGNORE_STEP;
             }
         }
     }
     lis2dw_clear_fifo();
+    printf("\r\n Count: %d  Total Steps: %lu\r\n", fifo.count, _total_step_count);
 #endif
+    _total_step_count += new_steps;
     return new_steps;
 }
 

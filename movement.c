@@ -1141,7 +1141,13 @@ bool movement_step_count_is_enabled(void) {
 
 
 #define SIMPLE_THRESHOLD                15000
+#define SIMPLE_THRESHOLD_MULT           1.5
 #define SIMPLE_SAMP_IGNORE_STEP         2
+#define USE_WINDOW_AVG                  true
+#define AVG_WINDOW_SIZE_SHIFT           7
+#define AVG_WINDOW_SIZE                 127  //(2^AVG_WINDOW_SIZE_SHIFT) - 1
+static uint32_t step_counter_threshold = SIMPLE_THRESHOLD;
+
 static uint8_t movement_count_new_steps(void)
 {
     uint8_t new_steps = 0;
@@ -1160,19 +1166,32 @@ static uint8_t movement_count_new_steps(void)
         }
     } else {
         movement_step_fifo_misreads = 0;
+#if USE_WINDOW_AVG
+        uint8_t samples_processed = 0;
+        uint32_t samples_sum = 0;
+#endif
         /* Add up samples in fifo */
         printf("magnitude: ");
         for (uint8_t i = 0; i < fifo.count; i++) {
             uint32_t magnitude = count_steps_approx_l2_norm(fifo.readings[i]);
-             printf("%lu; ", magnitude);
-            if (magnitude >= SIMPLE_THRESHOLD) {
+            printf("%lu; ", magnitude);
+#if USE_WINDOW_AVG
+            samples_processed += 1;
+            samples_sum += magnitude;
+#endif
+            if (magnitude >= step_counter_threshold) {
                 new_steps += 1;
                 i += SIMPLE_SAMP_IGNORE_STEP;
             }
         }
+#if USE_WINDOW_AVG
+        samples_sum /= samples_processed;
+        samples_sum *= SIMPLE_THRESHOLD_MULT;
+        step_counter_threshold = ((step_counter_threshold * AVG_WINDOW_SIZE) + samples_sum) >> AVG_WINDOW_SIZE_SHIFT;
+#endif
     }
     lis2dw_clear_fifo();
-    printf("\r\n Count: %d  Total Steps: %lu\r\n", fifo.count, _total_step_count);
+    printf("\r\n Count: %d  Total Steps: %lu Threshold: %d\r\n", fifo.count, _total_step_count, step_counter_threshold);
 #endif
     _total_step_count += new_steps;
     return new_steps;

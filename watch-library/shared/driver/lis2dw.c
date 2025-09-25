@@ -286,6 +286,10 @@ bool lis2dw_read_fifo(lis2dw_fifo_t *fifo_data) {
 
     for(int i = 0; i < fifo_data->count; i++) {
         fifo_data->readings[i] = lis2dw_get_raw_reading();
+        if (fifo_data->readings[i].x == 0 && fifo_data->readings[i].y == 0 && fifo_data->readings[i].z == 0) {
+            fifo_data->count = i;
+            break;
+        }
     }
 
     return overrun;

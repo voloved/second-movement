@@ -1138,15 +1138,6 @@ bool movement_step_count_is_enabled(void) {
     return movement_state.counting_steps;
 }
 
-
-#define SIMPLE_THRESHOLD                15000
-#define SIMPLE_THRESHOLD_MULT           1.5
-#define SIMPLE_SAMP_IGNORE_STEP         2
-#define USE_WINDOW_AVG                  true
-#define AVG_WINDOW_SIZE_SHIFT           7
-#define AVG_WINDOW_SIZE                 127  //(2^AVG_WINDOW_SIZE_SHIFT) - 1
-static uint32_t step_counter_threshold = SIMPLE_THRESHOLD;
-
 static uint8_t movement_count_new_steps(void)
 {
     uint8_t new_steps = 0;
@@ -1169,7 +1160,7 @@ static uint8_t movement_count_new_steps(void)
         _total_step_count += new_steps;
     }
     lis2dw_clear_fifo();
-    printf("\r\n Count: %d  Total Steps: %lu Threshold: %lu\r\n", fifo.count, _total_step_count, step_counter_threshold);
+    //printf("\r\n Count: %d  Total Steps: %lu\r\n", fifo.count, _total_step_count);
 #endif
     return new_steps;
 }

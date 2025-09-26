@@ -281,5 +281,8 @@ uint8_t count_steps_simple(lis2dw_fifo_t *fifo_data) {
     return new_steps;
 }
 
+uint32_t get_steps_simple_threshold(void) {
+    return step_counter_threshold;
+}
 
 

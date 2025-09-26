@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "step_counter_face.h"
+#include "count_steps.h"
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MAX_STEPS_DISPLAY 999999
@@ -48,6 +49,8 @@ static uint16_t display_step_count_now(void) {
     uint32_t step_count = get_step_count();
     sprintf(buf, "%6lu", step_count);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    sprintf(buf, "%6lu", get_steps_simple_threshold());
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
     return step_count;
 }
 

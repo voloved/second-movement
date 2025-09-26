@@ -105,7 +105,6 @@ movement_volatile_state_t movement_volatile_state;
 
 static uint32_t _total_step_count = 0;
 #ifdef I2C_SERCOM
-count_steps_magnitude_data_t _accel_data;
 static const uint8_t movement_max_step_fifo_misreads = 3;
 static uint8_t movement_step_fifo_misreads = 0;
 #endif
@@ -1166,34 +1165,12 @@ static uint8_t movement_count_new_steps(void)
         }
     } else {
         movement_step_fifo_misreads = 0;
-#if USE_WINDOW_AVG
-        uint8_t samples_processed = 0;
-        uint32_t samples_sum = 0;
-#endif
-        /* Add up samples in fifo */
-        printf("magnitude: ");
-        for (uint8_t i = 0; i < fifo.count; i++) {
-            uint32_t magnitude = count_steps_approx_l2_norm(fifo.readings[i]);
-            printf("%lu; ", magnitude);
-#if USE_WINDOW_AVG
-            samples_processed += 1;
-            samples_sum += magnitude;
-#endif
-            if (magnitude >= step_counter_threshold) {
-                new_steps += 1;
-                i += SIMPLE_SAMP_IGNORE_STEP;
-            }
-        }
-#if USE_WINDOW_AVG
-        samples_sum /= samples_processed;
-        samples_sum *= SIMPLE_THRESHOLD_MULT;
-        step_counter_threshold = ((step_counter_threshold * AVG_WINDOW_SIZE) + samples_sum) >> AVG_WINDOW_SIZE_SHIFT;
-#endif
+        new_steps = count_steps_simple(&fifo);
+        _total_step_count += new_steps;
     }
     lis2dw_clear_fifo();
-    printf("\r\n Count: %d  Total Steps: %lu Threshold: %d\r\n", fifo.count, _total_step_count, step_counter_threshold);
+    printf("\r\n Count: %d  Total Steps: %lu Threshold: %lu\r\n", fifo.count, _total_step_count, step_counter_threshold);
 #endif
-    _total_step_count += new_steps;
     return new_steps;
 }
 

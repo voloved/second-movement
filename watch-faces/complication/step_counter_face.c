@@ -49,8 +49,6 @@ static uint16_t display_step_count_now(void) {
     uint32_t step_count = get_step_count();
     sprintf(buf, "%6lu", step_count);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
-    sprintf(buf, "%6lu", get_steps_simple_threshold());
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
     return step_count;
 }
 
@@ -108,6 +106,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
     uint32_t step_count;
+    char buf[10];
     switch (event.event_type) {
         case EVENT_LIGHT_LONG_PRESS:
             // light button shows the timestamp, but if you need the light, long press it.
@@ -146,6 +145,10 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             if(displaying_curr_step_count) {
                 step_count = get_step_count();
+                sprintf(buf, "%6lu", get_steps_simple_threshold());
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
+                sprintf(buf, "%d", movement_get_lis2dw_awake());
+                watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
                 if (step_count != logger_state->step_count_prev) {
                     allow_sleeping(false, logger_state);
                     logger_state->sec_inactivity = 0;

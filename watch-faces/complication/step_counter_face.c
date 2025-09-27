@@ -29,7 +29,6 @@
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MAX_STEPS_DISPLAY 999999
-#define STEP_COUNTER_LOGGING_CYC (STEP_COUNTER_NUM_DATA_POINTS + 1)
 
 // distant future for background task: January 1, 2083
 static const watch_date_time_t distant_future = {
@@ -107,6 +106,13 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
     uint32_t step_count;
     char buf[10];
+    if (logger_state->just_woke && (  // There's a bug where a long press occurs on wake
+            event.event_type == EVENT_MODE_LONG_PRESS ||
+            event.event_type == EVENT_ALARM_LONG_PRESS ||
+            event.event_type == EVENT_LIGHT_LONG_PRESS)) {
+        logger_state->just_woke = false;
+        return true;  // Ignore this press
+    }
     switch (event.event_type) {
         case EVENT_LIGHT_LONG_PRESS:
             // light button shows the timestamp, but if you need the light, long press it.
@@ -165,6 +171,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
+            logger_state->just_woke = true;
             watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             if (movement_step_count_is_enabled()) {
                 movement_disable_step_count();
@@ -182,7 +189,8 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 }
 
 void step_counter_face_resign(void *context) {
-    (void) context;
+    step_counter_state_t *logger_state = (step_counter_state_t *) context;
+    logger_state->just_woke = false;
     if (movement_step_count_is_enabled()) {
         movement_disable_step_count();
     }

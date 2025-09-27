@@ -19,6 +19,7 @@
 
 #include "lis2duxs12_reg.h"
 #include "delay.h"
+#include "watch.h"
 
 static LIS2DUXS12Sensor sensor;
 
@@ -4043,7 +4044,9 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t
 
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx) {
 #ifdef I2C_SERCOM
-  if (lis2duxs12_device_id_get(ctx) != LIS2DUXS12_ID) {
+  uint8_t id;
+  lis2duxs12_device_id_get(ctx, &id);
+  if (id != LIS2DUXS12_ID) {
       return LIS2DUXS12_STATUS_ERROR;
   }
   delay_ms(25);
@@ -4073,7 +4076,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Begin(lis2duxs12_ctx_t *ctx) {
   if (lis2duxs12_mode_set(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
     return LIS2DUXS12_STATUS_ERROR;
   }
-  X_isInitialized = 1;
+  sensor.X_isInitialized = 1;
   return LIS2DUXS12_STATUS_OK;
 #else
   (void) ctx;

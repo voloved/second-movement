@@ -118,7 +118,7 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t 
     for (uint16_t i = 0; i < len; i++) {
         bufp[i] = watch_i2c_read8(LIS2DUXS12_I2C_ADD_H >> 1, reg + i);
     }
-    return 0;
+    return LIS2DUXS12_STATUS_OK;
 }
 
 static lis2duxs12_ctx_t ctx = {

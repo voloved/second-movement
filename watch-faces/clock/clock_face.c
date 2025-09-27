@@ -59,9 +59,10 @@ static void print_time_debug(watch_date_time_t date_time, const char *time_name)
     //          print_time_debug(rise_set_info.time_rise, "Rise");
     //          print_time_debug(rise_set_info.time_set, "Set");
 #if PRINT_TIME_DEBUG
-    printf("%s: %d:%02d:%02d  %d-%d-%d\r\n", time_name, date_time.unit.hour,
+    printf("%s: %d:%02d:%02d  %d-%d-%d  Steps: %lu \r\n", time_name, date_time.unit.hour,
             date_time.unit.minute, date_time.unit.second, date_time.unit.month,
-            date_time.unit.day, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR);
+            date_time.unit.day, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR,
+            movement_get_step_count());
 #else
     (void) date_time;
     (void) time_name;

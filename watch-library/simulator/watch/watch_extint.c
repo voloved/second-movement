@@ -205,3 +205,16 @@ void watch_register_interrupt_callback(const uint8_t pin, watch_cb_t callback, e
         external_interrupt_alarm_trigger = trigger;
     }
 }
+
+void watch_unregister_interrupt_callback(const uint8_t pin) {
+    if (pin == HAL_GPIO_BTN_MODE_pin()) {
+        external_interrupt_mode_callback = NULL;
+        external_interrupt_mode_trigger = INTERRUPT_TRIGGER_NONE;
+    } else if (pin == HAL_GPIO_BTN_LIGHT_pin()) {
+        external_interrupt_light_callback = NULL;
+        external_interrupt_light_trigger = INTERRUPT_TRIGGER_NONE;
+    } else if (pin == HAL_GPIO_BTN_ALARM_pin()) {
+        external_interrupt_alarm_callback = NULL;
+        external_interrupt_alarm_trigger = INTERRUPT_TRIGGER_NONE;
+    }
+}

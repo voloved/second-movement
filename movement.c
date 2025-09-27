@@ -1158,6 +1158,12 @@ static uint8_t movement_count_new_steps(void)
     if (lis2dw_awake_state == 0) {
         return new_steps;
     }
+    if (movement_volatile_state.light_button.is_down ||
+        movement_volatile_state.mode_button.is_down ||
+        movement_volatile_state.alarm_button.is_down) {
+        // Don't count steps while a button is held down.
+        return new_steps;
+    }
     if (lis2dw_awake_state == 1) {
         lis2dw_awake_state = 2;
         lis2dw_clear_fifo();  // likely stale data at this point.

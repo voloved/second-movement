@@ -101,6 +101,9 @@ void step_counter_face_activate(void *context) {
     (void) context;
 }
 
+static uint32_t simple_threshold_prev = 0;
+static uint8_t lis2dw_awake_prev = 5;
+
 bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
@@ -151,10 +154,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             if(displaying_curr_step_count) {
                 step_count = get_step_count();
-                sprintf(buf, "%6lu", get_steps_simple_threshold());
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
-                sprintf(buf, "%d", movement_get_lis2dw_awake());
-                watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
                 if (step_count != logger_state->step_count_prev) {
                     allow_sleeping(false, logger_state);
                     logger_state->sec_inactivity = 0;
@@ -165,6 +164,18 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     } else {
                         logger_state->sec_inactivity++;
                     }
+                }
+                uint32_t simple_threshold = get_steps_simple_threshold();
+                uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
+                if (simple_threshold != simple_threshold_prev) {
+                    simple_threshold_prev = simple_threshold;
+                    sprintf(buf, "%6lu", get_steps_simple_threshold());
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
+                }
+                if (lis2dw_awake_state != lis2dw_awake_prev) {
+                    lis2dw_awake_prev = lis2dw_awake_state;
+                    sprintf(buf, "%d", movement_get_lis2dw_awake());
+                    watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
                 }
             } else {
                 allow_sleeping(true, logger_state);

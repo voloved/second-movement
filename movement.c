@@ -1111,6 +1111,7 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 bool movement_enable_step_count(void) {
+#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         // ramp data rate up to 400 Hz and high performance mode
         lis2dw_set_low_noise_mode(true);
@@ -1127,17 +1128,23 @@ bool movement_enable_step_count(void) {
         lis2dw_clear_fifo();
         return true;
     }
+#endif
     movement_state.counting_steps = false;
     return false;
 }
 
 bool movement_disable_step_count(void) {
+#ifdef I2C_SERCOM
+    lis2dw_awake_state = 0;
+    movement_step_fifo_misreads = 0;
     movement_state.counting_steps = false;
     movement_set_accelerometer_motion_threshold(32); // 1G
     watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
     lis2dw_clear_fifo();
     lis2dw_disable_fifo();
     return movement_disable_tap_detection_if_available();
+#endif
+    return false;
 }
 
 bool movement_step_count_is_enabled(void) {

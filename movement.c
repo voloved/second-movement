@@ -110,10 +110,10 @@ typedef struct {
 movement_volatile_state_t movement_volatile_state;
 
 static uint32_t _total_step_count = 0;
+static uint8_t lis2dw_awake_state = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
 #ifdef I2C_SERCOM
 static const uint8_t movement_max_step_fifo_misreads = 3;
 static uint8_t movement_step_fifo_misreads = 0;
-static bool is_stepping = false;
 #endif
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
@@ -153,6 +153,7 @@ void cb_buzzer_stop(void);
 
 void cb_accelerometer_event(void);
 void cb_accelerometer_wake(void);
+void cb_accelerometer_wake_event(void);
 
 #if __EMSCRIPTEN__
 void yield(void) {
@@ -912,6 +913,7 @@ bool movement_enable_step_count(void) {
         lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
         movement_state.counting_steps = true;
         movement_set_accelerometer_motion_threshold(1); // 0.03Gs; Used to see if the watch is awake.
+        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
         lis2dw_enable_fifo();
         lis2dw_clear_fifo();
         return true;
@@ -922,6 +924,8 @@ bool movement_enable_step_count(void) {
 
 bool movement_disable_step_count(void) {
     movement_state.counting_steps = false;
+    movement_set_accelerometer_motion_threshold(32); // 1G
+    watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
     lis2dw_clear_fifo();
     lis2dw_disable_fifo();
     return movement_disable_tap_detection_if_available();
@@ -935,12 +939,11 @@ static uint8_t movement_count_new_steps(void)
 {
     uint8_t new_steps = 0;
 #ifdef I2C_SERCOM
-    bool is_stepping_prev = is_stepping;
-    is_stepping = !HAL_GPIO_A4_read();
-    if (!is_stepping) {
+    if (lis2dw_awake_state == 0) {
         return new_steps;
     }
-    if (!is_stepping_prev) {
+    if (lis2dw_awake_state == 1) {
+        lis2dw_awake_state = 2;
         lis2dw_clear_fifo();  // likely stale data at this point.
         return new_steps;
     }
@@ -972,6 +975,10 @@ void movement_reset_step_count(void) {
 
 uint32_t movement_get_step_count(void) {
     return _total_step_count;
+}
+
+uint8_t movement_get_lis2dw_awake(void) {
+    return lis2dw_awake_state;
 }
 
 float movement_get_temperature(void) {
@@ -1595,6 +1602,10 @@ void cb_accelerometer_event(void) {
         movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
         printf("Single tap!\n");
     }
+}
+
+void cb_accelerometer_wake_event(void) {
+    lis2dw_awake_state = !HAL_GPIO_A4_read();
 }
 
 void cb_accelerometer_wake(void) {

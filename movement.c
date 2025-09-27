@@ -1121,7 +1121,7 @@ bool movement_enable_step_count(void) {
         lis2dw_set_range(LIS2DW_RANGE_4_G);
         lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
         movement_state.counting_steps = true;
-        movement_set_accelerometer_motion_threshold(1); // 0.03Gs; Used to see if the watch is awake.
+        movement_set_accelerometer_motion_threshold(2); // 0.06Gs; Used to see if the watch is awake.
         watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
         lis2dw_enable_fifo();
         lis2dw_clear_fifo();

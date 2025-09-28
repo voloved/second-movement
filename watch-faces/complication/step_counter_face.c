@@ -25,17 +25,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include "step_counter_face.h"
+#include "count_steps.h"
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MAX_STEPS_DISPLAY 999999
-#define STEP_COUNTER_LOGGING_CYC (STEP_COUNTER_NUM_DATA_POINTS + 1)
 
 // distant future for background task: January 1, 2083
 static const watch_date_time_t distant_future = {
     .unit = {0, 0, 0, 1, 1, 63}
 };
 
-static bool sensor_not_seen;
 static const uint16_t sec_inactivity_allow_sleep = STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN * 60;
 
 static uint32_t get_step_count(void) {
@@ -47,12 +46,8 @@ static uint32_t get_step_count(void) {
 static uint16_t display_step_count_now(void) {
     char buf[10];
     uint32_t step_count = get_step_count();
-    if (sensor_not_seen) {
-        watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
-    } else {
-        sprintf(buf, "%6lu", step_count);
-        watch_display_text(WATCH_POSITION_BOTTOM, buf);
-    }
+    sprintf(buf, "%6lu", step_count);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
     return step_count;
 }
 
@@ -106,10 +101,21 @@ void step_counter_face_activate(void *context) {
     (void) context;
 }
 
+static uint32_t simple_threshold_prev = 0;
+static uint8_t lis2dw_awake_prev = 5;
+
 bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
     uint32_t step_count;
+    char buf[10];
+    if (logger_state->just_woke && (  // There's a bug where a long press occurs on wake
+            event.event_type == EVENT_MODE_LONG_PRESS ||
+            event.event_type == EVENT_ALARM_LONG_PRESS ||
+            event.event_type == EVENT_LIGHT_LONG_PRESS)) {
+        logger_state->just_woke = false;
+        return true;  // Ignore this press
+    }
     switch (event.event_type) {
         case EVENT_LIGHT_LONG_PRESS:
             // light button shows the timestamp, but if you need the light, long press it.
@@ -135,7 +141,10 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ACTIVATE:
-            sensor_not_seen = !movement_enable_step_count();
+            if (!movement_step_count_is_enabled() && !movement_enable_step_count()) {  // Skip this face if not enabled
+                movement_move_to_next_face();
+                return false;
+            }
             logger_state->display_index = logger_state->data_points;
             logger_state->sec_inactivity = 0;
             logger_state->can_sleep = false;
@@ -156,11 +165,24 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         logger_state->sec_inactivity++;
                     }
                 }
+                uint32_t simple_threshold = get_steps_simple_threshold();
+                uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
+                if (simple_threshold != simple_threshold_prev) {
+                    simple_threshold_prev = simple_threshold;
+                    sprintf(buf, "%6lu", get_steps_simple_threshold());
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
+                }
+                if (lis2dw_awake_state != lis2dw_awake_prev) {
+                    lis2dw_awake_prev = lis2dw_awake_state;
+                    sprintf(buf, "%d", movement_get_lis2dw_awake());
+                    watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
+                }
             } else {
                 allow_sleeping(true, logger_state);
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
+            logger_state->just_woke = true;
             watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             if (movement_step_count_is_enabled()) {
                 movement_disable_step_count();
@@ -178,7 +200,8 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 }
 
 void step_counter_face_resign(void *context) {
-    (void) context;
+    step_counter_state_t *logger_state = (step_counter_state_t *) context;
+    logger_state->just_woke = false;
     if (movement_step_count_is_enabled()) {
         movement_disable_step_count();
     }

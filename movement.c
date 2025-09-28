@@ -91,6 +91,7 @@ typedef struct {
     volatile uint8_t subsecond;
     volatile rtc_counter_t minute_counter;
     volatile bool minute_alarm_fired;
+    volatile bool tick_fired_second;
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
@@ -102,8 +103,6 @@ typedef struct {
 } movement_volatile_state_t;
 
 movement_volatile_state_t movement_volatile_state;
-
-static uint32_t _last_step_count = 0;
 
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
     (void)handle;
@@ -127,6 +126,12 @@ static lis2duxs12_ctx_t ctx = {
     .write_reg = platform_write,
     .handle    = NULL
 };
+static uint32_t _total_step_count = 0;
+static uint8_t lis2dw_awake_state = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
+#ifdef I2C_SERCOM
+static const uint8_t movement_max_step_fifo_misreads = 3;
+static uint8_t movement_step_fifo_misreads = 0;
+#endif
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
@@ -170,6 +175,7 @@ void cb_buzzer_stop(void);
 void cb_accelerometer_event(void);
 void cb_accelerometer_lis2dux_event(void);
 void cb_accelerometer_wake(void);
+void cb_accelerometer_wake_event(void);
 
 #if __EMSCRIPTEN__
 void yield(void) {
@@ -952,7 +958,7 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
 }
 
 movement_step_count_option_t movement_get_count_steps(void) {
-    if (!movement_state.has_lis2dux) return MOVEMENT_SC_NOT_INSTALLED;
+    if (!movement_state.has_lis2dw && !movement_state.has_lis2dux) return MOVEMENT_SC_NOT_INSTALLED;
     return movement_state.count_steps;
 }
 
@@ -1199,7 +1205,24 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 bool movement_enable_step_count(void) {
-    if (movement_state.has_lis2dux) {
+#ifdef I2C_SERCOM
+    if (movement_state.has_lis2dw) {
+        // ramp data rate up to 400 Hz and high performance mode
+        lis2dw_set_low_noise_mode(true);
+        lis2dw_set_data_rate(LIS2DW_DATA_RATE_12_5_HZ);
+        lis2dw_set_filter_type(LIS2DW_FILTER_LOW_PASS);
+        lis2dw_set_low_power_mode(LIS2DW_LP_MODE_1);
+        lis2dw_set_bandwidth_filtering(LIS2DW_BANDWIDTH_FILTER_DIV2);
+        lis2dw_set_range(LIS2DW_RANGE_4_G);
+        lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+        movement_state.counting_steps = true;
+        movement_set_accelerometer_motion_threshold(2); // 0.06Gs; Used to see if the watch is awake.
+        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
+        lis2dw_enable_fifo();
+        lis2dw_clear_fifo();
+        return true;
+    }
+    else if (movement_state.has_lis2dux) {
         if(LIS2DUXS12Sensor_Enable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
             printf("Failed LIS2DUXS12Sensor_Enable_X\r\n");
             return false;
@@ -1211,52 +1234,123 @@ bool movement_enable_step_count(void) {
         movement_state.counting_steps = true;
         return true;
     }
+#endif
     movement_state.counting_steps = false;
     return false;
 }
 
 bool movement_disable_step_count(void) {
-    bool retval = true;
-    printf("movement_disable_step_count\r\n");
-    movement_state.counting_steps = false;
-    if(LIS2DUXS12Sensor_Disable_Pedometer(&ctx) != LIS2DUXS12_STATUS_OK) {
-        printf("Failed LIS2DUXS12Sensor_Disable_Pedometer\r\n");
-        retval = false;
+#ifdef I2C_SERCOM
+    if (movement_state.has_lis2dw) {
+        lis2dw_awake_state = 0;
+        movement_step_fifo_misreads = 0;
+        movement_state.counting_steps = false;
+        movement_set_accelerometer_motion_threshold(32); // 1G
+        watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
+        lis2dw_clear_fifo();
+        lis2dw_disable_fifo();
+        return movement_disable_tap_detection_if_available();
     }
-    if(LIS2DUXS12Sensor_Disable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
-        printf("Failed LIS2DUXS12Sensor_Disable_X\r\n");
-        retval = false;
+    else if (movement_state.has_lis2dux) {
+        bool retval = true;
+        printf("movement_disable_step_count\r\n");
+        movement_state.counting_steps = false;
+        if(LIS2DUXS12Sensor_Disable_Pedometer(&ctx) != LIS2DUXS12_STATUS_OK) {
+            printf("Failed LIS2DUXS12Sensor_Disable_Pedometer\r\n");
+            retval = false;
+        }
+        if(LIS2DUXS12Sensor_Disable_X(&ctx) != LIS2DUXS12_STATUS_OK) {
+            printf("Failed LIS2DUXS12Sensor_Disable_X\r\n");
+            retval = false;
+        }
+        return retval;
     }
-    return retval;
+#endif
+    return false;
 }
 
 bool movement_step_count_is_enabled(void) {
     return movement_state.counting_steps;
 }
 
+static uint8_t movement_count_new_steps_lis2dw(void)
+{
+    uint8_t new_steps = 0;
+#ifdef I2C_SERCOM
+    if (lis2dw_awake_state == 0) {
+        return new_steps;
+    }
+    if (movement_volatile_state.light_button.is_down ||
+        movement_volatile_state.mode_button.is_down ||
+        movement_volatile_state.alarm_button.is_down) {
+        // Don't count steps while a button is held down.
+        return new_steps;
+    }
+    if (lis2dw_awake_state == 1) {
+        lis2dw_awake_state = 2;
+        lis2dw_clear_fifo();  // likely stale data at this point.
+        return new_steps;
+    }
+    lis2dw_fifo_t fifo = {0};
+    lis2dw_read_fifo(&fifo);
+    if (fifo.count == 0 || fifo.count > LIS2DW_FIFO_MAX_COUNT) {
+        if (movement_step_fifo_misreads != CHAR_MAX) movement_step_fifo_misreads++;
+        if (movement_step_fifo_misreads >= movement_max_step_fifo_misreads) {
+            if (lis2dw_get_device_id() == LIS2DW_WHO_AM_I_VAL) {
+                movement_disable_step_count();
+            } else {
+                movement_state.counting_steps = false;
+            }
+            return new_steps;
+        }
+    } else {
+        movement_step_fifo_misreads = 0;
+        new_steps = count_steps_simple(&fifo);
+        _total_step_count += new_steps;
+    }
+    lis2dw_clear_fifo();
+    //printf("\r\n Count: %d  Total Steps: %lu\r\n", fifo.count, _total_step_count);
+#endif
+    return new_steps;
+}
+
 void movement_reset_step_count(void) {
 #ifdef I2C_SERCOM
-    LIS2DUXS12StatusTypeDef result;
-    result = LIS2DUXS12Sensor_Step_Counter_Reset(&ctx);
-    if (result != LIS2DUXS12_STATUS_OK) {
-        printf("Failed LIS2DUXS12Sensor_Step_Counter_Reset\r\n");
+    if (movement_state.has_lis2dw) {
+         _total_step_count = 0;
+    }
+    else if (movement_state.has_lis2dux) {
+        LIS2DUXS12StatusTypeDef result;
+        result = LIS2DUXS12Sensor_Step_Counter_Reset(&ctx);
+        if (result != LIS2DUXS12_STATUS_OK) {
+            printf("Failed LIS2DUXS12Sensor_Step_Counter_Reset\r\n");
+        }
     }
 #endif
-    _last_step_count = 0;
+    _total_step_count = 0;
 }
 
 uint32_t movement_get_step_count(void) {
 #ifdef I2C_SERCOM
-    uint16_t step_count = 0;
-    if (LIS2DUXS12Sensor_Get_Step_Count(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
-        _last_step_count = step_count;
+    if (movement_state.has_lis2dw) {
+        return _total_step_count;
     }
-    else {
-        printf("Failed LIS2DUXS12Sensor_Get_Step_Count\r\n");
+    else if (movement_state.has_lis2dux) {
+        uint16_t step_count = 0;
+        if (LIS2DUXS12Sensor_Get_Step_Count(&ctx, &step_count) == LIS2DUXS12_STATUS_OK) {
+            _total_step_count = step_count;
+        }
+        else {
+            printf("Failed LIS2DUXS12Sensor_Get_Step_Count\r\n");
+        }
     }
 #endif
-    printf("Steps: %lu\r\n", _last_step_count);
-    return _last_step_count;
+    printf("Steps: %lu\r\n", _total_step_count);
+    return _total_step_count;
+}
+
+uint8_t movement_get_lis2dw_awake(void) {
+    return lis2dw_awake_state;
 }
 
 float movement_get_temperature(void) {
@@ -1308,6 +1402,7 @@ void app_init(void) {
     movement_volatile_state.turn_led_off = false;
 
     movement_volatile_state.minute_alarm_fired = false;
+    movement_volatile_state.tick_fired_second = false;
     movement_volatile_state.minute_counter = 0;
 
     movement_volatile_state.enter_sleep_mode = false;
@@ -1750,6 +1845,14 @@ bool app_loop(void) {
         event_type++;
     }
 
+#ifdef I2C_SERCOM
+    if (movement_volatile_state.tick_fired_second)
+    {
+        movement_volatile_state.tick_fired_second = false;
+        if (movement_state.counting_steps) movement_count_new_steps_lis2dw();
+    }
+#endif
+
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {
         movement_volatile_state.minute_alarm_fired = false;
@@ -1972,6 +2075,7 @@ void cb_tick(void) {
     uint32_t subsecond_mask = freq - 1;
     movement_volatile_state.pending_events |= 1 << EVENT_TICK;
     movement_volatile_state.subsecond = ((counter + half_freq) & subsecond_mask) >> movement_state.tick_pern;
+    movement_volatile_state.tick_fired_second = movement_state.has_lis2dw && movement_volatile_state.subsecond == 0;
 }
 
 void cb_accelerometer_event(void) {
@@ -2031,6 +2135,10 @@ void cb_accelerometer_lis2dux_event(void) {
         printf("Double tap!\r\n");
 #endif
     }
+}
+
+void cb_accelerometer_wake_event(void) {
+    lis2dw_awake_state = !HAL_GPIO_A4_read();
 }
 
 void cb_accelerometer_wake(void) {

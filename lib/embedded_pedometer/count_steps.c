@@ -12,6 +12,13 @@
 #define AUTOCORR_DELTA_AMPLITUDE_THRESH 7e8 //this is the min delta between peak and trough of autocorrelation peak
 #define AUTOCORR_MIN_HALF_LEN   3           //this is the min number of points the autocorrelation peak should be on either side of the peak
 
+#define SIMPLE_THRESHOLD                15000  // Magnitudes at or above this threshold are considered a step, but can change if USE_WINDOW_AVG is true
+#define SIMPLE_THRESHOLD_MULT           1.5 // Multiplier for the moving average threshold adjustment. It was seen in some testing that 50% higher than the average worked well.
+#define SIMPLE_SAMP_IGNORE_STEP         3   // After detecting a step, ignore this many samples to avoid double counting
+#define USE_WINDOW_AVG                  true   // If true, the step detection threshold will be adjusted based on a moving average of the signal magnitude
+#define AVG_WINDOW_SIZE_SHIFT           7  // The size of the moving average window. We are using bitshifting to keep the math efficient since we run once a second
+#define AVG_WINDOW_SIZE                 ((1 << AVG_WINDOW_SIZE_SHIFT) - 1)
+
 static int8_t deriv_coeffs[DERIV_FILT_LEN]        = {-6,31,0,-31,6};            //coefficients of derivative filter from https://www.dsprelated.com/showarticle/814.php
 static int8_t lpf_coeffs[LPF_FILT_LEN]            = {-5,6,34,68,84,68,34,6,-5}; //coefficients of FIR low pass filter generated in matlab using FDATOOL
 static int32_t lpf[COUNT_STEPS_NUM_TUPLES]                    = {0};                        //hold the low pass filtered signal
@@ -24,6 +31,8 @@ static void remove_mean(int32_t *lpf);
 static void lowpassfilt(uint8_t *mag_sqrt, int32_t *lpf);
 static uint8_t get_precise_peakind(int64_t *autocorr_buff, uint8_t peak_ind);
 static void get_autocorr_peak_stats(int64_t *autocorr_buff, uint8_t *neg_slope_count, int64_t *delta_amplitude_right, uint8_t *pos_slope_count, int64_t *delta_amplitude_left, uint8_t peak_ind);
+
+static uint32_t step_counter_threshold = SIMPLE_THRESHOLD;
 
 /* Approximate l2 norm */
 uint32_t count_steps_approx_l2_norm(lis2dw_reading_t reading)
@@ -173,11 +182,25 @@ static void lowpassfilt(uint8_t *mag_sqrt, int32_t *lpf) {
     }
 }
 
+static bool allzeroes(uint8_t *mag_sqrt) {
+    uint16_t n;
+    bool all_zero = true;
+    for (n = 0; n < COUNT_STEPS_NUM_TUPLES; n++) {
+        if (mag_sqrt[n] != 0) {
+            all_zero = false;
+            break;
+        }
+    }
+    return all_zero;
+}
 
 //algorithm interface
 uint8_t count_steps(uint8_t *mag_sqrt) {
     //assume data is in the format data = [approx_l2_norm(x1,y1,z1),approx_l2_norm(x2,y2,z2)...etc]
     uint16_t i;
+
+    //check if all of the values are zero (which means the data is empty)
+    if (allzeroes(mag_sqrt)) return 0;
     
     //apply low pass filter to mag_sqrt, result is stored in lpf
     lowpassfilt(mag_sqrt, lpf);
@@ -230,5 +253,36 @@ uint8_t count_steps(uint8_t *mag_sqrt) {
     return num_steps;
 }
 
+uint8_t count_steps_simple(lis2dw_fifo_t *fifo_data) {
+    uint8_t new_steps = 0;
+#if USE_WINDOW_AVG
+    uint8_t samples_processed = 0;
+    uint32_t samples_sum = 0;
+#endif
+    for (uint8_t i = 0; i < fifo_data->count; i++) {
+        uint32_t magnitude = count_steps_approx_l2_norm(fifo_data->readings[i]);
+        if (magnitude >= step_counter_threshold) {
+            new_steps += 1;
+            i += SIMPLE_SAMP_IGNORE_STEP;
+            continue;
+        }
+#if USE_WINDOW_AVG
+        samples_processed += 1;
+        samples_sum += magnitude;
+#endif
+    }
+#if USE_WINDOW_AVG
+    if (samples_processed > 0) {
+        samples_sum /= samples_processed;
+        samples_sum *= SIMPLE_THRESHOLD_MULT;
+        step_counter_threshold = ((step_counter_threshold * AVG_WINDOW_SIZE) + samples_sum) >> AVG_WINDOW_SIZE_SHIFT;
+    }
+#endif
+    return new_steps;
+}
+
+uint32_t get_steps_simple_threshold(void) {
+    return step_counter_threshold;
+}
 
 

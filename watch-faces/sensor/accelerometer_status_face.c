@@ -52,16 +52,7 @@ void accelerometer_status_face_setup(uint8_t watch_face_index, void ** context_p
 }
 
 void accelerometer_status_face_activate(void *context) {
-    accel_interrupt_count_state_t *state = (accel_interrupt_count_state_t *)context;
-
-    // never in settings mode at the start
-    state->is_setting = false;
-
-    // update more quickly to catch changes, also to blink setting
-    movement_request_tick_frequency(4);
-
-    // fetch current threshold from accelerometer
-    state->threshold = movement_get_accelerometer_motion_threshold();
+    (void) context;
 }
 
 bool accelerometer_status_face_loop(movement_event_t event, void *context) {
@@ -103,6 +94,20 @@ bool accelerometer_status_face_loop(movement_event_t event, void *context) {
     } else {
         switch (event.event_type) {
             case EVENT_ACTIVATE:
+                if (!movement_has_lis2dw()) {  // Skip the lis2dw isn't installed
+                    movement_move_to_next_face();
+                    return false;
+                }
+
+                // never in settings mode at the start
+                state->is_setting = false;
+
+                // update more quickly to catch changes, also to blink setting
+                movement_request_tick_frequency(4);
+
+                // fetch current threshold from accelerometer
+                state->threshold = movement_get_accelerometer_motion_threshold();
+                // fall through
             case EVENT_TICK:
                 _accelerometer_status_face_update_display(state);
                 break;

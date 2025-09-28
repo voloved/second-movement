@@ -42,7 +42,6 @@ const watch_face_t watch_faces[] = {
     moon_phase_face,
 #ifdef I2C_SERCOM
     lis2dw_monitor_face,
-    activity_logging_face,
 #endif
 // Start of Secondary Faces
     settings_face,

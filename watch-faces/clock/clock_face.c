@@ -46,7 +46,7 @@
 #define CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD 2400
 #endif
 
-#define PRINT_TIME_DEBUG true
+#define PRINT_TIME_DEBUG false
 
 static movement_location_t load_location_from_filesystem() {
     movement_location_t location = {0};

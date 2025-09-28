@@ -320,7 +320,7 @@ typedef struct {
     // boolean set if LIS2DUX accelerometer is detected
     bool has_lis2dux;
     // data rate for background accelerometer sensing
-    lis2dw_data_rate_t accelerometer_background_rate;
+    uint8_t accelerometer_background_rate;
     // threshold for considering the wearer is in motion
     uint8_t accelerometer_motion_threshold;
     uint8_t le_mode_and_not_worn_hours;
@@ -489,8 +489,8 @@ bool movement_enable_tap_detection_if_available(void);
 bool movement_disable_tap_detection_if_available(void);
 
 // gets and sets the accelerometer data rate in the background
-lis2dw_data_rate_t movement_get_accelerometer_background_rate(void);
-bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate);
+uint8_t movement_get_accelerometer_background_rate(void);
+bool movement_set_accelerometer_background_rate(uint8_t new_rate);
 
 // gets and sets the accelerometer motion threshold
 uint8_t movement_get_accelerometer_motion_threshold(void);

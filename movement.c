@@ -117,6 +117,7 @@ static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t 
     (void)handle;
     for (uint16_t i = 0; i < len; i++) {
         bufp[i] = watch_i2c_read8(LIS2DUXS12_I2C_ADD_H >> 1, reg + i);
+//        printf("Add: %X Reg 0x%02X: 0x%02X\r\n", LIS2DUXS12_I2C_ADD_H >> 1, reg + i, bufp[i]);
     }
     return LIS2DUXS12_STATUS_OK;
 }
@@ -167,6 +168,7 @@ void cb_buzzer_start(void);
 void cb_buzzer_stop(void);
 
 void cb_accelerometer_event(void);
+void cb_accelerometer_lis2dux_event(void);
 void cb_accelerometer_wake(void);
 
 #if __EMSCRIPTEN__
@@ -1071,6 +1073,61 @@ bool movement_enable_tap_detection_if_available(void) {
 
         return true;
     }
+    else if (movement_state.has_lis2dux) {
+        float odr;
+        LIS2DUXS12Sensor_Get_X_ODR(&ctx, &odr);
+        printf("movement_enable_tap_detection_if_available %f\r\n", odr);
+        lis2duxs12_tap_config_t cfg;
+        lis2duxs12_tap_config_get(&ctx, &cfg);
+        printf("Tap cfg: axis=0x%02X peak=%d pre=%d post=%d latency=%d\r\n",
+            cfg.axis, cfg.peak_ths, cfg.pre_still_ths, cfg.post_still_ths, cfg.latency);
+
+
+        int32_t accel[3];
+        LIS2DUXS12Sensor_Get_X_Axes(&ctx, accel);
+        printf("Initial accel: x=%ld y=%ld z=%ld\r\n", accel[0], accel[1], accel[2]);
+
+
+
+        LIS2DUXS12Sensor_Enable_X(&ctx);
+        LIS2DUXS12Sensor_Set_X_ODR_With_Mode(&ctx, 400, LIS2DUXS12_HIGH_PERFORMANCE);
+        LIS2DUXS12Sensor_Set_X_FS(&ctx, 2);
+
+        lis2duxs12_tap_config_t tap_cfg;
+        lis2duxs12_tap_config_get(&ctx, &tap_cfg);
+
+        // Parameters in Enable_Double_Tap_Detection in https://github.com/stm32duino/LIS2DUXS12
+        tap_cfg.axis = LIS2DUXS12_TAP_ON_Z;
+        tap_cfg.inverted_peak_time = 4;
+        tap_cfg.pre_still_ths = 2;
+        tap_cfg.post_still_time = 8;
+        tap_cfg.shock_wait_time = 6;
+        tap_cfg.post_still_ths = 8;
+        tap_cfg.latency = 4;
+        tap_cfg.wait_end_latency = 1;
+        tap_cfg.peak_ths = 8;
+        tap_cfg.single_tap_on = PROPERTY_ENABLE;
+        tap_cfg.double_tap_on = PROPERTY_ENABLE;
+        tap_cfg.pre_still_n = 10;
+
+        lis2duxs12_tap_config_set(&ctx, tap_cfg);
+
+        lis2duxs12_pin_int_route_t val;
+        lis2duxs12_pin_int1_route_get(&ctx, &val);
+        val.tap = PROPERTY_ENABLE;
+        val.six_d = PROPERTY_ENABLE;
+        lis2duxs12_pin_int1_route_set(&ctx, &val);
+
+/*
+        // maybe redundant
+        lis2duxs12_int_config_t int_conf;
+        lis2duxs12_int_config_get(&ctx, &int_conf);
+        int_conf.int_cfg = LIS2DUXS12_INT_LATCHED;
+        lis2duxs12_int_config_set(&ctx, &int_conf);
+*/
+
+        return true;
+    }
 
     return false;
 }
@@ -1086,19 +1143,47 @@ bool movement_disable_tap_detection_if_available(void) {
 
         return true;
     }
+    else if (movement_state.has_lis2dux) {
+        printf("movement_disable_tap_detection_if_available\r\n");
+        lis2duxs12_md_t md = {
+            .odr = movement_state.accelerometer_background_rate,
+            .fs = LIS2DUXS12_2g,
+            .bw = LIS2DUXS12_ODR_div_2
+        };
+        lis2duxs12_mode_set(&ctx, &md);
+        lis2duxs12_tap_config_t tap_cfg;
+        lis2duxs12_tap_config_get(&ctx, &tap_cfg);
+        tap_cfg.single_tap_on = PROPERTY_DISABLE;
+        tap_cfg.double_tap_on = PROPERTY_DISABLE;
+        lis2duxs12_tap_config_set(&ctx, tap_cfg);
+        LIS2DUXS12Sensor_Disable_X(&ctx);
+
+        return true;
+    }
 
     return false;
 }
 
-lis2dw_data_rate_t movement_get_accelerometer_background_rate(void) {
-    if (movement_state.has_lis2dw) return movement_state.accelerometer_background_rate;
+uint8_t movement_get_accelerometer_background_rate(void) {
+    if (movement_state.has_lis2dw || movement_state.has_lis2dux) return movement_state.accelerometer_background_rate;
     else return LIS2DW_DATA_RATE_POWERDOWN;
 }
 
-bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate) {
+bool movement_set_accelerometer_background_rate(uint8_t new_rate) {
     if (movement_state.has_lis2dw) {
         if (movement_state.accelerometer_background_rate != new_rate) {
             lis2dw_set_data_rate(new_rate);
+            movement_state.accelerometer_background_rate = new_rate;
+
+            return true;
+        }
+    }
+    else if (movement_state.has_lis2dux) {
+        if (movement_state.accelerometer_background_rate != new_rate) {
+            lis2duxs12_md_t md;
+            lis2duxs12_mode_get(&ctx, &md);
+            md.odr = new_rate;
+            lis2duxs12_mode_set(&ctx, &md);
             movement_state.accelerometer_background_rate = new_rate;
 
             return true;
@@ -1109,7 +1194,7 @@ bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate) {
 }
 
 uint8_t movement_get_accelerometer_motion_threshold(void) {
-    if (movement_state.has_lis2dw) return movement_state.accelerometer_motion_threshold;
+    if (movement_state.has_lis2dw || movement_state.has_lis2dux) return movement_state.accelerometer_motion_threshold;
     else return 0;
 }
 
@@ -1118,6 +1203,17 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
         if (movement_state.accelerometer_motion_threshold != new_threshold) {
             lis2dw_configure_wakeup_threshold(new_threshold);
             movement_state.accelerometer_motion_threshold = new_threshold;
+
+            return true;
+        }
+    }
+    else if (movement_state.has_lis2dux) {
+        if (movement_state.accelerometer_background_rate != new_threshold) {
+            lis2duxs12_wakeup_config_t val;
+            lis2duxs12_wakeup_config_get(&ctx, &val);
+            val.wake_ths = new_threshold;
+            lis2duxs12_wakeup_config_set(&ctx, val);
+            movement_state.accelerometer_background_rate = new_threshold;
 
             return true;
         }
@@ -1184,6 +1280,7 @@ uint32_t movement_get_step_count(void) {
     }
 #endif
     printf("Steps: %lu\r\n", _last_step_count);
+    printf("HAL_GPIO_A3_read: %d\r\n", HAL_GPIO_A3_read());
     return _last_step_count;
 }
 
@@ -1203,6 +1300,11 @@ float movement_get_temperature(void) {
             int16_t val = lis2dw_get_temperature();
             val = val >> 4;
             temperature_c = 25 + (float)val / 16.0;
+    } else if (movement_state.has_lis2dux) {
+        lis2duxs12_outt_data_t data;
+        lis2duxs12_md_t md;
+        lis2duxs12_outt_data_get(&ctx, &md, &data);
+        temperature_c = data.heat.deg_c;
     }
 #endif
 
@@ -1476,6 +1578,47 @@ void app_setup(void) {
         } else if (movement_state.has_lis2dux) {
             watch_enable_i2c();
             (LIS2DUXS12Sensor_Begin(&ctx));
+        }
+
+        if (movement_state.has_lis2dux) {
+            lis2duxs12_md_t md = {
+                .odr = movement_state.accelerometer_background_rate,
+                .fs  = LIS2DUXS12_2g,
+                .bw  = LIS2DUXS12_ODR_div_2
+            };
+            lis2duxs12_mode_set(&ctx, &md);
+
+            lis2duxs12_wakeup_config_t wakeup = {
+                .wake_dur = LIS2DUXS12_0_ODR,
+                .sleep_dur = 0,
+                .wake_ths = movement_state.accelerometer_motion_threshold,
+                .wake_ths_weight = 0,
+                .wake_enable = LIS2DUXS12_SLEEP_ON,
+                .inact_odr = LIS2DUXS12_ODR_1_6_HZ
+            };
+            lis2duxs12_wakeup_config_set(&ctx, wakeup);
+
+            lis2duxs12_sixd_config_t sixd = {
+                .threshold = LIS2DUXS12_DEG_50,
+                .mode = LIS2DUXS12_6D
+            };
+            lis2duxs12_sixd_config_set(&ctx, sixd);
+
+            lis2duxs12_pin_int_route_t int2_route = {0};
+            int2_route.sleep_change = 1;
+            lis2duxs12_pin_int2_route_set(&ctx, &int2_route);
+            HAL_GPIO_A4_in();
+            // watch_register_extwake_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake, false);
+
+            watch_register_interrupt_callback(HAL_GPIO_A3_pin(), cb_accelerometer_lis2dux_event, INTERRUPT_TRIGGER_BOTH);
+
+            // Enable the interrupts...
+            lis2duxs12_int_config_t int_en = {
+                .int_cfg = LIS2DUXS12_INT_LEVEL,
+                .sleep_status_on_int = 0,
+                .dis_rst_lir_all_int = 1
+            };
+            lis2duxs12_int_config_set(&ctx, &int_en);
         }
 #endif
 
@@ -1869,6 +2012,48 @@ void cb_accelerometer_event(void) {
         movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
 #if __EMSCRIPTEN__
         printf("Single tap!\n");
+#endif
+    }
+}
+
+void cb_accelerometer_lis2dux_event(void) {
+    printf("cb_accelerometer_lis2dux_event\r\n");
+    lis2duxs12_all_sources_t int_src;
+    lis2duxs12_all_sources_get(&ctx, &int_src);
+    if (int_src.single_tap)    printf("single_tap:    %d\r\n", int_src.single_tap);
+    if (int_src.double_tap)    printf("double_tap:    %d\r\n", int_src.double_tap);
+    if (int_src.triple_tap)    printf("triple_tap:    %d\r\n", int_src.triple_tap);
+    if (int_src.six_d)         printf("six_d:         %d\r\n", int_src.six_d);
+    if (int_src.six_d_xl)      printf("six_d_xl:      %d\r\n", int_src.six_d_xl);
+    if (int_src.six_d_xh)      printf("six_d_xh:      %d\r\n", int_src.six_d_xh);
+    if (int_src.six_d_yl)      printf("six_d_yl:      %d\r\n", int_src.six_d_yl);
+    if (int_src.six_d_yh)      printf("six_d_yh:      %d\r\n", int_src.six_d_yh);
+    if (int_src.six_d_zl)      printf("six_d_zl:      %d\r\n", int_src.six_d_zl);
+    if (int_src.six_d_zh)      printf("six_d_zh:      %d\r\n", int_src.six_d_zh);
+    if (int_src.sleep_change)  printf("sleep_change:  %d\r\n", int_src.sleep_change);
+    if (int_src.sleep_state)   printf("sleep_state:   %d\r\n", int_src.sleep_state);
+    if (int_src.tilt)          printf("tilt:          %d\r\n", int_src.tilt);
+    if (int_src.fifo_bdr)      printf("fifo_bdr:      %d\r\n", int_src.fifo_bdr);
+    if (int_src.fifo_full)     printf("fifo_full:     %d\r\n", int_src.fifo_full);
+    if (int_src.fifo_ovr)      printf("fifo_ovr:      %d\r\n", int_src.fifo_ovr);
+    if (int_src.fifo_th)       printf("fifo_th:       %d\r\n", int_src.fifo_th);
+
+
+    if (int_src.single_tap) {
+        movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
+#if __EMSCRIPTEN__
+        printf("Single tap!\n");
+#else
+        printf("Single tap!\r\n");
+#endif
+    }
+
+    if (int_src.double_tap) {
+        movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
+#if __EMSCRIPTEN__
+        printf("Double tap!\n");
+#else
+        printf("Double tap!\r\n");
 #endif
     }
 }

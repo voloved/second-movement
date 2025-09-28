@@ -20,6 +20,7 @@
 #include "lis2duxs12_reg.h"
 #include "delay.h"
 #include "watch.h"
+#include <stdio.h>
 
 static LIS2DUXS12Sensor sensor;
 
@@ -3948,8 +3949,9 @@ static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(float_t 
  * @param  noise the low noise option
  * @retval 0 in case of success, an error code otherwise
  */
-static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_With_Mode(lis2duxs12_ctx_t *ctx, float_t odr, LIS2DUXS12_Power_Mode_t Power)
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_With_Mode(lis2duxs12_ctx_t *ctx, float_t odr, LIS2DUXS12_Power_Mode_t Power)
 {
+  printf("Set_X_ODR_With_Mode: Odr=%f, Power=%d Enabled=%d\r\n", odr, Power, sensor.X_isEnabled);
   if (sensor.X_isEnabled == 1) {
     if (LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(ctx, odr, Power) != LIS2DUXS12_STATUS_OK) {
       return LIS2DUXS12_STATUS_ERROR;
@@ -4288,6 +4290,27 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Step_Counter_Reset(lis2duxs12_ctx_t *ct
   (void) ctx;
   return LIS2DUXS12_STATUS_ERROR;
 #endif
+}
+
+/**
+ * @brief  Read data from LIS2DUXS12 Accelerometer
+ * @param  Acceleration the pointer where the accelerometer data are stored
+ * @retval 0 in case of success, an error code otherwise
+ */
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_Axes(lis2duxs12_ctx_t *ctx, int32_t *Acceleration)
+{
+  lis2duxs12_md_t mode;
+  lis2duxs12_xl_data_t data;
+  if (lis2duxs12_mode_get(ctx, &mode) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  if (lis2duxs12_xl_data_get(ctx, &mode, &data) != LIS2DUXS12_STATUS_OK) {
+    return LIS2DUXS12_STATUS_ERROR;
+  }
+  Acceleration[0] = (int32_t)data.mg[0];
+  Acceleration[1] = (int32_t)data.mg[1];
+  Acceleration[2] = (int32_t)data.mg[2];
+  return LIS2DUXS12_STATUS_OK;
 }
 
 /**

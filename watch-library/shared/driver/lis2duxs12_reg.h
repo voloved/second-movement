@@ -2596,6 +2596,7 @@ typedef struct {
 } LIS2DUXS12Sensor;
 
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_ODR(lis2duxs12_ctx_t *ctx, float *odr);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_With_Mode(lis2duxs12_ctx_t *ctx, float_t odr, LIS2DUXS12_Power_Mode_t Power);
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR(lis2duxs12_ctx_t *ctx, float_t odr);
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_FS(lis2duxs12_ctx_t *ctx, int32_t *FullScale);
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_FS(lis2duxs12_ctx_t *ctx, int32_t FullScale);
@@ -2606,6 +2607,7 @@ LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Enable_Pedometer(lis2duxs12_ctx_t *ctx,
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Disable_Pedometer(lis2duxs12_ctx_t *ctx);
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_Step_Count(lis2duxs12_ctx_t *ctx, uint16_t *StepCount);
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Step_Counter_Reset(lis2duxs12_ctx_t *ctx);
+LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Get_X_Axes(lis2duxs12_ctx_t *ctx, int32_t *Acceleration);
 
 #ifdef __cplusplus
 }

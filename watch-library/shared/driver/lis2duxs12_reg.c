@@ -20,7 +20,6 @@
 #include "lis2duxs12_reg.h"
 #include "delay.h"
 #include "watch.h"
-#include <stdio.h>
 
 static LIS2DUXS12Sensor sensor;
 
@@ -3951,7 +3950,6 @@ static LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_When_Disabled(float_t 
  */
 LIS2DUXS12StatusTypeDef LIS2DUXS12Sensor_Set_X_ODR_With_Mode(lis2duxs12_ctx_t *ctx, float_t odr, LIS2DUXS12_Power_Mode_t Power)
 {
-  printf("Set_X_ODR_With_Mode: Odr=%f, Power=%d Enabled=%d\r\n", odr, Power, sensor.X_isEnabled);
   if (sensor.X_isEnabled == 1) {
     if (LIS2DUXS12Sensor_Set_X_ODR_When_Enabled(ctx, odr, Power) != LIS2DUXS12_STATUS_OK) {
       return LIS2DUXS12_STATUS_ERROR;

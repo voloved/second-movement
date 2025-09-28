@@ -1074,21 +1074,6 @@ bool movement_enable_tap_detection_if_available(void) {
         return true;
     }
     else if (movement_state.has_lis2dux) {
-        float odr;
-        LIS2DUXS12Sensor_Get_X_ODR(&ctx, &odr);
-        printf("movement_enable_tap_detection_if_available %f\r\n", odr);
-        lis2duxs12_tap_config_t cfg;
-        lis2duxs12_tap_config_get(&ctx, &cfg);
-        printf("Tap cfg: axis=0x%02X peak=%d pre=%d post=%d latency=%d\r\n",
-            cfg.axis, cfg.peak_ths, cfg.pre_still_ths, cfg.post_still_ths, cfg.latency);
-
-
-        int32_t accel[3];
-        LIS2DUXS12Sensor_Get_X_Axes(&ctx, accel);
-        printf("Initial accel: x=%ld y=%ld z=%ld\r\n", accel[0], accel[1], accel[2]);
-
-
-
         LIS2DUXS12Sensor_Enable_X(&ctx);
         LIS2DUXS12Sensor_Set_X_ODR_With_Mode(&ctx, 400, LIS2DUXS12_HIGH_PERFORMANCE);
         LIS2DUXS12Sensor_Set_X_FS(&ctx, 2);
@@ -1118,14 +1103,6 @@ bool movement_enable_tap_detection_if_available(void) {
         val.six_d = PROPERTY_ENABLE;
         lis2duxs12_pin_int1_route_set(&ctx, &val);
 
-/*
-        // maybe redundant
-        lis2duxs12_int_config_t int_conf;
-        lis2duxs12_int_config_get(&ctx, &int_conf);
-        int_conf.int_cfg = LIS2DUXS12_INT_LATCHED;
-        lis2duxs12_int_config_set(&ctx, &int_conf);
-*/
-
         return true;
     }
 
@@ -1144,7 +1121,6 @@ bool movement_disable_tap_detection_if_available(void) {
         return true;
     }
     else if (movement_state.has_lis2dux) {
-        printf("movement_disable_tap_detection_if_available\r\n");
         lis2duxs12_md_t md = {
             .odr = movement_state.accelerometer_background_rate,
             .fs = LIS2DUXS12_2g,
@@ -1280,7 +1256,6 @@ uint32_t movement_get_step_count(void) {
     }
 #endif
     printf("Steps: %lu\r\n", _last_step_count);
-    printf("HAL_GPIO_A3_read: %d\r\n", HAL_GPIO_A3_read());
     return _last_step_count;
 }
 

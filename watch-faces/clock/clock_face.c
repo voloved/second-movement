@@ -367,6 +367,21 @@ void clock_face_activate(void *context) {
     }
 }
 
+static void enable_disable_step_count_times(watch_date_time_t date_time) {
+    movement_step_count_option_t should_count_steps = movement_get_count_steps();
+    if (should_count_steps!= MOVEMENT_SC_OFF && should_count_steps != MOVEMENT_SC_NOT_INSTALLED) {
+        bool in_count_step_hours = movement_in_step_counter_interval(date_time.unit.hour);
+        if (!movement_step_count_is_enabled()) {
+            if (in_count_step_hours) {
+                movement_enable_step_count();
+            }
+        } else if (!in_count_step_hours) {
+            movement_disable_step_count();
+        }
+    }
+}
+
+
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
     watch_date_time_t current;
@@ -388,17 +403,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
                 display_nighttime(state, current);
             }
 
-            movement_step_count_option_t should_count_steps = movement_get_count_steps();
-            if (should_count_steps!= MOVEMENT_SC_OFF && should_count_steps != MOVEMENT_SC_NOT_INSTALLED) {
-                bool in_count_step_hours = movement_in_step_counter_interval(current.unit.hour);
-                if (!movement_step_count_is_enabled()) {
-                    if (in_count_step_hours) {
-                        movement_enable_step_count();
-                    }
-                } else if (!in_count_step_hours) {
-                    movement_disable_step_count();
-                }
-            }
+            enable_disable_step_count_times(current);
 
             clock_display_clock(state, current);
 
@@ -454,8 +459,10 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
     movement_watch_face_advisory_t retval = { 0 };
     clock_state_t *state = (clock_state_t *) context;
 
+    watch_date_time_t date_time = movement_get_local_date_time();
+    // In case we need to stop the counter and this face isn't in the foreground
+    enable_disable_step_count_times(date_time);
     if (state->time_signal_enabled) {
-        watch_date_time_t date_time = movement_get_local_date_time();
         if (date_time.unit.minute == 0) {
             movement_hourly_chime_t hour_chime_option = movement_get_hourly_chime_times();
             int8_t is_daytime;

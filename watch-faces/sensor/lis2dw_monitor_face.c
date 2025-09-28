@@ -472,8 +472,6 @@ static bool _monitor_loop(movement_event_t event, void *context)
                 return false;
             }
 
-            lis2dw_monitor_state_t *state = (lis2dw_monitor_state_t *) context;
-
             /* Setup lis2dw to run in background at 12.5 Hz sampling rate. */
             movement_set_accelerometer_background_rate(LIS2DW_DATA_RATE_12_5_HZ);
 

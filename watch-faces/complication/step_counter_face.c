@@ -156,6 +156,16 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             movement_schedule_background_task(distant_future);
             _step_counter_face_logging_update_display(logger_state);
             break;
+        case EVENT_LOW_ENERGY_UPDATE:
+            logger_state->just_woke = true;
+            if (!movement_has_lis2dux()) {
+                watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
+                if (movement_step_count_is_enabled()) {
+                    movement_disable_step_count();
+                }
+                break;
+            }
+            // fall through
         case EVENT_TICK:
             if(displaying_curr_step_count) {
                 step_count = get_step_count();
@@ -189,13 +199,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 allow_sleeping(true, logger_state);
             }
             break;
-        case EVENT_LOW_ENERGY_UPDATE:
-            logger_state->just_woke = true;
-            watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
-            if (movement_step_count_is_enabled()) {
-                movement_disable_step_count();
-            }
-            break;
         case EVENT_BACKGROUND_TASK:
             _step_counter_face_log_data(logger_state);
             movement_reset_step_count();
@@ -210,7 +213,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 void step_counter_face_resign(void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *) context;
     logger_state->just_woke = false;
-    if (movement_step_count_is_enabled()) {
+    if (movement_has_lis2dw() && movement_step_count_is_enabled()) {
         movement_disable_step_count();
     }
     movement_cancel_background_task();

@@ -674,6 +674,7 @@ static void movement_begin_deep_sleep(void) {
         movement_request_sleep();
     }
     movement_state.is_deep_sleeping = true;
+    if (movement_state.counting_steps) movement_disable_step_count();
     watch_disable_display();
 }
 

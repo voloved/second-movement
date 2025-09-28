@@ -145,6 +145,11 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 movement_move_to_next_face();
                 return false;
             }
+
+            // To force update
+            simple_threshold_prev = 0;
+            lis2dw_awake_prev = 5;
+
             logger_state->display_index = logger_state->data_points;
             logger_state->sec_inactivity = 0;
             logger_state->can_sleep = false;
@@ -165,17 +170,20 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         logger_state->sec_inactivity++;
                     }
                 }
-                uint32_t simple_threshold = get_steps_simple_threshold();
-                uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
-                if (simple_threshold != simple_threshold_prev) {
-                    simple_threshold_prev = simple_threshold;
-                    sprintf(buf, "%6lu", get_steps_simple_threshold());
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "ST");
-                }
-                if (lis2dw_awake_state != lis2dw_awake_prev) {
-                    lis2dw_awake_prev = lis2dw_awake_state;
-                    sprintf(buf, "%d", movement_get_lis2dw_awake());
-                    watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
+
+                if (movement_has_lis2dw()) {
+                    uint32_t simple_threshold = get_steps_simple_threshold();
+                    uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
+                    if (simple_threshold != simple_threshold_prev) {
+                        simple_threshold_prev = simple_threshold;
+                        sprintf(buf, "%6lu", get_steps_simple_threshold());
+                        watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "SC");
+                    }
+                    if (lis2dw_awake_state != lis2dw_awake_prev) {
+                        lis2dw_awake_prev = lis2dw_awake_state;
+                        sprintf(buf, "%d", movement_get_lis2dw_awake());
+                        watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, "  ");
+                    }
                 }
             } else {
                 allow_sleeping(true, logger_state);

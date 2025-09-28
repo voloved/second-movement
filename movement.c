@@ -623,7 +623,7 @@ void movement_move_to_next_face(void) {
         go_to_teriary_face();
         return;
     }
-    if (MOVEMENT_TERIARY_FACE_INDEX & MOVEMENT_SECONDARY_FACE_INDEX) {
+    if (MOVEMENT_TERIARY_FACE_INDEX > 0 && MOVEMENT_SECONDARY_FACE_INDEX > 0) {
         face_max = (movement_state.current_face_idx < (int16_t)MOVEMENT_SECONDARY_FACE_INDEX) ? MOVEMENT_SECONDARY_FACE_INDEX : 
                 (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) ? MOVEMENT_TERIARY_FACE_INDEX : MOVEMENT_NUM_FACES;
     } else if (MOVEMENT_TERIARY_FACE_INDEX) {

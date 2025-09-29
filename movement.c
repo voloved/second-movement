@@ -1014,8 +1014,11 @@ bool movement_enable_step_count(void) {
     return false;
 }
 
-bool movement_disable_step_count(void) {
+bool movement_disable_step_count(bool ignore_keep_on) {
 #ifdef I2C_SERCOM
+    if (!ignore_keep_on && movement_state.count_steps_keep_on) {
+        return false;
+    }
     if (movement_state.has_lis2dw) {
         lis2dw_awake_state = 0;
         movement_step_fifo_misreads = 0;
@@ -1038,6 +1041,14 @@ bool movement_disable_step_count(void) {
 
 bool movement_step_count_is_enabled(void) {
     return movement_state.counting_steps;
+}
+
+bool movement_step_count_keep_on(void) {
+    return movement_state.count_steps_keep_on;
+}
+
+void movement_set_step_count_keep_on(bool keep_on) {
+    movement_state.count_steps_keep_on = keep_on;
 }
 
 static uint8_t movement_count_new_steps_lis2dw(void)
@@ -1064,7 +1075,7 @@ static uint8_t movement_count_new_steps_lis2dw(void)
         if (movement_step_fifo_misreads != CHAR_MAX) movement_step_fifo_misreads++;
         if (movement_step_fifo_misreads >= movement_max_step_fifo_misreads) {
             if (lis2dw_get_device_id() == LIS2DW_WHO_AM_I_VAL) {
-                movement_disable_step_count();
+                movement_disable_step_count(true);
             } else {
                 movement_state.counting_steps = false;
             }
@@ -1252,6 +1263,8 @@ void app_init(void) {
     movement_state.signal_volume = MOVEMENT_DEFAULT_SIGNAL_VOLUME;
     movement_state.alarm_volume = MOVEMENT_DEFAULT_ALARM_VOLUME;
     movement_state.when_to_count_steps = MOVEMENT_DEFAULT_COUNT_STEPS;
+    movement_state.counting_steps = false;
+    movement_state.count_steps_keep_on = false;
     movement_state.light_on = false;
     movement_state.next_available_backup_register = 2;
     _movement_reset_inactivity_countdown();

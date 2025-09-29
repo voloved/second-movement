@@ -147,6 +147,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 return false;
             }
 
+            movement_set_step_count_keep_on(true);
             // To force update
             simple_threshold_prev = 0;
             lis2dw_awake_prev = 5;
@@ -163,7 +164,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             if (!movement_has_lis2dux()) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
                 if (movement_step_count_is_enabled()) {
-                    movement_disable_step_count();
+                    movement_disable_step_count(true);
                 }
                 break;
             }
@@ -215,8 +216,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 void step_counter_face_resign(void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *) context;
     logger_state->just_woke = false;
+    movement_set_step_count_keep_on(false);
     if (movement_has_lis2dw() && movement_step_count_is_enabled()) {
-        movement_disable_step_count();
+        movement_disable_step_count(true);
     }
     movement_cancel_background_task();
 }

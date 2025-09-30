@@ -105,6 +105,7 @@ typedef struct {
 
 movement_volatile_state_t movement_volatile_state;
 
+#ifdef I2C_SERCOM
 static int32_t platform_write(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
     (void)handle;
     for (uint16_t i = 0; i < len; i++) {
@@ -128,6 +129,8 @@ static lis2duxs12_ctx_t ctx = {
     .write_reg = platform_write,
     .handle    = NULL
 };
+#endif
+
 static uint32_t _total_step_count = 0;
 static uint8_t lis2dw_awake_state = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
 #ifdef I2C_SERCOM
@@ -1064,6 +1067,7 @@ void movement_set_alarm_enabled(bool value) {
 }
 
 bool movement_enable_tap_detection_if_available(void) {
+#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         // configure tap duration threshold and enable Z axis
         lis2dw_configure_tap_threshold(0, 0, 12, LIS2DW_REG_TAP_THS_Z_Z_AXIS_ENABLE);
@@ -1115,10 +1119,12 @@ bool movement_enable_tap_detection_if_available(void) {
         return true;
     }
 
+#endif
     return false;
 }
 
 bool movement_disable_tap_detection_if_available(void) {
+#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         // Ramp data rate back down to the usual lowest rate to save power.
         lis2dw_set_low_noise_mode(false);
@@ -1146,6 +1152,7 @@ bool movement_disable_tap_detection_if_available(void) {
         return true;
     }
 
+#endif
     return false;
 }
 
@@ -1163,6 +1170,7 @@ uint8_t movement_get_accelerometer_background_rate(void) {
 }
 
 bool movement_set_accelerometer_background_rate(uint8_t new_rate) {
+#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_state.accelerometer_background_rate != new_rate) {
             lis2dw_set_data_rate(new_rate);
@@ -1183,6 +1191,9 @@ bool movement_set_accelerometer_background_rate(uint8_t new_rate) {
         }
     }
 
+#else
+    (void)new_rate;
+#endif
     return false;
 }
 
@@ -1192,6 +1203,7 @@ uint8_t movement_get_accelerometer_motion_threshold(void) {
 }
 
 bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
+#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_state.accelerometer_motion_threshold != new_threshold) {
             lis2dw_configure_wakeup_threshold(new_threshold);
@@ -1212,6 +1224,9 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
         }
     }
 
+#else
+    (void)new_threshold;
+#endif
     return false;
 }
 
@@ -1266,6 +1281,8 @@ bool movement_disable_step_count(bool ignore_keep_on) {
         LIS2DUXS12Sensor_Disable_X(&ctx);
         return true;
     }
+#else
+    (void)ignore_keep_on;
 #endif
     return false;
 }
@@ -1282,10 +1299,10 @@ void movement_set_step_count_keep_on(bool keep_on) {
     movement_state.count_steps_keep_on = keep_on;
 }
 
+#ifdef I2C_SERCOM
 static uint8_t movement_count_new_steps_lis2dw(void)
 {
     uint8_t new_steps = 0;
-#ifdef I2C_SERCOM
     if (lis2dw_awake_state == 0) {
         return new_steps;
     }
@@ -1318,9 +1335,9 @@ static uint8_t movement_count_new_steps_lis2dw(void)
         _total_step_count += new_steps;
     }
     lis2dw_clear_fifo();
-#endif
     return new_steps;
 }
+#endif
 
 void movement_reset_step_count(void) {
 #ifdef I2C_SERCOM
@@ -1344,6 +1361,16 @@ void movement_update_step_count_lis2dux(void) {
 
 uint32_t movement_get_step_count(void) {
 #ifdef I2C_SERCOM
+/*
+    if (movement_state.has_lis2dux) {
+        uint8_t debounce;
+        lis2duxs12_stpcnt_debounce_get(&ctx, &debounce);
+        printf("debounce: %d\r\n", debounce);
+        uint16_t period;
+        lis2duxs12_stpcnt_period_get(&ctx, &period);
+        printf("period: %d\r\n", period);
+    }
+*/
     if (movement_volatile_state.step_count_needs_updating) {
         movement_update_step_count_lis2dux();
     }
@@ -1367,7 +1394,9 @@ float movement_get_temperature(void) {
         thermistor_driver_enable();
         temperature_c = thermistor_driver_get_temperature();
         thermistor_driver_disable();
-    } else if (movement_state.has_lis2dw) {
+    }
+#ifdef I2C_SERCOM
+    else if (movement_state.has_lis2dw) {
             int16_t val = lis2dw_get_temperature();
             val = val >> 4;
             temperature_c = 25 + (float)val / 16.0;
@@ -1377,6 +1406,7 @@ float movement_get_temperature(void) {
         lis2duxs12_outt_data_get(&ctx, &md, &data);
         temperature_c = data.heat.deg_c;
     }
+#endif
 #endif
 
     _temperature_last_read_c = temperature_c;
@@ -2094,7 +2124,9 @@ void cb_accelerometer_event(void) {
 
 #define PRINT_LIS2DUX_EVENTS false
 void cb_accelerometer_lis2dux_event(void) {
-#ifdef PRINT_LIS2DUX_EVENTS
+#ifdef I2C_SERCOM
+
+#if PRINT_LIS2DUX_EVENTS
     printf("cb_accelerometer_lis2dux_event\r\n");
     lis2duxs12_all_sources_t int_src;
     lis2duxs12_all_sources_get(&ctx, &int_src);
@@ -2128,6 +2160,7 @@ void cb_accelerometer_lis2dux_event(void) {
         movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
         printf("Double tap!\r\n");
     }
+#endif
 }
 
 void cb_accelerometer_wake_event(void) {

@@ -238,7 +238,7 @@ static void hourly_chime_setting_advance(void) {
 
 #if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
 static void step_counter_setting_display(uint8_t subsecond) {
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "ST");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "SC");
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
     if (when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) {
         watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");

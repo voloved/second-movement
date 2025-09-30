@@ -325,9 +325,10 @@ typedef struct {
     uint8_t accelerometer_motion_threshold;
     uint8_t le_mode_and_not_worn_hours;
 
-    uint8_t when_to_count_steps : 6;
+    uint8_t when_to_count_steps : 5;
     uint8_t counting_steps      : 1;
     uint8_t count_steps_keep_on : 1;
+    uint8_t tap_enabled         : 1;
 } movement_state_t;
 
 void movement_move_to_face(uint8_t watch_face_index);

@@ -2125,11 +2125,10 @@ void cb_accelerometer_event(void) {
 #define PRINT_LIS2DUX_EVENTS false
 void cb_accelerometer_lis2dux_event(void) {
 #ifdef I2C_SERCOM
-
-#if PRINT_LIS2DUX_EVENTS
-    printf("cb_accelerometer_lis2dux_event\r\n");
     lis2duxs12_all_sources_t int_src;
     lis2duxs12_all_sources_get(&ctx, &int_src);
+#if PRINT_LIS2DUX_EVENTS
+    printf("cb_accelerometer_lis2dux_event\r\n");
     if (int_src.single_tap)    printf("single_tap:    %d\r\n", int_src.single_tap);
     if (int_src.double_tap)    printf("double_tap:    %d\r\n", int_src.double_tap);
     if (int_src.triple_tap)    printf("triple_tap:    %d\r\n", int_src.triple_tap);

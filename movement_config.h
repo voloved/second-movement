@@ -48,9 +48,9 @@ const watch_face_t watch_faces[] = {
     accelerometer_status_face,
 #endif
 // Start of Teriary Faces
+    blackjack_face,
     endless_runner_face,
     wordle_face,
-    blackjack_face,
     higher_lower_game_face,
     lander_face,
     simon_face,

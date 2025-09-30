@@ -111,9 +111,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
     uint32_t step_count;
     char buf[10];
     if (logger_state->just_woke && (  // There's a bug where a long press occurs on wake
-            event.event_type == EVENT_MODE_LONG_PRESS ||
-            event.event_type == EVENT_ALARM_LONG_PRESS ||
-            event.event_type == EVENT_LIGHT_LONG_PRESS)) {
+            event.event_type == EVENT_MODE_LONG_PRESS || event.event_type == EVENT_MODE_BUTTON_UP ||
+            event.event_type == EVENT_ALARM_LONG_PRESS || event.event_type == EVENT_ALARM_BUTTON_UP ||
+            event.event_type == EVENT_LIGHT_LONG_PRESS || event.event_type == EVENT_LIGHT_BUTTON_UP)) {
         logger_state->just_woke = false;
         return true;  // Ignore this press
     }

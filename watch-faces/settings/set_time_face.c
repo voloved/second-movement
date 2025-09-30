@@ -61,7 +61,7 @@ static void _handle_alarm_button(watch_date_time_t date_time, uint8_t current_pa
             date_time.unit.second = 0;
             break;
         case SET_TIME_YEAR:
-            date_time.unit.year = ((date_time.unit.year % 60) + 1);
+            date_time.unit.year = (date_time.unit.year + 1) % 60;
             break;
         case SET_TIME_MONTH:
             date_time.unit.month = (date_time.unit.month % 12) + 1;

@@ -185,13 +185,15 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 }
 
                 if (movement_has_lis2dw()) {
+#if !COUNT_STEPS_USE_ESPRUINO
                     uint32_t simple_threshold = get_steps_simple_threshold();
-                    uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
                     if (simple_threshold != simple_threshold_prev) {
                         simple_threshold_prev = simple_threshold;
                         sprintf(buf, "%6lu", get_steps_simple_threshold());
                         watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "SC");
                     }
+#endif
+                    uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
                     if (lis2dw_awake_state != lis2dw_awake_prev) {
                         lis2dw_awake_prev = lis2dw_awake_state;
                         sprintf(buf, "%d", movement_get_lis2dw_awake());

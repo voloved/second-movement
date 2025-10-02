@@ -142,7 +142,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ACTIVATE:
-            if (!movement_step_count_is_enabled() && !movement_enable_step_count()) {  // Skip this face if not enabled
+            if (!movement_step_count_is_enabled() && !movement_enable_step_count_multiple_attempts(2)) {  // Skip this face if not enabled
                 movement_move_to_next_face();
                 return false;
             }

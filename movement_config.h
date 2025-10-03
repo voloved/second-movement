@@ -29,6 +29,9 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
+#ifdef I2C_SERCOM
+    step_counter_face,
+#endif
     world_clock_face,
     sunrise_sunset_face,
     moon_phase_face,

@@ -1098,48 +1098,31 @@ bool movement_enable_tap_detection_if_available(void) {
         lis2dux12_pin_int_route_t int1_route;
         lis2dux12_int_config_t int_mode;
 
-        val.axis = LIS2DUX12_TAP_ON_Z;
-        val.pre_still_ths = 125.0f / 62.5f;
-        val.post_still_ths = 500.0f / 62.5f;
-        val.post_still_time = 32 / 4;
-        val.peak_ths = 500.0f / 62.5f;
-        val.pre_still_start = 0;
-        val.pre_still_n = 10;
-        val.inverted_peak_time = 4;
-        val.shock_wait_time = 6 / 2;
-        val.rebound = 0;
-        val.latency = 128 / 32;
-        val.single_tap_on = 1;
-        val.double_tap_on = 1;
-        val.triple_tap_on = 1;
-        val.wait_end_latency = 1;
-
         lis2dux12_exit_deep_power_down(&dev_ctx);
+        lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
         /* Set bdu and if_inc recommended for driver usage */
         lis2dux12_init_set(&dev_ctx, LIS2DUX12_SENSOR_ONLY_ON);
 
-        int_mode.int_cfg = LIS2DUX12_INT_LATCHED;
-        lis2dux12_int_config_set(&dev_ctx, &int_mode);
-
         val.axis = LIS2DUX12_TAP_ON_Z;
-        val.pre_still_ths = 125.0f / 62.5f;
-        val.post_still_ths = 500.0f / 62.5f;
-        val.post_still_time = 32 / 4;
-        val.peak_ths = 500.0f / 62.5f;
+        val.pre_still_ths = 4;
+        val.post_still_ths = 5;
+        val.post_still_time = 3;
+        val.peak_ths = 3;
         val.pre_still_start = 0;
-        val.pre_still_n = 10;
+        val.pre_still_n = 5;
         val.inverted_peak_time = 4;
-        val.shock_wait_time = 6 / 2;
+        val.shock_wait_time = 3;
         val.rebound = 0;
-        val.latency = 128 / 32;
-        val.single_tap_on = 1;
-        val.double_tap_on = 1;
+        val.latency = 4;
+        val.single_tap_on = PROPERTY_ENABLE;
+        val.double_tap_on = PROPERTY_ENABLE;
         val.wait_end_latency = 1;
         lis2dux12_tap_config_set(&dev_ctx, val);
 
         /* Configure interrupt pins */
         lis2dux12_pin_int1_route_get(&dev_ctx, &int1_route);
         int1_route.tap   = PROPERTY_ENABLE;
+        int1_route.six_d = PROPERTY_ENABLE;
         lis2dux12_pin_int1_route_set(&dev_ctx, &int1_route);
         int_mode.int_cfg = LIS2DUX12_INT_LEVEL;
         lis2dux12_int_config_set(&dev_ctx, &int_mode);
@@ -1780,7 +1763,7 @@ void app_setup(void) {
             uint8_t id;
             watch_enable_i2c();
             lis2dux12_device_id_get(&dev_ctx, &id);
-            if (id != LIS2DUX12_ID) {
+            if (id == LIS2DUX12_ID) {
                 lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
                 movement_state.has_lis2dux = true;
             } else {
@@ -2253,23 +2236,24 @@ void cb_accelerometer_lis2dux_event(void) {
         lis2dux12_all_sources_get(&dev_ctx, &int_src);
 #if PRINT_LIS2DUX_EVENTS
         printf("cb_accelerometer_lis2dux_event\r\n");
-        if (int_src.single_tap)    printf("single_tap:    %d\r\n", int_src.single_tap);
-        if (int_src.double_tap)    printf("double_tap:    %d\r\n", int_src.double_tap);
-        if (int_src.triple_tap)    printf("triple_tap:    %d\r\n", int_src.triple_tap);
-        if (int_src.six_d)         printf("six_d:         %d\r\n", int_src.six_d);
-        if (int_src.six_d_xl)      printf("six_d_xl:      %d\r\n", int_src.six_d_xl);
-        if (int_src.six_d_xh)      printf("six_d_xh:      %d\r\n", int_src.six_d_xh);
-        if (int_src.six_d_yl)      printf("six_d_yl:      %d\r\n", int_src.six_d_yl);
-        if (int_src.six_d_yh)      printf("six_d_yh:      %d\r\n", int_src.six_d_yh);
-        if (int_src.six_d_zl)      printf("six_d_zl:      %d\r\n", int_src.six_d_zl);
-        if (int_src.six_d_zh)      printf("six_d_zh:      %d\r\n", int_src.six_d_zh);
-        if (int_src.sleep_change)  printf("sleep_change:  %d\r\n", int_src.sleep_change);
-        if (int_src.sleep_state)   printf("sleep_state:   %d\r\n", int_src.sleep_state);
-        if (int_src.tilt)          printf("tilt:          %d\r\n", int_src.tilt);
-        if (int_src.fifo_bdr)      printf("fifo_bdr:      %d\r\n", int_src.fifo_bdr);
-        if (int_src.fifo_full)     printf("fifo_full:     %d\r\n", int_src.fifo_full);
-        if (int_src.fifo_ovr)      printf("fifo_ovr:      %d\r\n", int_src.fifo_ovr);
-        if (int_src.fifo_th)       printf("fifo_th:       %d\r\n", int_src.fifo_th);
+        if (int_src.drdy)             printf("drdy:             %d\r\n", int_src.drdy);
+        if (int_src.free_fall)       printf("free_fall:        %d\r\n", int_src.free_fall);
+        if (int_src.wake_up)         printf("wake_up:          %d\r\n", int_src.wake_up);
+        if (int_src.wake_up_x)       printf("wake_up_x:        %d\r\n", int_src.wake_up_x);
+        if (int_src.wake_up_y)       printf("wake_up_y:        %d\r\n", int_src.wake_up_y);
+        if (int_src.wake_up_z)       printf("wake_up_z:        %d\r\n", int_src.wake_up_z);
+        if (int_src.single_tap)      printf("single_tap:       %d\r\n", int_src.single_tap);
+        if (int_src.double_tap)      printf("double_tap:       %d\r\n", int_src.double_tap);
+        if (int_src.triple_tap)      printf("triple_tap:       %d\r\n", int_src.triple_tap);
+        if (int_src.six_d)           printf("six_d:            %d\r\n", int_src.six_d);
+        if (int_src.six_d_xl)        printf("six_d_xl:         %d\r\n", int_src.six_d_xl);
+        if (int_src.six_d_xh)        printf("six_d_xh:         %d\r\n", int_src.six_d_xh);
+        if (int_src.six_d_yl)        printf("six_d_yl:         %d\r\n", int_src.six_d_yl);
+        if (int_src.six_d_yh)        printf("six_d_yh:         %d\r\n", int_src.six_d_yh);
+        if (int_src.six_d_zl)        printf("six_d_zl:         %d\r\n", int_src.six_d_zl);
+        if (int_src.six_d_zh)        printf("six_d_zh:         %d\r\n", int_src.six_d_zh);
+        if (int_src.sleep_change)    printf("sleep_change:     %d\r\n", int_src.sleep_change);
+        if (int_src.sleep_state)     printf("sleep_state:      %d\r\n", int_src.sleep_state);
 #endif
 
         if (int_src.single_tap) {

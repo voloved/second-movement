@@ -1171,6 +1171,7 @@ bool movement_disable_tap_detection_if_available(void) {
             lis2dux12_mode_get(&dev_ctx, &md);
             md.odr = movement_state.accelerometer_background_rate;
             lis2dux12_mode_set(&dev_ctx, &md);
+            lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
             lis2dux12_enter_deep_power_down(&dev_ctx, 1);
         }
         movement_state.tap_enabled = false;
@@ -1274,7 +1275,7 @@ bool movement_enable_step_count(void) {
         uint8_t threshold = 2;  // 0.06Gs; Used to see if the watch is awake.
 
         lis2dw_set_low_noise_mode(low_noise);  // Inntesting, this didn't read back True after setting ever...so we're not checking it
-        lis2dw_set_data_rate(data_rate);  // Change MAX_FIFO_SIZE_SIMPLE if you change this
+        movement_set_accelerometer_background_rate(data_rate);
         if (lis2dw_get_data_rate() != data_rate) return false;
         lis2dw_set_filter_type(filter_type);
         if (lis2dw_get_filter_type() != filter_type) return false;
@@ -1315,11 +1316,14 @@ bool movement_enable_step_count(void) {
         lis2dux12_emb_pin_int1_route_set(&dev_ctx, &int1_route);
         int_mode.int_cfg = LIS2DUX12_INT_LEVEL;
         lis2dux12_int_config_set(&dev_ctx, &int_mode);
-        /* Set Output Data Rate */
-        md.fs =  LIS2DUX12_4g;
-        md.bw = LIS2DUX12_ODR_div_4;
-        md.odr = LIS2DUX12_25Hz_LP;
-        lis2dux12_mode_set(&dev_ctx, &md);
+        if (!movement_state.tap_enabled) {
+            /* Set Output Data Rate */
+            md.fs =  LIS2DUX12_4g;
+            md.bw = LIS2DUX12_ODR_div_4;
+            md.odr = LIS2DUX12_25Hz_LP;
+            lis2dux12_mode_set(&dev_ctx, &md);
+            movement_state.accelerometer_background_rate = md.odr;
+        }
         movement_state.counting_steps = true;
         return true;
     }
@@ -1353,6 +1357,7 @@ bool movement_disable_step_count(bool disable_immedietly) {
         movement_state.counting_steps = false;
         movement_set_accelerometer_motion_threshold(32); // 1G
         watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
+        movement_set_accelerometer_background_rate(LIS2DW_DATA_RATE_POWERDOWN);
         lis2dw_clear_fifo();
         lis2dw_disable_fifo();
         return movement_disable_tap_detection_if_available();
@@ -1374,6 +1379,7 @@ bool movement_disable_step_count(bool disable_immedietly) {
         lis2dux12_emb_pin_int2_route_set(&dev_ctx, &emb_pin_int);
         if (!movement_state.tap_enabled) {
             movement_set_accelerometer_background_rate(LIS2DUX12_OFF);
+            lis2dux12_init_set(&dev_ctx, LIS2DUX12_RESET);
             lis2dux12_enter_deep_power_down(&dev_ctx, 1);
         }
         return true;

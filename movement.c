@@ -1287,8 +1287,6 @@ bool movement_enable_step_count(void) {
         if (lis2dw_get_range() != range) return false;
         lis2dw_set_mode(mode);
         if (lis2dw_get_mode() != mode) return false;
-        lis2dw_set_mode(mode);
-        if (lis2dw_get_mode() != mode) return false;
         movement_set_accelerometer_motion_threshold(threshold);
         if (movement_get_accelerometer_motion_threshold() != threshold) return false;
         watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
@@ -1356,10 +1354,11 @@ bool movement_disable_step_count(bool disable_immedietly) {
         movement_step_fifo_misreads = 0;
         movement_state.counting_steps = false;
         movement_set_accelerometer_motion_threshold(32); // 1G
-        watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
-        movement_set_accelerometer_background_rate(LIS2DW_DATA_RATE_POWERDOWN);
         lis2dw_clear_fifo();
         lis2dw_disable_fifo();
+        if (movement_state.tap_enabled) return true;
+        watch_unregister_interrupt_callback(HAL_GPIO_A4_pin());
+        movement_state.accelerometer_background_rate = LIS2DW_DATA_RATE_POWERDOWN;
         return movement_disable_tap_detection_if_available();
     }
     else if (movement_state.has_lis2dux) {
@@ -2206,15 +2205,11 @@ void cb_accelerometer_event(void) {
 
     if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
         movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
-#if __EMSCRIPTEN__
-        printf("Double tap!\n");
-#endif
+        printf("Double tap!\r\n");
     }
     if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
         movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
-#if __EMSCRIPTEN__
-        printf("Single tap!\n");
-#endif
+        printf("Single tap!\r\n");
     }
 }
 

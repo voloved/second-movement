@@ -104,6 +104,7 @@ void step_counter_face_activate(void *context) {
 
 static uint32_t simple_threshold_prev = 0;
 static uint8_t lis2dw_awake_prev = 5;
+static bool step_enabled_prev = 1;
 
 bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
@@ -142,7 +143,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ACTIVATE:
-            if (!movement_enable_step_count_multiple_attempts(2)) {  // Skip this face if not enabled
+            if (!movement_enable_step_count_multiple_attempts(2, false)) {  // Skip this face if not enabled
                 movement_move_to_next_face();
                 return false;
             }
@@ -163,9 +164,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             logger_state->just_woke = true;
             if (!movement_has_lis2dux()) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
-                if (movement_step_count_is_enabled()) {
-                    movement_disable_step_count(true);
-                }
                 break;
             }
             // fall through
@@ -210,6 +208,17 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, buf);
                     }
 #endif
+                }
+                else if (movement_has_lis2dux()) {
+                    bool mov_en =movement_step_count_is_enabled();
+                    if (mov_en != step_enabled_prev) {
+                        if (mov_en) {
+                            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, " -", " -");
+                        } else {
+                            watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "SC");
+                        }
+                        step_enabled_prev = mov_en;
+                    }
                 }
             } else {
                 allow_sleeping(true, logger_state);

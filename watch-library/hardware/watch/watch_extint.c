@@ -54,7 +54,7 @@ void watch_register_interrupt_callback(const uint8_t pin, watch_cb_t callback, e
 
     int8_t channel = eic_configure_pin(pin, trigger, filten);
     if (channel >= 0 && channel < 16) {
-        printf("Configured port %d pin %d on channel %d\n", pin >> 5, pin & 0x1F, channel);
+        printf("Configured port %d pin %d on channel %d\r\n", pin >> 5, pin & 0x1F, channel);
         eic_enable_interrupt(pin);
         eic_callbacks[channel] = callback;
     }

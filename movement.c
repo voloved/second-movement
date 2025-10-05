@@ -25,7 +25,6 @@
 
 #define MOVEMENT_LONG_PRESS_TICKS 64
 #define MOVEMENT_LONGER_PRESS_TICKS (3 * MOVEMENT_LONG_PRESS_TICKS)
-#define MOVEMENT_DEBOUNCE_TICKS 4
 
 #include <stdio.h>
 #include <string.h>
@@ -2020,6 +2019,10 @@ bool app_loop(void) {
         // No need to fire resign and sleep interrupts while in sleep mode
         _movement_disable_inactivity_countdown();
 
+        watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_RISING);
@@ -2192,17 +2195,14 @@ void cb_sleep_timeout_interrupt(void) {
 
 void cb_mode_btn_extwake(void) {
     movement_request_wake();
-    cb_mode_btn_interrupt();
 }
 
 void cb_light_btn_extwake(void) {
     movement_request_wake();
-    cb_light_btn_interrupt();
 }
 
 void cb_alarm_btn_extwake(void) {
     movement_request_wake();
-    cb_alarm_btn_interrupt();
 }
 
 void cb_minute_alarm_fired(void) {

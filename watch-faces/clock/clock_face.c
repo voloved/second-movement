@@ -391,7 +391,6 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
-            state->just_woke = true;
             clock_start_tick_tock_animation();
             clock_display_low_energy(movement_get_local_date_time());
             break;
@@ -401,6 +400,19 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
+/*
+            if(current.unit.second % 2) {
+                movement_enable_tap_detection_if_available();
+            } else {
+                movement_disable_tap_detection_if_available();
+            }
+            
+            if(current.unit.second == 15) {
+                movement_set_when_to_count_steps(MOVEMENT_SC_OFF);
+                enable_disable_step_count_times(current);
+                //movement_move_to_next_face();
+            }
+*/
 
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
                 (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {
@@ -421,21 +433,15 @@ bool clock_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ALARM_LONG_PRESS:
-            state->just_woke = false;
             clock_toggle_time_signal(state);
             break;
         case EVENT_ALARM_BUTTON_UP:
-            if (state->just_woke) {
-                state->just_woke = false;
-            } else if (movement_clock_mode_toggle()) {
+            if (movement_clock_mode_toggle()) {
                 clock_toggle_mode_displayed(movement_get_local_date_time());
             }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             movement_illuminate_led();
-            // fall through
-        case EVENT_MODE_BUTTON_DOWN:
-            state->just_woke = false;
             break;
         case EVENT_BACKGROUND_TASK:
             // uncomment this line to snap back to the clock face when the hour signal sounds:
@@ -450,8 +456,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 }
 
 void clock_face_resign(void *context) {
-    clock_state_t *state = (clock_state_t *) context;
-    state->just_woke = false;
+    (void) context;
     if (movement_has_lis2dw() && movement_step_count_is_enabled()) {
         movement_disable_step_count(false);
     }

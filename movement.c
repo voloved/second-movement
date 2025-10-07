@@ -1202,7 +1202,7 @@ static uint8_t movement_count_new_steps_lis2dw(void)
         return new_steps;
     }
     lis2dw_fifo_t fifo = {0};
-    lis2dw_read_fifo(&fifo);
+    lis2dw_read_fifo(&fifo, 100);
     if (fifo.count == 0 || fifo.count > LIS2DW_FIFO_MAX_COUNT) {
         if (movement_step_fifo_misreads != CHAR_MAX) movement_step_fifo_misreads++;
         if (movement_step_fifo_misreads >= movement_max_step_fifo_misreads) {

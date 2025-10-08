@@ -376,10 +376,8 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_start_tick_tock_animation();
             clock_display_low_energy(movement_get_local_date_time());
             break;
-        case EVENT_ACTIVATE:
-            enable_disable_step_count_times(movement_get_local_date_time());
-            // fall through
         case EVENT_TICK:
+        case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
 /*
@@ -439,9 +437,6 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
 void clock_face_resign(void *context) {
     (void) context;
-    if (movement_has_lis2dw() && movement_step_count_is_enabled()) {
-        movement_disable_step_count(false);
-    }
 }
 
 movement_watch_face_advisory_t clock_face_advise(void *context) {

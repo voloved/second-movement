@@ -462,7 +462,7 @@ static void start_reading(accelerometer_data_acquisition_state_t *state) {
 static void continue_reading(accelerometer_data_acquisition_state_t *state) {
     printf("Continue reading\n");
     lis2dw_fifo_t fifo;
-    lis2dw_read_fifo(&fifo, 100);
+    lis2dw_read_fifo(&fifo, LIS2DW_FIFO_TIMEOUT_SECOND);
 
     fifo.count = min(fifo.count, 25); // hacky, but we need a consistent data rate; if we got a 26th data point, chuck it.
     uint8_t offset = 4 * (25 - fifo.count); // also hacky: we're sometimes short at the start. align to beginning of next second.

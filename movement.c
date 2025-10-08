@@ -146,10 +146,7 @@ static stmdev_ctx_t dev_ctx = {
 static uint32_t _total_step_count = 0;
 static uint8_t _awake_state_lis2dw = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
 static uint16_t _step_count_prev_lis2dux = 0;  // When the LIS2DUX wakes, its step count resets. This value adds onto it if we get a lower step count
-#ifdef I2C_SERCOM
-static const uint8_t movement_max_step_fifo_misreads = 3;
-static uint8_t movement_step_fifo_misreads = 0;
-#endif
+static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
@@ -548,6 +545,9 @@ void movement_request_tick_frequency(uint8_t freq) {
     // 0x01 (1 Hz) will have 7 leading zeros for PER7. 0x80 (128 Hz) will have no leading zeroes for PER0.
     uint8_t per_n = __builtin_clz(tmp);
 
+    // While we try to count steps when the tick faster than 1 second, it may be inaccurate since
+    // all 12-13 samples in the FIFO may not be read.
+    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND / movement_state.tick_frequency;
     movement_state.tick_frequency = freq;
     movement_state.tick_pern = per_n;
 
@@ -1094,6 +1094,13 @@ void movement_set_alarm_enabled(bool value) {
 bool movement_enable_tap_detection_if_available(void) {
 #ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
+
+        if (movement_state.counting_steps) {
+            movement_state.count_steps_keep_off = true;
+            // Step Counter uses a frequency of 12.5Hz, so the 4000Hz reading of tap detection will throw things off
+            movement_disable_step_count(true);
+        }
+
         // configure tap duration threshold and enable Z axis
         lis2dw_configure_tap_threshold(0, 0, 12, LIS2DW_REG_TAP_THS_Z_Z_AXIS_ENABLE);
         lis2dw_configure_tap_duration(10, 2, 2);
@@ -1163,6 +1170,7 @@ bool movement_enable_tap_detection_if_available(void) {
 bool movement_disable_tap_detection_if_available(void) {
 #ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
+        movement_state.count_steps_keep_off = true;
         // Ramp data rate back down to the usual lowest rate to save power.
         lis2dw_set_low_noise_mode(false);
         lis2dw_set_data_rate(movement_state.accelerometer_background_rate);
@@ -1399,7 +1407,6 @@ bool movement_disable_step_count(bool disable_immedietly) {
     }
     if (movement_state.has_lis2dw) {
         _awake_state_lis2dw = 0;
-        movement_step_fifo_misreads = 0;
         movement_state.counting_steps = false;
         movement_set_accelerometer_motion_threshold(32); // 1G
         lis2dw_clear_fifo();
@@ -1463,38 +1470,19 @@ static uint8_t movement_count_new_steps_lis2dw(void)
     if (_awake_state_lis2dw == 0) {
         return new_steps;
     }
-    if (movement_volatile_state.light_button.is_down ||
-        movement_volatile_state.mode_button.is_down ||
-        movement_volatile_state.alarm_button.is_down) {
-        // Don't count steps while a button is held down.
-        return new_steps;
-    }
     if (_awake_state_lis2dw == 1) {
         _awake_state_lis2dw = 2;
         lis2dw_clear_fifo();  // likely stale data at this point.
         return new_steps;
     }
     lis2dw_fifo_t fifo = {0};
-    lis2dw_read_fifo(&fifo, 100);
-    if (fifo.count == 0 || fifo.count > LIS2DW_FIFO_MAX_COUNT) {
-        if (movement_step_fifo_misreads != CHAR_MAX) movement_step_fifo_misreads++;
-        if (movement_step_fifo_misreads >= movement_max_step_fifo_misreads) {
-            if (lis2dw_get_device_id() == LIS2DW_WHO_AM_I_VAL) {
-                movement_disable_step_count(true);
-            } else {
-                movement_state.counting_steps = false;
-            }
-            return new_steps;
-        }
-    } else {
-        movement_step_fifo_misreads = 0;
+    lis2dw_read_fifo(&fifo, _step_fifo_timeout_lis2dw);
 #if COUNT_STEPS_USE_ESPRUINO
-        new_steps = count_steps_espruino(&fifo);
+    new_steps = count_steps_espruino(&fifo);
 #else
-        new_steps = count_steps_simple(&fifo);
+    new_steps = count_steps_simple(&fifo);
 #endif
-        _total_step_count += new_steps;
-    }
+    _total_step_count += new_steps;
     lis2dw_clear_fifo();
     return new_steps;
 }

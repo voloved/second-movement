@@ -423,8 +423,8 @@ static void _monitor_update(lis2dw_monitor_state_t *state)
     lis2dw_fifo_t fifo;
     float x = 0, y = 0, z = 0;
 
-    lis2dw_read_fifo(&fifo, 25);
-    if (fifo.count == 0 || fifo.count > LIS2DW_FIFO_MAX_COUNT) {
+    lis2dw_read_fifo(&fifo, 100 / DISPLAY_FREQUENCY);
+    if (fifo.count == 0) {
         return;
     }
 
@@ -470,6 +470,12 @@ static bool _monitor_loop(movement_event_t event, void *context)
             if (!movement_has_lis2dw()) {  // Skip the lis2dw isn't installed
                 movement_move_to_next_face();
                 return false;
+            }
+
+            // Force the Step Counter to be turned off 
+            // immedietly in case it's on so this face can use the LIS2DW
+            if (movement_step_count_is_enabled()) {
+                movement_disable_step_count(true);
             }
 
             /* Setup lis2dw to run in background at 12.5 Hz sampling rate. */

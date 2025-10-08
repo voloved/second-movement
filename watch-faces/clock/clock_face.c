@@ -466,10 +466,8 @@ movement_watch_face_advisory_t clock_face_advise(void *context) {
     movement_watch_face_advisory_t retval = { 0 };
     clock_state_t *state = (clock_state_t *) context;
 
-    watch_date_time_t date_time = movement_get_local_date_time();
-    // In case we need to stop the counter and this face isn't in the foreground
-    enable_disable_step_count_times(date_time);
     if (state->time_signal_enabled) {
+        watch_date_time_t date_time = movement_get_local_date_time();
         if (date_time.unit.minute == 0) {
             movement_hourly_chime_t hour_chime_option = movement_get_hourly_chime_times();
             int8_t is_daytime;

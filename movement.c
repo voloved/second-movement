@@ -468,6 +468,8 @@ static void _movement_handle_top_of_minute(void) {
         _check_for_deep_sleep();
     }
 
+    enable_disable_step_count_times(date_time);
+
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
         // For each face that offers an advisory...
         if (watch_faces[i].advise != NULL) {
@@ -1286,8 +1288,26 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
     return false;
 }
 
+void enable_disable_step_count_times(watch_date_time_t date_time) {
+    if (movement_state.count_steps_keep_on || movement_state.count_steps_keep_off) return;
+    movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
+    if (when_to_count_steps != MOVEMENT_SC_OFF && when_to_count_steps != MOVEMENT_SC_NOT_INSTALLED) {
+        bool in_count_step_hours = movement_in_step_counter_interval(date_time.unit.hour);
+        if (!movement_state.counting_steps) {
+            if (in_count_step_hours) {
+                movement_enable_step_count_multiple_attempts(2, false);
+            }
+        } else if (!in_count_step_hours) {
+            movement_disable_step_count(false);
+        }
+    } else if (movement_state.counting_steps) {
+        movement_disable_step_count(false);
+    }
+}
+
 bool movement_enable_step_count(bool force_enable) {
 #ifdef I2C_SERCOM
+    if (movement_state.count_steps_keep_off) return false;
     movement_state.step_count_disable_req_sec = -1;
     if (!force_enable && movement_state.counting_steps) return true;
     if (movement_state.has_lis2dw) {
@@ -1426,8 +1446,16 @@ bool movement_step_count_keep_on(void) {
     return movement_state.count_steps_keep_on;
 }
 
+bool movement_step_count_keep_off(void) {
+    return movement_state.count_steps_keep_off;
+}
+
 void movement_set_step_count_keep_on(bool keep_on) {
     movement_state.count_steps_keep_on = keep_on;
+}
+
+void movement_set_step_count_keep_off(bool keep_off) {
+    movement_state.count_steps_keep_off = keep_off;
 }
 
 #ifdef I2C_SERCOM
@@ -1692,6 +1720,7 @@ void app_init(void) {
     movement_state.when_to_count_steps = MOVEMENT_DEFAULT_COUNT_STEPS;
     movement_state.counting_steps = false;
     movement_state.count_steps_keep_on = false;
+    movement_state.count_steps_keep_off = false;
     movement_state.tap_enabled = false;
     movement_state.step_count_disable_req_sec = -1;
     movement_state.light_on = false;

@@ -99,6 +99,12 @@ bool accelerometer_status_face_loop(movement_event_t event, void *context) {
                     return false;
                 }
 
+                // Force the Step Counter to be turned off 
+                // immedietly in case it's on so this face can use the LIS2DW
+                if (movement_has_lis2dw() && movement_step_count_is_enabled()) {
+                    movement_disable_step_count(true);
+                }
+
                 // never in settings mode at the start
                 state->is_setting = false;
 

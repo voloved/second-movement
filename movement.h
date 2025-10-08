@@ -325,9 +325,10 @@ typedef struct {
     uint8_t accelerometer_motion_threshold;
     uint8_t le_mode_and_not_worn_hours;
 
-    uint8_t when_to_count_steps : 5;
+    uint8_t when_to_count_steps : 4;
     uint8_t counting_steps      : 1;
     uint8_t count_steps_keep_on : 1;
+    uint8_t count_steps_keep_off: 1;
     uint8_t tap_enabled         : 1;
     int8_t step_count_disable_req_sec;
 } movement_state_t;
@@ -504,12 +505,15 @@ uint8_t movement_get_accelerometer_motion_threshold(void);
 bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold);
 
 // if the board has an accelerometer, these functions will enable or disable step_counting
+void enable_disable_step_count_times(watch_date_time_t date_time);
 bool movement_enable_step_count(bool force_enable);
 bool movement_enable_step_count_multiple_attempts(uint8_t max_tries, bool force_enable);
 bool movement_disable_step_count(bool disable_immedietly);
 bool movement_step_count_is_enabled(void);
 bool movement_step_count_keep_on(void);
+bool movement_step_count_keep_off(void);
 void movement_set_step_count_keep_on(bool keep_on);
+void movement_set_step_count_keep_off(bool keep_off);
 void movement_reset_step_count(void);
 void movement_update_step_count_lis2dux(void);
 uint32_t movement_get_step_count(void);

@@ -26,6 +26,7 @@
 #include <string.h>
 #include "step_counter_face.h"
 #include "count_steps.h"
+#include "watch_common_display.h"
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_SECONDS_FORCE_RECHECK 30
@@ -115,7 +116,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
     uint32_t step_count;
-    char buf[10];
     switch (event.event_type) {
         case EVENT_LIGHT_LONG_PRESS:
             // light button shows the timestamp, but if you need the light, long press it.
@@ -186,18 +186,18 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 if (movement_has_lis2dw()) {
 #if COUNT_STEPS_USE_ESPRUINO
                     if (!movement_step_count_is_enabled()) {
-                        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, " -", " -");
+                        watch_display_character('-', 3);
                     } else {
                         uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
                         if (lis2dw_awake_state != lis2dw_awake_prev) {
                             lis2dw_awake_prev = lis2dw_awake_state;
-                            sprintf(buf, " %d", movement_get_lis2dw_awake());
-                            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
+                            watch_display_character('0' + lis2dw_awake_state, 3);
                         }
                     }
 #else
                     uint32_t simple_threshold = get_steps_simple_threshold();
                     if (simple_threshold != simple_threshold_prev) {
+                        char buf[10];
                         simple_threshold_prev = simple_threshold;
                         sprintf(buf, "%6lu", get_steps_simple_threshold());
                         watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "SC");
@@ -205,8 +205,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
                     if (lis2dw_awake_state != lis2dw_awake_prev) {
                         lis2dw_awake_prev = lis2dw_awake_state;
-                        sprintf(buf, "%d", movement_get_lis2dw_awake());
-                        watch_display_text_with_fallback(WATCH_POSITION_HOURS, buf, buf);
+                        watch_display_character('0' + lis2dw_awake_state, 4);
                     }
 #endif
                 }
@@ -214,9 +213,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     bool mov_en =movement_step_count_is_enabled();
                     if (mov_en != step_enabled_prev) {
                         if (mov_en) {
-                            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, " -", " -");
+                            watch_display_character('-', 3);
                         } else {
-                            watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "SC");
+                            watch_display_character(' ', 3);
                         }
                         step_enabled_prev = mov_en;
                     }

@@ -545,9 +545,11 @@ void movement_request_tick_frequency(uint8_t freq) {
     // 0x01 (1 Hz) will have 7 leading zeros for PER7. 0x80 (128 Hz) will have no leading zeroes for PER0.
     uint8_t per_n = __builtin_clz(tmp);
 
-    // While we try to count steps when the tick faster than 1 second, it may be inaccurate since
-    // all 12-13 samples in the FIFO may not be read.
-    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND / movement_state.tick_frequency;
+    // Don't count steps when the tick frequency isn't 1
+    if (freq != 1 && movement_state.counting_steps) {
+        movement_disable_step_count(true);
+    }
+
     movement_state.tick_frequency = freq;
     movement_state.tick_pern = per_n;
 
@@ -1315,6 +1317,7 @@ void enable_disable_step_count_times(watch_date_time_t date_time) {
 bool movement_enable_step_count(bool force_enable) {
 #ifdef I2C_SERCOM
     if (movement_state.count_steps_keep_off) return false;
+    if (movement_state.tick_frequency != 1) return false;
     movement_state.step_count_disable_req_sec = -1;
     if (!force_enable && movement_state.counting_steps) return true;
     if (movement_state.has_lis2dw) {

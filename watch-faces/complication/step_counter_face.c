@@ -182,16 +182,21 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         }
                     }
                 }
-
+                bool mov_en =movement_step_count_is_enabled();
                 if (movement_has_lis2dw()) {
 #if COUNT_STEPS_USE_ESPRUINO
-                    if (!movement_step_count_is_enabled()) {
+                    if (mov_en != step_enabled_prev && !mov_en) {
                         watch_display_character('-', 3);
                     } else {
                         uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
                         if (lis2dw_awake_state != lis2dw_awake_prev) {
                             lis2dw_awake_prev = lis2dw_awake_state;
-                            watch_display_character('0' + lis2dw_awake_state, 3);
+                            if (lis2dw_awake_state == 0) {
+                                watch_display_character(' ', 3);
+                            }
+                            else {
+                                watch_display_character('0' + lis2dw_awake_state, 3);
+                            }
                         }
                     }
 #else
@@ -210,16 +215,15 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 #endif
                 }
                 else if (movement_has_lis2dux()) {
-                    bool mov_en =movement_step_count_is_enabled();
                     if (mov_en != step_enabled_prev) {
-                        if (mov_en) {
+                        if (!mov_en) {
                             watch_display_character('-', 3);
                         } else {
                             watch_display_character(' ', 3);
                         }
-                        step_enabled_prev = mov_en;
                     }
                 }
+                step_enabled_prev = mov_en;
             } else {
                 allow_sleeping(true, logger_state);
             }

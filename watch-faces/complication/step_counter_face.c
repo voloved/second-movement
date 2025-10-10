@@ -147,7 +147,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             movement_set_step_count_keep_off(false);
             movement_set_step_count_keep_on(true);
-            logger_state->sensor_seen = movement_still_sees_accelerometer() && movement_enable_step_count_multiple_attempts(2, false);
+            logger_state->sensor_seen = movement_enable_step_count_multiple_attempts(3, false);
             // To force update
             simple_threshold_prev = 0;
             lis2dw_awake_prev = 5;

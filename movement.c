@@ -1470,6 +1470,9 @@ void movement_set_step_count_keep_off(bool keep_off) {
 static uint8_t movement_count_new_steps_lis2dw(void)
 {
     uint8_t new_steps = 0;
+    if (movement_state.tick_frequency != 1)
+        return new_steps;
+    
     if (_awake_state_lis2dw == 0) {
         return new_steps;
     }

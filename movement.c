@@ -1800,6 +1800,7 @@ bool app_loop(void) {
 
         watch_register_extwake_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, true);
 
+#ifdef I2C_SERCOM
         if (movement_state.counting_steps) {
             movement_disable_step_count(true);
         }
@@ -1808,6 +1809,7 @@ bool app_loop(void) {
             movement_disable_tap_detection_if_available();
             movement_state.tap_enabled = true; // This is to come back and reset it on wake
         }
+#endif
 
         // _sleep_mode_app_loop takes over at this point and loops until exit_sleep_mode is set by the extwake handler,
         // or wake is requested using the movement_request_wake function.

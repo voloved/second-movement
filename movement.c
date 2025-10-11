@@ -1293,32 +1293,44 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 
 void enable_disable_step_count_times(watch_date_time_t date_time) {
 #ifdef I2C_SERCOM
+    printf("enable_disable_step_count_times a\r\n");
     if (movement_volatile_state.is_sleeping || movement_state.is_deep_sleeping) return;
+    printf("enable_disable_step_count_times a1\r\n");
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
     if (when_to_count_steps == MOVEMENT_SC_OFF || when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) {
+        printf("enable_disable_step_count_times b\r\n");
         if (movement_state.counting_steps) {
+            printf("enable_disable_step_count_times c\r\n");
             movement_disable_step_count(false);
         }
+        printf("enable_disable_step_count_times d\r\n");
         return;
     }
     bool in_count_step_hours = movement_in_step_counter_interval(date_time.unit.hour);
     if (movement_state.counting_steps && !in_count_step_hours && !movement_state.count_steps_keep_on) {
+        printf("enable_disable_step_count_times e\r\n");
         movement_disable_step_count(false);
     } else if (!movement_state.counting_steps && in_count_step_hours && !movement_state.count_steps_keep_off) {
+        printf("enable_disable_step_count_times f\r\n");
         movement_enable_step_count_multiple_attempts(3, false);
     }
 #endif
+    printf("enable_disable_step_count_times g\r\n");
 }
 
 bool movement_enable_step_count(bool force_enable) {
 #ifdef I2C_SERCOM
+    printf("count_steps_keep_off: %d movement_enable_step_count force_enable: %d a\r\n", movement_state.count_steps_keep_off, force_enable);
     if (movement_state.count_steps_keep_off) return false;
     movement_state.step_count_disable_req_sec = -1;
+    printf("movement_enable_step_count b\r\n");
     if (!force_enable && movement_state.counting_steps) return true;
+    printf("movement_enable_step_count c\r\n");
     if (movement_state.has_lis2dw) {
 #if COUNT_STEPS_USE_ESPRUINO
         count_steps_espruino_init();
 #endif
+        printf("movement_enable_step_count d\r\n");
         bool low_noise = true;
         lis2dw_data_rate_t data_rate = LIS2DW_DATA_RATE_12_5_HZ;
         lis2dw_filter_t filter_type = LIS2DW_FILTER_LOW_PASS;
@@ -1330,23 +1342,32 @@ bool movement_enable_step_count(bool force_enable) {
 
         lis2dw_set_low_noise_mode(low_noise);  // Inntesting, this didn't read back True after setting ever...so we're not checking it
         movement_set_accelerometer_background_rate(data_rate);
+        printf("movement_enable_step_count e\r\n");
         if (lis2dw_get_data_rate() != data_rate) return false;
+        printf("movement_enable_step_count pass data\r\n");
         lis2dw_set_filter_type(filter_type);
         if (lis2dw_get_filter_type() != filter_type) return false;
+        printf("movement_enable_step_count pass filter\r\n");
         lis2dw_set_low_power_mode(power_mode);
         if (lis2dw_get_low_power_mode() != power_mode) return false;
+        printf("movement_enable_step_count pass power\r\n");
         lis2dw_set_bandwidth_filtering(bandwidth_filtering);
         if (lis2dw_get_bandwidth_filtering() != bandwidth_filtering) return false;
+        printf("movement_enable_step_count pass bandwidth\r\n");
         lis2dw_set_range(range);
         if (lis2dw_get_range() != range) return false;
+        printf("movement_enable_step_count pass range\r\n");
         lis2dw_set_mode(mode);
         if (lis2dw_get_mode() != mode) return false;
+        printf("movement_enable_step_count pass mode\r\n");
         movement_set_accelerometer_motion_threshold(threshold);
         if (movement_get_accelerometer_motion_threshold() != threshold) return false;
+        printf("movement_enable_step_count pass threshold\r\n");
         watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
         lis2dw_enable_fifo();
         lis2dw_clear_fifo();
         movement_state.counting_steps = true;
+        printf("movement_enable_step_count DONE\r\n");
         return true;
     }
     else if (movement_state.has_lis2dux) {

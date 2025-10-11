@@ -1845,11 +1845,19 @@ void app_setup(void) {
         if (!lis2dux_checked) {
             uint8_t id;
             watch_enable_i2c();
-            lis2dux12_device_id_get(&dev_ctx, &id);
-            if (id == LIS2DUX12_ID) {
-                movement_state.has_lis2dux = true;
-            } else {
-                movement_state.has_lis2dux = false;
+            const uint8_t max_tries = 2;
+            for (uint8_t i = 0; i < max_tries; i++)
+            {  // We've seen the LIS2DUX require multiple reads at times to see the ID correctly
+                lis2dux12_device_id_get(&dev_ctx, &id);
+                if (id == LIS2DUX12_ID) {
+                    movement_state.has_lis2dux = true;
+                    break;
+                } else {
+                    movement_state.has_lis2dux = false;
+
+                }
+            }
+            if (!movement_state.has_lis2dux) {
                 watch_disable_i2c();
             }
             lis2dux_checked = true;

@@ -1292,6 +1292,8 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 }
 
 void enable_disable_step_count_times(watch_date_time_t date_time) {
+#ifdef I2C_SERCOM
+    if (movement_volatile_state.is_sleeping || movement_state.is_deep_sleeping) return;
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
     if (when_to_count_steps == MOVEMENT_SC_OFF || when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) {
         if (movement_state.counting_steps) {
@@ -1305,6 +1307,7 @@ void enable_disable_step_count_times(watch_date_time_t date_time) {
     } else if (!movement_state.counting_steps && in_count_step_hours && !movement_state.count_steps_keep_off) {
         movement_enable_step_count_multiple_attempts(3, false);
     }
+#endif
 }
 
 bool movement_enable_step_count(bool force_enable) {
@@ -1860,6 +1863,7 @@ void app_setup(void) {
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
         watch_clear_sleep_indicator_if_possible();
 
+#ifdef I2C_SERCOM
         if (movement_state.count_steps_keep_on) {
             movement_enable_step_count_multiple_attempts(3, true);
         } else {
@@ -1869,6 +1873,7 @@ void app_setup(void) {
         if (movement_state.tap_enabled) {
             movement_enable_tap_detection_if_available();
         }
+#endif
     }
 }
 
@@ -2078,6 +2083,7 @@ bool app_loop(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_RISING);
 
+#ifdef I2C_SERCOM
         if (movement_state.counting_steps) {
             movement_disable_step_count(true);
         }
@@ -2086,6 +2092,7 @@ bool app_loop(void) {
             movement_disable_tap_detection_if_available();
             movement_state.tap_enabled = true; // This is to come back and reset it on wake
         }
+#endif
 
         // _sleep_mode_app_loop takes over at this point and loops until exit_sleep_mode is set by the extwake handler,
         // or wake is requested using the movement_request_wake function.

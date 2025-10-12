@@ -29,8 +29,8 @@
 #include "watch_common_display.h"
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
-#define STEP_COUNTER_SECONDS_FORCE_RECHECK 30
-#define STEP_COUNTER_SECONDS_DONT_UPDATE_LIS2DUX 5
+#define STEP_COUNTER_SECONDS_FORCE_RECHECK 75
+#define STEP_COUNTER_SECONDS_DONT_UPDATE_LIS2DUX 15
 #define STEP_COUNTER_MAX_STEPS_DISPLAY 999999
 
 // distant future for background task: January 1, 2083
@@ -50,7 +50,9 @@ static uint16_t display_step_count_now(bool sensor_seen) {
     char buf[10];
     uint32_t step_count = get_step_count();
     if (!sensor_seen) {
-        watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
+        uint8_t id = movement_get_accelerometer_id();
+        sprintf(buf, "Id %3d", id);
+        watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else {
         sprintf(buf, "%6lu", step_count);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -178,6 +180,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 } else {
                     step_count = get_step_count();
                 }
+                //if (logger_state->sensor_seen) logger_state->sensor_seen = movement_still_sees_accelerometer_multiple_attempts(2);
                 if (step_count != logger_state->step_count_prev) {
                     allow_sleeping(false, logger_state);
                     logger_state->sec_inactivity = 1;
@@ -193,7 +196,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         }
                     }
                 }
-                bool mov_en =movement_step_count_is_enabled();
+                bool mov_en = movement_step_count_is_enabled();
                 if (movement_has_lis2dw()) {
 #if COUNT_STEPS_USE_ESPRUINO
                     if (mov_en != step_enabled_prev && !mov_en) {

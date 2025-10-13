@@ -520,6 +520,8 @@ void movement_reset_step_count(void);
 void movement_update_step_count_lis2dux(void);
 uint32_t movement_get_step_count(void);
 uint8_t movement_get_lis2dw_awake(void);
+uint16_t movement_watch_get_vcc_voltage(void);
+uint16_t movement_watch_get_last_read_vcc_voltage(void);
 
 // If the board has a temperature sensor, this function will give you the temperature in degrees celsius.
 // If the board has multiple temperature sensors, it will use the most accurate one available.

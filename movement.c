@@ -150,6 +150,7 @@ static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
+static uint16_t _voltage_last_read = 3000;
 static float _temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
@@ -1561,6 +1562,16 @@ uint32_t movement_get_step_count(void) {
 
 uint8_t movement_get_lis2dw_awake(void) {
     return _awake_state_lis2dw;
+}
+
+uint16_t movement_watch_get_vcc_voltage(void) {
+    uint16_t voltage = watch_get_vcc_voltage();
+    _voltage_last_read = voltage;
+    return voltage;
+}
+
+uint16_t movement_watch_get_last_read_vcc_voltage(void) {
+    return _voltage_last_read;
 }
 
 float movement_get_temperature(void) {

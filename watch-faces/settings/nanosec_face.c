@@ -328,7 +328,7 @@ bool nanosec_face_loop(movement_event_t event, void *context) {
         {
             // Here we measure temperature and do main frequency correction
             float temperature_c = movement_get_temperature();
-            float voltage = (float)watch_get_vcc_voltage() / 1000.0;
+            float voltage = (float)movement_watch_get_vcc_voltage() / 1000.0;
 
             // If temperature is 0xFFFFFFFF, no temperature sensor is installed.
             // Should we assume nominal temperature here? Seems better than aborting.

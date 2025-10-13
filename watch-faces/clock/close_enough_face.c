@@ -107,7 +107,7 @@ static void clock_check_battery_periodically(close_enough_state_t *state) {
 
     state->last_battery_check = date_time.unit.day;
 
-    uint16_t voltage = watch_get_vcc_voltage();
+    uint16_t voltage = movement_watch_get_vcc_voltage();
 
     state->battery_low = voltage < CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD;
 

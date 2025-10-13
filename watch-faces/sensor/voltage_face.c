@@ -30,7 +30,7 @@
 #define VOLTAGE_LOGGING_CYC (VOLTAGE_NUM_DATA_POINTS + 1)
 
 static void _voltage_face_update_display(void) {
-    float voltage = (float)watch_get_vcc_voltage() / 1000.0;
+    float voltage = (float)movement_watch_get_vcc_voltage() / 1000.0;
 
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
     watch_display_float_with_best_effort(voltage, " V");
@@ -53,7 +53,7 @@ static void _voltage_face_log_data(voltage_face_state_t *logger_state) {
     size_t pos = logger_state->data_points % VOLTAGE_NUM_DATA_POINTS;
 
     logger_state->data[pos].timestamp.reg = date_time.reg;
-    float voltage = (float)watch_get_vcc_voltage() / 1000.0;
+    float voltage = (float)movement_watch_get_vcc_voltage() / 1000.0;
     logger_state->data[pos].voltage = voltage;
     logger_state->data_points++;
 }

@@ -150,7 +150,7 @@ static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND;
 
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
-static uint16_t _voltage_last_read = 3000;
+static uint16_t _voltage_last_read = 0;
 static float _temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
@@ -935,6 +935,22 @@ bool movement_in_step_counter_interval(uint8_t hour) {
     }
 }
 
+#define MOVEMENT_STEP_COUNT_LOW_BATTERY_VOLTAGE_THRESHOLD 2650
+#define MOVEMENT_STEP_COUNT_HIGH_BATTERY_VOLTAGE_THRESHOLD 2800
+static bool movement_step_in_low_battery = false;
+bool movement_step_counter_in_low_battery(void) {
+    if (!movement_state.has_lis2dux) return false; // I've only seen the LIS2DUX fail at lower voltages; likely due to its continuous power draw
+    if (_voltage_last_read == 0) {
+        movement_watch_get_vcc_voltage();
+    }
+    if (_voltage_last_read < MOVEMENT_STEP_COUNT_LOW_BATTERY_VOLTAGE_THRESHOLD) {
+        movement_step_in_low_battery = true;
+    } else if (_voltage_last_read >= MOVEMENT_STEP_COUNT_HIGH_BATTERY_VOLTAGE_THRESHOLD) {
+        movement_step_in_low_battery = false;
+    }
+    return movement_step_in_low_battery;
+}
+
 uint8_t get_daytime_start_hour(void) {
     return MOVEMENT_DAYTIME_START;
 }
@@ -1316,7 +1332,8 @@ void enable_disable_step_count_times(watch_date_time_t date_time) {
 #ifdef I2C_SERCOM
     if (movement_volatile_state.is_sleeping || movement_state.is_deep_sleeping) return;
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
-    if (when_to_count_steps == MOVEMENT_SC_OFF || when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED) {
+    if (when_to_count_steps == MOVEMENT_SC_OFF || when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED 
+        || movement_step_counter_in_low_battery()) {
         if (movement_state.counting_steps) {
             movement_disable_step_count(false);
         }

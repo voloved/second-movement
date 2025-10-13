@@ -46,14 +46,17 @@ static uint32_t get_step_count(void) {
     return step_count;
 }
 
-static uint16_t display_step_count_now(bool sensor_seen) {
+static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
     char buf[10];
-    uint32_t step_count = get_step_count();
+    uint32_t step_count = 0;
     if (!sensor_seen) {
         uint8_t id = movement_get_accelerometer_id();
         sprintf(buf, "Id %3d", id);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    } else if (in_low_batt) {
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LoBatt", "1oBatt");
     } else {
+        step_count = get_step_count();
         sprintf(buf, "%6lu", step_count);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     }
@@ -71,7 +74,7 @@ static void _step_counter_face_log_data(step_counter_state_t *logger_state) {
 
 static void _step_counter_face_logging_update_display(step_counter_state_t *logger_state) {
     if (logger_state->display_index == logger_state->data_points) {
-        logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen);
+        logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
         watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "SC");
         return;
@@ -137,7 +140,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_LONG_PRESS:
             if (displaying_curr_step_count) {
                 movement_reset_step_count();
-                logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen);
+                logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
             } else {
                 logger_state->display_index = logger_state->data_points;
                 _step_counter_face_logging_update_display(logger_state);
@@ -148,8 +151,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 movement_move_to_next_face();
                 return false;
             }
-            movement_set_step_count_keep_off(false);
-            movement_set_step_count_keep_on(true);
             // To force update
             simple_threshold_prev = 0;
             lis2dw_awake_prev = 5;
@@ -158,13 +159,18 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             logger_state->sec_inactivity = 1;
             logger_state->can_sleep = false;
             movement_schedule_background_task(distant_future);
-            if (!movement_step_count_is_enabled()) {
-                // There can be a delay in showing the screen when turning on the step counter,
-                // So if it's off, display stale step counts that'll then get updated
-                _step_counter_face_logging_update_display(logger_state);
+            logger_state->in_low_batt = movement_step_counter_in_low_battery();
+            if (!logger_state->in_low_batt) {
+                movement_set_step_count_keep_off(false);
+                movement_set_step_count_keep_on(true);
+                if (!movement_step_count_is_enabled()) {
+                    // There can be a delay in showing the screen when turning on the step counter,
+                    // So if it's off, display stale step counts that'll then get updated
+                    _step_counter_face_logging_update_display(logger_state);
+                }
+                logger_state->sensor_seen = movement_enable_step_count_multiple_attempts(3, false);
+                movement_update_step_count_lis2dux();
             }
-            logger_state->sensor_seen = movement_enable_step_count_multiple_attempts(3, false);
-            movement_update_step_count_lis2dux();
             _step_counter_face_logging_update_display(logger_state);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
@@ -184,7 +190,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 if (step_count != logger_state->step_count_prev) {
                     allow_sleeping(false, logger_state);
                     logger_state->sec_inactivity = 1;
-                    logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen);
+                    logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
                 } else {
                     if (logger_state->sec_inactivity >= sec_inactivity_allow_sleep) {
                         allow_sleeping(true, logger_state);

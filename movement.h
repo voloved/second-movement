@@ -452,6 +452,7 @@ void movement_set_when_to_count_steps(movement_step_count_option_t value);
 uint8_t get_step_count_start_hour(void);
 uint8_t get_step_count_end_hour(void);
 bool movement_in_step_counter_interval(uint8_t hour);
+bool movement_step_counter_in_low_battery(void);
 
 movement_clock_mode_t movement_clock_mode_24h(void);
 void movement_set_clock_mode_24h(movement_clock_mode_t value);

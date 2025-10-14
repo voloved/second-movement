@@ -107,6 +107,8 @@ void step_counter_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(step_counter_state_t));
         memset(*context_ptr, 0, sizeof(step_counter_state_t));
+        step_counter_state_t *logger_state = (step_counter_state_t *)*context_ptr;
+        logger_state->sensor_seen = true;
     }
 }
 
@@ -116,7 +118,7 @@ void step_counter_face_activate(void *context) {
 
 static uint32_t simple_threshold_prev = 0;
 static uint8_t lis2dw_awake_prev = 5;
-static bool step_enabled_prev = 1;
+static uint8_t step_enabled_prev = 2;
 
 bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
@@ -157,8 +159,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
 
             logger_state->display_index = logger_state->data_points;
             logger_state->sec_inactivity = 1;
-            logger_state->can_sleep = false;
-            movement_schedule_background_task(distant_future);
             logger_state->in_low_batt = movement_step_counter_in_low_battery();
             if (!logger_state->in_low_batt) {
                 movement_set_step_count_keep_off(false);
@@ -169,7 +169,11 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     _step_counter_face_logging_update_display(logger_state);
                 }
                 logger_state->sensor_seen = movement_enable_step_count_multiple_attempts(3, false);
-                movement_update_step_count_lis2dux();
+                if (logger_state->sensor_seen) {
+                    logger_state->can_sleep = false;
+                    movement_schedule_background_task(distant_future);
+                    movement_update_step_count_lis2dux();
+                }
             }
             _step_counter_face_logging_update_display(logger_state);
             break;

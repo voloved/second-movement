@@ -2096,10 +2096,10 @@ bool app_loop(void) {
         event_type = event_type + next_event + 1;
     }
 
-#ifdef I2C_SERCOM
     if (movement_volatile_state.tick_fired_second)
     {
         movement_volatile_state.tick_fired_second = false;
+#ifdef I2C_SERCOM
         if (movement_state.counting_steps) {
             if (movement_state.step_count_disable_req_sec > 0 && --movement_state.step_count_disable_req_sec == 0) {
                 if (!movement_state.count_steps_keep_on) movement_disable_step_count(true);
@@ -2108,8 +2108,12 @@ bool app_loop(void) {
                 movement_count_new_steps_lis2dw();
             }
         }
-    }
 #endif
+        if (movement_volatile_state.turn_led_off && movement_volatile_state.light_button.is_down) {
+            // If the light is on after its timeout check to see if the LED button is still pressed, just in case the up event wasn't caught
+            cb_light_btn_interrupt();
+        }
+    }
 
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {

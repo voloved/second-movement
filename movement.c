@@ -114,21 +114,31 @@ typedef struct {
 movement_volatile_state_t movement_volatile_state;
 
 #ifdef I2C_SERCOM
+#define PRINT_LIS2DUX_COMM false
 static int32_t platform_write(void *handle, uint8_t reg, const uint8_t *bufp, uint16_t len) {
     (void)handle;
+    const int16_t dev_addr = LIS2DUX12_I2C_ADD_H >> 1;
     for (uint16_t i = 0; i < len; i++) {
-        watch_i2c_write8(LIS2DUX12_I2C_ADD_H >> 1, reg + i, bufp[i]);
-//        printf("Write Add: %X Reg 0x%02X: 0x%02X\r\n", LIS2DUX12_I2C_ADD_H >> 1, reg + i, bufp[i]);
+        watch_i2c_write8(dev_addr, reg + i, bufp[i]);
+#if PRINT_LIS2DUX_COMM
+        printf("Write Add: %X Reg 0x%02X: 0x%02X\r\n", dev_addr, reg + i, bufp[i]);
+#endif
     }
     return 0;
 }
 
 static int32_t platform_read(void *handle, uint8_t reg, uint8_t *bufp, uint16_t len) {
     (void)handle;
+    const int16_t dev_addr = LIS2DUX12_I2C_ADD_H >> 1;
+    watch_i2c_send(dev_addr, &reg, 1);
+    watch_i2c_receive(dev_addr, bufp, len);
+#if PRINT_LIS2DUX_COMM
+    printf("Read  Add: %X Reg 0x%02X:", dev_addr, reg);
     for (uint16_t i = 0; i < len; i++) {
-        bufp[i] = watch_i2c_read8(LIS2DUX12_I2C_ADD_H >> 1, reg + i);
-//        printf("Read  Add: %X Reg 0x%02X: 0x%02X\r\n", LIS2DUX12_I2C_ADD_H >> 1, reg + i, bufp[i]);
+        printf(" 0x%02X", bufp[i]);
     }
+    printf("\r\n");
+#endif
     return 0;
 }
 
@@ -2396,11 +2406,7 @@ void cb_accelerometer_lis2dux_event(void) {
     }
 
     if (movement_state.counting_steps && movement_state.has_lis2dux) {
-        lis2dux12_embedded_status_t emb_status;
-        lis2dux12_embedded_status_get(&dev_ctx, &emb_status);
-        if (emb_status.is_step_det) {
-            movement_volatile_state.step_count_needs_updating = true;
-        }
+        movement_volatile_state.step_count_needs_updating = true;
     }
 #endif
 }

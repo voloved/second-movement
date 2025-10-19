@@ -64,6 +64,11 @@ const int32_t movement_le_inactivity_deadlines[8] = {INT_MAX, 600, 3600, 7200, 2
 const int16_t movement_timeout_inactivity_deadlines[4] = {60, 120, 300, 1800};
 const uint8_t movement_step_count_disable_delay_sec = 5;
 
+const uint32_t _movement_mode_button_events_mask = 0b1111 << EVENT_MODE_BUTTON_DOWN;
+const uint32_t _movement_light_button_events_mask = 0b1111 << EVENT_LIGHT_BUTTON_DOWN;
+const uint32_t _movement_alarm_button_events_mask = 0b1111 << EVENT_ALARM_BUTTON_DOWN;
+const uint32_t _movement_button_events_mask = _movement_mode_button_events_mask | _movement_light_button_events_mask | _movement_alarm_button_events_mask;
+
 typedef struct {
     movement_event_type_t down_event;
     watch_cb_t cb_longpress;
@@ -98,6 +103,9 @@ typedef struct {
     movement_button_t mode_button;
     movement_button_t light_button;
     movement_button_t alarm_button;
+
+    // button events that will not be passed to the current face loop, but will instead passed directly to the default loop handler.
+    volatile uint32_t passthrough_events;
 } movement_volatile_state_t;
 
 movement_volatile_state_t movement_volatile_state;
@@ -338,6 +346,12 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         &movement_volatile_state.alarm_button
     };
 
+    uint32_t button_events_masks[3] = {
+        _movement_mode_button_events_mask,
+        _movement_light_button_events_mask,
+        _movement_alarm_button_events_mask,
+    };
+
     for (uint8_t i = 0; i < 3; i++) {
         movement_button_t* button = buttons[i];
 
@@ -345,6 +359,8 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         if (pending_events & (1 << button->down_event)) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONG_PRESS_TICKS, button->timeout_index);
             any_down = true;
+            // this button's events will start getting passed to the face
+            movement_volatile_state.passthrough_events &= ~button_events_masks[i];
         }
 
         // If a button up or button long up occurred
@@ -500,6 +516,7 @@ bool movement_default_loop_handler(movement_event_t event) {
             movement_illuminate_led();
             break;
         case EVENT_LIGHT_BUTTON_UP:
+        case EVENT_LIGHT_LONG_UP:
             if (movement_state.settings.bit.led_duration == 0) {
                 movement_force_led_off();
             }
@@ -1709,6 +1726,9 @@ static bool _switch_face(void) {
     movement_state.watch_face_changed = false;
     bool can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]);
 
+    // Button events that follow a down event that happened on the previous face should not be forwarded to the new face
+    movement_volatile_state.passthrough_events = _movement_button_events_mask;
+
     return can_sleep;
 }
 
@@ -1757,14 +1777,25 @@ bool app_loop(void) {
     }
 
     // Consume all the pending events
+    uint32_t passthrough_pending_events = pending_events & movement_volatile_state.passthrough_events;
+    pending_events = pending_events & ~movement_volatile_state.passthrough_events;
+
     movement_event_type_t event_type = 0;
+    while (passthrough_pending_events) {
+        uint8_t next_event = __builtin_ctz(passthrough_pending_events);
+        event.event_type = event_type + next_event;
+        can_sleep = movement_default_loop_handler(event) && can_sleep;
+        passthrough_pending_events = passthrough_pending_events >> (next_event + 1);
+        event_type = event_type + next_event + 1;
+    }
+
+    event_type = 0;
     while (pending_events) {
-        if (pending_events & 1) {
-            event.event_type = event_type;
-            can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]) && can_sleep;
-        }
-        pending_events = pending_events >> 1;
-        event_type++;
+        uint8_t next_event = __builtin_ctz(pending_events);
+        event.event_type = event_type + next_event;
+        can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]) && can_sleep;
+        pending_events = pending_events >> (next_event + 1);
+        event_type = event_type + next_event + 1;
     }
 
 #ifdef I2C_SERCOM
@@ -1839,6 +1870,10 @@ bool app_loop(void) {
             // back to sleep (unless the user interacts with it in the meantime)
             _pending_sequence = NULL;
         }
+
+        // don't let the watch sleep when exiting deep sleep mode,
+        // so that app_loop will run again and process the events that may have fired.
+        can_sleep = false;
     }
 #endif
 
@@ -1922,46 +1957,43 @@ void cb_alarm_btn_interrupt(void) {
     movement_volatile_state.pending_events |= 1 << _process_button_event(pin_level, &movement_volatile_state.alarm_button);
 }
 
-static movement_event_type_t _process_button_longpress_timeout(movement_button_t* button) {
-    // Looks like all these checks are not needed for the longpress detection to work reliably.
-    // Keep the code around for now in case problems arise long-term.
+static movement_event_type_t _process_button_longpress_timeout(bool pin_level, movement_button_t* button) {
+    if (!button->is_down) {
+        return EVENT_NONE;
+    }
 
-    // if (!button->is_down) {
-    //     return EVENT_NONE;
-    // }
-
-    // movement_event_type_t up_event = button->down_event + 1;
-
-    // if (movement_volatile_state.pending_events & 1 << up_event) {
-    //     return EVENT_NONE;
-    // }
-
-    // uint32_t counter = watch_rtc_get_counter();
-    // if ((counter - button->down_timestamp) < MOVEMENT_LONG_PRESS_TICKS) {
-    //     return EVENT_NONE;
-    // }
-
-    movement_event_type_t longpress_event = button->down_event + 2;
-
-    return longpress_event;
+    if (pin_level) {
+        return button->down_event + 2; // event_longpress
+    } else {
+    // hypotetical corner case: if the timeout fired but the pin level is actually up, we may have missed/rejected the up event, so fire it here
+#if MOVEMENT_DEBOUNCE_TICKS
+        // we're in a corner case, we don't know when the up actually happened.
+        button->up_timestamp = button->down_timestamp;
+#endif
+        button->is_down = false;
+        return button->down_event + 1; // event_up
+    }
 }
 
 void cb_light_btn_timeout_interrupt(void) {
+    bool pin_level = HAL_GPIO_BTN_LIGHT_read();
     movement_button_t* button = &movement_volatile_state.light_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(button);
+    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
 }
 
 void cb_mode_btn_timeout_interrupt(void) {
+    bool pin_level = HAL_GPIO_BTN_MODE_read();
     movement_button_t* button = &movement_volatile_state.mode_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(button);
+    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
 }
 
 void cb_alarm_btn_timeout_interrupt(void) {
+    bool pin_level = HAL_GPIO_BTN_ALARM_read();
     movement_button_t* button = &movement_volatile_state.alarm_button;
 
-    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(button);
+    movement_volatile_state.pending_events |= 1 << _process_button_longpress_timeout(pin_level, button);
 }
 
 void cb_led_timeout_interrupt(void) {

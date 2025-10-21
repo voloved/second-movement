@@ -1443,8 +1443,14 @@ bool movement_enable_step_count(bool force_enable) {
 bool movement_enable_step_count_multiple_attempts(uint8_t max_tries, bool force_enable) {
     for (uint8_t i = 0; i < max_tries; i++)
     {  // Truly a hack, but we'll try multiple times to enable the get the step counter working
-        if (!movement_still_sees_accelerometer()) continue;
-        if (movement_enable_step_count(force_enable)) return true;
+        if (movement_still_sees_accelerometer()) {
+            if (movement_enable_step_count(force_enable)) {
+                return true;
+            }
+        }
+        if (i < max_tries - 1) {
+            delay_ms(10);
+        }
     }
     return false;
 }
@@ -1839,7 +1845,7 @@ void app_setup(void) {
                 movement_state.has_lis2dw = true;
             } else {
                 movement_state.has_lis2dw = false;
-                watch_disable_i2c();
+                //watch_disable_i2c(); // I2C gets disabled after the LIS2DUX check
             }
             lis2dw_checked = true;
         } else if (movement_state.has_lis2dw) {
@@ -1894,16 +1900,18 @@ void app_setup(void) {
         if (!lis2dux_checked) {
             uint8_t id;
             watch_enable_i2c();
-            const uint8_t max_tries = 2;
+            const uint8_t max_tries = 3;
+            movement_state.has_lis2dux = false;
             for (uint8_t i = 0; i < max_tries; i++)
             {  // We've seen the LIS2DUX require multiple reads at times to see the ID correctly
-                lis2dux12_device_id_get(&dev_ctx, &id);
-                if (id == LIS2DUX12_ID) {
-                    movement_state.has_lis2dux = true;
-                    break;
-                } else {
-                    movement_state.has_lis2dux = false;
-
+                if (lis2dux12_device_id_get(&dev_ctx, &id) == 0) {
+                    if (id == LIS2DUX12_ID) {
+                        movement_state.has_lis2dux = true;
+                        break;
+                    }
+                }
+                if (i < max_tries - 1) {
+                    delay_ms(10);
                 }
             }
             if (!movement_state.has_lis2dux) {

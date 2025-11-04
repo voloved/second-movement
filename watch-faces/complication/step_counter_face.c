@@ -63,11 +63,16 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
 }
 
 static void _step_counter_face_log_data(step_counter_state_t *logger_state) {
+    uint32_t step_count = get_step_count();
+    // Only log days when steps were taken
+    if (step_count == 0) {
+        return;
+    }
     watch_date_time_t date_time = movement_get_local_date_time();
     size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
 
     logger_state->data[pos].day = date_time.unit.day;
-    logger_state->data[pos].step_count = get_step_count();
+    logger_state->data[pos].step_count = step_count;
     logger_state->data_points++;
 }
 

@@ -94,7 +94,6 @@ void set_time_face_activate(void *context) {
     *((uint8_t *)context) = 0;
     movement_request_tick_frequency(4);
     _quick_ticks_running = false;
-    movement_update_dst_offset_cache();
     current_offset = movement_get_current_timezone_offset();
 }
 
@@ -124,8 +123,6 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_BUTTON_UP:
             current_page = (current_page + 1) % SET_TIME_FACE_NUM_SETTINGS;
-            if (current_page == SET_TIME_TZ && movement_update_dst_offset_cache())
-                current_offset = movement_get_current_timezone_offset();
             *((uint8_t *)context) = current_page;
             break;
         case EVENT_LIGHT_LONG_PRESS:
@@ -208,8 +205,7 @@ bool set_time_face_loop(movement_event_t event, void *context) {
 }
 
 void set_time_face_resign(void *context) {
-    uint8_t current_page = *((uint8_t *)context);
+    (void) context;
     movement_store_settings();
     movement_request_tick_frequency(1);
-    if (current_page == SET_TIME_TZ) movement_update_dst_offset_cache();
 }

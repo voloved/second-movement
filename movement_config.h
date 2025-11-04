@@ -35,17 +35,11 @@ const watch_face_t watch_faces[] = {
 #endif
     fast_stopwatch_face,
     countdown_face,
-#if defined(I2C_SERCOM) && defined(BUILD_TO_SHARE)
-    step_counter_face,
-#endif
     advanced_alarm_face,
     sunrise_sunset_face,
     tally_face,
     probability_face,
     moon_phase_face,
-#ifdef I2C_SERCOM
-    lis2dw_monitor_face,
-#endif
 // Start of Secondary Faces
     settings_face,
     set_time_face,

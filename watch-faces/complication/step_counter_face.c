@@ -61,9 +61,11 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
 static void _step_counter_face_log_data(step_counter_state_t *logger_state) {
     uint32_t step_count = get_step_count();
     // Only log days when steps were taken
+#ifndef BUILD_TO_SHARE
     if (step_count == 0) {
         return;
     }
+#endif
     watch_date_time_t date_time = movement_get_local_date_time();
     size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
 

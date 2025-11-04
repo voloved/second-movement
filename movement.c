@@ -888,7 +888,9 @@ bool movement_in_step_counter_interval(uint8_t hour) {
 #define MOVEMENT_STEP_COUNT_HIGH_BATTERY_VOLTAGE_THRESHOLD 2
 static bool movement_step_in_low_battery = false;
 bool movement_step_counter_in_low_battery(void) {
-    if (!movement_state.has_lis2dux) return false; // I've only seen the LIS2DUX fail at lower voltages; likely due to its continuous power draw
+#ifdef BUILD_TO_SHARE
+    return false;
+#endif
     if (_voltage_last_read == 0) {
         movement_watch_get_vcc_voltage();
     }

@@ -25,8 +25,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "step_counter_face.h"
-#include "count_steps.h"
-#include "watch_common_display.h"
 
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MINUTES_SEC_BEFORE_START 2
@@ -49,9 +47,7 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
     char buf[10];
     uint32_t step_count = 0;
     if (!sensor_seen) {
-        uint8_t id = movement_get_accelerometer_id();
-        sprintf(buf, "Id %3d", id);
-        watch_display_text(WATCH_POSITION_BOTTOM, buf);
+        watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
     } else if (in_low_batt) {
         watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LoBatt", "1oBatt");
     } else {
@@ -130,10 +126,6 @@ void step_counter_face_activate(void *context) {
     (void) context;
 }
 
-static uint32_t simple_threshold_prev = 0;
-static uint8_t lis2dw_awake_prev = 5;
-static uint8_t step_enabled_prev = 2;
-
 bool step_counter_face_loop(movement_event_t event, void *context) {
     step_counter_state_t *logger_state = (step_counter_state_t *)context;
     bool displaying_curr_step_count = logger_state->display_index == logger_state->data_points;
@@ -167,10 +159,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 movement_move_to_next_face();
                 return false;
             }
-            // To force update
-            simple_threshold_prev = 0;
-            lis2dw_awake_prev = 5;
-
             logger_state->display_index = logger_state->data_points;
             logger_state->sec_inactivity = 1;
             logger_state->in_low_batt = movement_step_counter_in_low_battery();
@@ -217,48 +205,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                         logger_state->sec_inactivity++;
                     }
                 }
-                bool mov_en = movement_step_count_is_enabled();
-                if (movement_has_lis2dw()) {
-#if COUNT_STEPS_USE_ESPRUINO
-                    if (mov_en != step_enabled_prev && !mov_en) {
-                        watch_display_character('-', 3);
-                    } else {
-                        uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
-                        if (lis2dw_awake_state != lis2dw_awake_prev) {
-                            lis2dw_awake_prev = lis2dw_awake_state;
-                            if (lis2dw_awake_state == 0) {
-                                watch_display_character(' ', 3);
-                            }
-                            else {
-                                watch_display_character('0' + lis2dw_awake_state, 3);
-                            }
-                        }
-                    }
-#else
-                    uint32_t simple_threshold = get_steps_simple_threshold();
-                    if (simple_threshold != simple_threshold_prev) {
-                        char buf[10];
-                        simple_threshold_prev = simple_threshold;
-                        sprintf(buf, "%6lu", get_steps_simple_threshold());
-                        watch_display_text_with_fallback(WATCH_POSITION_TOP, buf, "SC");
-                    }
-                    uint8_t lis2dw_awake_state = movement_get_lis2dw_awake();
-                    if (lis2dw_awake_state != lis2dw_awake_prev) {
-                        lis2dw_awake_prev = lis2dw_awake_state;
-                        watch_display_character('0' + lis2dw_awake_state, 4);
-                    }
-#endif
-                }
-                else if (movement_has_lis2dux()) {
-                    if (mov_en != step_enabled_prev) {
-                        if (!mov_en) {
-                            watch_display_character('-', 3);
-                        } else {
-                            watch_display_character(' ', 3);
-                        }
-                    }
-                }
-                step_enabled_prev = mov_en;
             } else {
                 allow_sleeping(true, logger_state);
             }

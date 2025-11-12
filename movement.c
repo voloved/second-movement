@@ -348,6 +348,7 @@ static void _movement_renew_top_of_minute_alarm(void) {
 static void _movement_handle_button_presses(uint32_t pending_events) {
     bool any_up = false;
     bool any_down = false;
+    bool any_long = false;
 
     movement_button_t* buttons[3] = {
         &movement_volatile_state.mode_button,
@@ -375,7 +376,7 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         // If a long press occurred
         if (pending_events & (1 << (button->down_event + 2))) {
             watch_rtc_register_comp_callback_no_schedule(button->cb_longpress, button->down_timestamp + MOVEMENT_LONGER_PRESS_TICKS, button->timeout_index);
-            any_down = true;
+            any_long = true;
         }
 
         // If a button up or button long up occurred
@@ -399,7 +400,7 @@ static void _movement_handle_button_presses(uint32_t pending_events) {
         }
     }
 
-    if (any_down || any_up) {
+    if (any_down || any_up || any_long) {
         _movement_reset_inactivity_countdown();
         movement_volatile_state.schedule_next_comp = true;
     }
@@ -2225,7 +2226,13 @@ static movement_event_type_t _process_button_longpress_timeout(bool pin_level, m
         return EVENT_NONE;
     }
 
+    uint32_t counter = watch_rtc_get_counter();
+    bool longer_press = (counter - button->down_timestamp) >= MOVEMENT_LONGER_PRESS_TICKS;
+
     if (pin_level) {
+        if (longer_press) {
+            return button->down_event + 4; // event_really_longpress
+        }
         return button->down_event + 2; // event_longpress
     } else {
     // hypotetical corner case: if the timeout fired but the pin level is actually up, we may have missed/rejected the up event, so fire it here
@@ -2234,6 +2241,9 @@ static movement_event_type_t _process_button_longpress_timeout(bool pin_level, m
         button->up_timestamp = button->down_timestamp;
 #endif
         button->is_down = false;
+        if (longer_press) {
+            return button->down_event + 3; // event_long_up
+        }
         return button->down_event + 1; // event_up
     }
 }

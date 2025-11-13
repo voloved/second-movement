@@ -109,11 +109,8 @@ typedef struct {
 
 movement_volatile_state_t movement_volatile_state;
 
-#ifdef I2C_SERCOM
 static uint8_t _awake_state_lis2dw = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
 static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND;
-#endif
-
 static uint32_t _total_step_count = 0;
 // The last sequence that we have been asked to play while the watch was in deep sleep
 static int8_t *_pending_sequence;
@@ -410,11 +407,11 @@ void movement_request_tick_frequency(uint8_t freq) {
     // 0x01 (1 Hz) will have 7 leading zeros for PER7. 0x80 (128 Hz) will have no leading zeroes for PER0.
     uint8_t per_n = __builtin_clz(tmp);
 
-#ifdef I2C_SERCOM
     // While we try to count steps when the tick faster than 1 second, it may be inaccurate since
     // all 12-13 samples in the FIFO may not be read.
-    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND / freq;
-#endif
+    if (movement_state.has_lis2dw) {
+        _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND / freq;
+    }
     movement_state.tick_frequency = freq;
     movement_state.tick_pern = per_n;
 
@@ -834,7 +831,6 @@ void movement_set_alarm_enabled(bool value) {
 }
 
 bool movement_enable_tap_detection_if_available(void) {
-#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_state.counting_steps) {
             movement_state.count_steps_keep_off = true;
@@ -860,13 +856,11 @@ bool movement_enable_tap_detection_if_available(void) {
 
         return true;
     }
-#endif
 
     return false;
 }
 
 bool movement_disable_tap_detection_if_available(void) {
-#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         movement_state.count_steps_keep_off = false;
         // Ramp data rate back down to the usual lowest rate to save power.
@@ -879,7 +873,6 @@ bool movement_disable_tap_detection_if_available(void) {
 
         return true;
     }
-#endif
 
     return false;
 }
@@ -889,9 +882,7 @@ bool movement_has_lis2dw(void) {
 }
 
 bool movement_still_sees_accelerometer(void) {
-#ifdef I2C_SERCOM
     return lis2dw_get_device_id() == LIS2DW_WHO_AM_I_VAL;
-#endif
     return false;
 }
 
@@ -901,7 +892,6 @@ lis2dw_data_rate_t movement_get_accelerometer_background_rate(void) {
 }
 
 bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate) {
-#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_state.accelerometer_background_rate != new_rate) {
             lis2dw_set_data_rate(new_rate);
@@ -910,9 +900,6 @@ bool movement_set_accelerometer_background_rate(lis2dw_data_rate_t new_rate) {
             return true;
         }
     }
-#else
-    (void)new_rate;
-#endif
 
     return false;
 }
@@ -923,7 +910,6 @@ uint8_t movement_get_accelerometer_motion_threshold(void) {
 }
 
 bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
-#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_state.accelerometer_motion_threshold != new_threshold) {
             lis2dw_configure_wakeup_threshold(new_threshold);
@@ -932,14 +918,11 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
             return true;
         }
     }
-#else
-    (void)new_threshold;
-#endif
+
     return false;
 }
 
 void enable_disable_step_count_times(watch_date_time_t date_time) {
-#ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         if (movement_volatile_state.is_sleeping) return;
         movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
@@ -956,13 +939,9 @@ void enable_disable_step_count_times(watch_date_time_t date_time) {
             movement_enable_step_count_multiple_attempts(3, false);
         }
     }
-#else
-    (void)date_time;
-#endif
 }
 
 bool movement_enable_step_count(bool force_enable) {
-#ifdef I2C_SERCOM
     if (movement_state.count_steps_keep_off) return false;
     movement_state.step_count_disable_req_sec = -1;
     if (!force_enable && movement_state.counting_steps) return true;
@@ -1000,9 +979,7 @@ bool movement_enable_step_count(bool force_enable) {
         movement_state.counting_steps = true;
         return true;
     }
-#else
-    (void)force_enable;
-#endif
+
     movement_state.counting_steps = false;
     return false;
 }
@@ -1023,7 +1000,6 @@ bool movement_enable_step_count_multiple_attempts(uint8_t max_tries, bool force_
 }
 
 bool movement_disable_step_count(bool disable_immedietly) {
-#ifdef I2C_SERCOM
     if (!disable_immedietly && movement_state.count_steps_keep_on) {
         return false;
     }
@@ -1045,9 +1021,7 @@ bool movement_disable_step_count(bool disable_immedietly) {
         lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
         return true;
     }
-#else
-    (void)disable_immedietly;
-#endif
+
     return false;
 }
 
@@ -1071,7 +1045,6 @@ void movement_set_step_count_keep_off(bool keep_off) {
     movement_state.count_steps_keep_off = keep_off;
 }
 
-#ifdef I2C_SERCOM
 static uint8_t movement_count_new_steps_lis2dw(void)
 {
     uint8_t new_steps = 0;
@@ -1094,7 +1067,6 @@ static uint8_t movement_count_new_steps_lis2dw(void)
     lis2dw_clear_fifo();
     return new_steps;
 }
-#endif
 
 void movement_reset_step_count(void) {
     _total_step_count = 0;
@@ -1105,11 +1077,10 @@ uint32_t movement_get_step_count(void) {
 }
 
 uint8_t movement_get_lis2dw_awake(void) {
-#ifdef I2C_SERCOM
-    return _awake_state_lis2dw;
-#else
+    if (movement_state.has_lis2dw) {
+        return _awake_state_lis2dw;
+    }
     return 0;
-#endif
 }
 
 float movement_get_temperature(void) {
@@ -1120,13 +1091,11 @@ float movement_get_temperature(void) {
         temperature_c = thermistor_driver_get_temperature();
         thermistor_driver_disable();
     }
-#ifdef I2C_SERCOM
     else if (movement_state.has_lis2dw) {
         int16_t val = lis2dw_get_temperature();
         val = val >> 4;
         temperature_c = 25 + (float)val / 16.0;
     }
-#endif
 
     return temperature_c;
 }
@@ -1373,17 +1342,17 @@ void app_setup(void) {
         watch_faces[movement_state.current_face_idx].activate(watch_face_contexts[movement_state.current_face_idx]);
         movement_volatile_state.pending_events |=  1 << EVENT_ACTIVATE;
 
-#ifdef I2C_SERCOM
-        if (movement_state.count_steps_keep_on) {
-            movement_enable_step_count_multiple_attempts(3, true);
-        } else {
-            enable_disable_step_count_times(movement_get_local_date_time());
-        }
+        if (movement_state.has_lis2dw) {
+            if (movement_state.count_steps_keep_on) {
+                movement_enable_step_count_multiple_attempts(3, true);
+            } else {
+                enable_disable_step_count_times(movement_get_local_date_time());
+            }
 
-        if (movement_state.tap_enabled) {
-            movement_enable_tap_detection_if_available();
+            if (movement_state.tap_enabled) {
+                movement_enable_tap_detection_if_available();
+            }
         }
-#endif
     }
 }
 
@@ -1529,7 +1498,6 @@ bool app_loop(void) {
         event_type = event_type + next_event + 1;
     }
 
-#ifdef I2C_SERCOM
     if (movement_volatile_state.tick_fired_second)
     {
         movement_volatile_state.tick_fired_second = false;
@@ -1537,12 +1505,11 @@ bool app_loop(void) {
             if (movement_state.step_count_disable_req_sec > 0 && --movement_state.step_count_disable_req_sec == 0) {
                 if (!movement_state.count_steps_keep_on) movement_disable_step_count(true);
             }
-            else if (movement_state.has_lis2dw) {
+            else {
                 movement_count_new_steps_lis2dw();
             }
         }
     }
-#endif
 
     // handle top-of-minute tasks, if the alarm handler told us we need to
     if (movement_volatile_state.minute_alarm_fired) {
@@ -1573,7 +1540,6 @@ bool app_loop(void) {
 
         watch_register_extwake_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, true);
 
-#ifdef I2C_SERCOM
         if (movement_state.counting_steps) {
             movement_disable_step_count(true);
         }
@@ -1582,7 +1548,6 @@ bool app_loop(void) {
             movement_disable_tap_detection_if_available();
             movement_state.tap_enabled = true; // This is to come back and reset it on wake
         }
-#endif
 
         // _sleep_mode_app_loop takes over at this point and loops until exit_sleep_mode is set by the extwake handler,
         // or wake is requested using the movement_request_wake function.
@@ -1777,9 +1742,7 @@ void cb_accelerometer_event(void) {
 }
 
 void cb_accelerometer_wake_event(void) {
-#ifdef I2C_SERCOM
     _awake_state_lis2dw = !HAL_GPIO_A4_read();
-#endif
 }
 
 void cb_accelerometer_wake(void) {

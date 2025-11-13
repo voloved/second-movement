@@ -174,14 +174,14 @@ static float _temperature_last_read_c = (float)0xFFFFFFFF;
 
 // The note sequence of the default alarm
 int8_t alarm_tune[] = {
-    BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 7,
-    BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 7,
-    BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 7,
-    BUZZER_NOTE_C8, 4,
-    BUZZER_NOTE_REST, 27,
+    BUZZER_NOTE_C8, 3,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 3,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 3,
+    BUZZER_NOTE_REST, 4,
+    BUZZER_NOTE_C8, 5,
+    BUZZER_NOTE_REST, 38,
     -8, 9,
     0
 };

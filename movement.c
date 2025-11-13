@@ -162,7 +162,7 @@ static stmdev_ctx_t dev_ctx = {
 
 static uint8_t _awake_state_lis2dw = 0;  // 0 = asleep, 1 = just woke up, 2 = awake
 static uint16_t _step_count_prev_lis2dux = 0;  // When the LIS2DUX wakes, its step count resets. This value adds onto it if we get a lower step count
-static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND;
+static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT;
 
 #endif
 
@@ -517,7 +517,7 @@ void movement_request_tick_frequency(uint8_t freq) {
 #ifdef I2C_SERCOM
     // While we try to count steps when the tick faster than 1 second, it may be inaccurate since
     // all 12-13 samples in the FIFO may not be read.
-    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT_SECOND / freq;
+    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT / freq;
 #endif
     movement_state.tick_frequency = freq;
     movement_state.tick_pern = per_n;

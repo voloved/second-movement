@@ -3,7 +3,7 @@ GOSSAMER_PATH=gossamer
 
 
 DEFAULT_BOARD = sensorwatch_pro
-DEFAULT_DISPLAY = custom
+DEFAULT_DISPLAY = classic
 # Which board are we building for? Commented out to force a choice when building.
 # Options are:
 # - sensorwatch_pro

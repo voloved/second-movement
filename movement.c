@@ -981,9 +981,9 @@ bool movement_disable_tap_detection_if_available(void) {
         lis2dux12_tap_config_set(&dev_ctx, tap_cfg);
         lis2dux12_md_t md;
         if (movement_state.counting_steps) {
-            md.fs =  LIS2DUX12_4g;
+            md.fs =  LIS2DUX12_16g;
             md.bw = LIS2DUX12_ODR_div_4;
-            md.odr = LIS2DUX12_25Hz_LP;
+            md.odr = LIS2DUX12_25Hz_ULP;
             lis2dux12_mode_set(&dev_ctx, &md);
         } else {
             lis2dux12_mode_get(&dev_ctx, &md);
@@ -1200,9 +1200,9 @@ bool movement_enable_step_count(bool force_enable) {
         lis2dux12_int_config_set(&dev_ctx, &int_mode);
         if (!movement_state.tap_enabled) {
             /* Set Output Data Rate */
-            md.fs =  LIS2DUX12_4g;
+            md.fs =  LIS2DUX12_16g;
             md.bw = LIS2DUX12_ODR_div_4;
-            md.odr = LIS2DUX12_25Hz_LP;
+            md.odr = LIS2DUX12_25Hz_ULP;
             lis2dux12_mode_set(&dev_ctx, &md);
             movement_state.accelerometer_background_rate = md.odr;
         }

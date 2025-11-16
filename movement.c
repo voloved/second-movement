@@ -356,7 +356,7 @@ static uint32_t _movement_get_accelerometer_events() {
             accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
             printf("Double tap!\r\n");
         }
-        if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
+        else {
             accelerometer_events |= 1 << EVENT_SINGLE_TAP;
             printf("Single tap!\r\n");
         }
@@ -389,7 +389,7 @@ static uint32_t _movement_get_accelerometer_events() {
             accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
             printf("Double tap!\r\n");
         }
-        if (int_src.single_tap) {
+        else {
             accelerometer_events |= 1 << EVENT_SINGLE_TAP;
             printf("Single tap!\r\n");
         }

@@ -98,6 +98,7 @@ typedef struct {
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
+    volatile bool has_pending_accelerometer;
 
     // button tracking for long press
     movement_button_t mode_button;
@@ -335,6 +336,58 @@ static void _movement_renew_top_of_minute_alarm(void) {
     movement_volatile_state.minute_counter += watch_rtc_get_ticks_per_minute();
     watch_rtc_register_comp_callback_no_schedule(cb_minute_alarm_fired, movement_volatile_state.minute_counter, MINUTE_TIMEOUT);
     movement_volatile_state.schedule_next_comp = true;
+}
+
+#define PRINT_LIS2DUX_EVENTS false
+static uint32_t _movement_get_accelerometer_events() {
+    uint32_t accelerometer_events = 0;
+#ifdef I2C_SERCOM
+    if (movement_state.has_lis2dw) {
+        uint8_t int_src = lis2dw_get_interrupt_source();
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
+            accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
+            printf("Double tap!\r\n");
+        }
+        if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
+            accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+            printf("Single tap!\r\n");
+        }
+    }
+    else if (movement_state.has_lis2dux) {
+        lis2dux12_all_sources_t int_src;
+        lis2dux12_all_sources_get(&dev_ctx, &int_src);
+#if PRINT_LIS2DUX_EVENTS
+        printf("cb_accelerometer_lis2dux_event\r\n");
+        if (int_src.drdy)             printf("drdy:             %d\r\n", int_src.drdy);
+        if (int_src.free_fall)       printf("free_fall:        %d\r\n", int_src.free_fall);
+        if (int_src.wake_up)         printf("wake_up:          %d\r\n", int_src.wake_up);
+        if (int_src.wake_up_x)       printf("wake_up_x:        %d\r\n", int_src.wake_up_x);
+        if (int_src.wake_up_y)       printf("wake_up_y:        %d\r\n", int_src.wake_up_y);
+        if (int_src.wake_up_z)       printf("wake_up_z:        %d\r\n", int_src.wake_up_z);
+        if (int_src.single_tap)      printf("single_tap:       %d\r\n", int_src.single_tap);
+        if (int_src.double_tap)      printf("double_tap:       %d\r\n", int_src.double_tap);
+        if (int_src.triple_tap)      printf("triple_tap:       %d\r\n", int_src.triple_tap);
+        if (int_src.six_d)           printf("six_d:            %d\r\n", int_src.six_d);
+        if (int_src.six_d_xl)        printf("six_d_xl:         %d\r\n", int_src.six_d_xl);
+        if (int_src.six_d_xh)        printf("six_d_xh:         %d\r\n", int_src.six_d_xh);
+        if (int_src.six_d_yl)        printf("six_d_yl:         %d\r\n", int_src.six_d_yl);
+        if (int_src.six_d_yh)        printf("six_d_yh:         %d\r\n", int_src.six_d_yh);
+        if (int_src.six_d_zl)        printf("six_d_zl:         %d\r\n", int_src.six_d_zl);
+        if (int_src.six_d_zh)        printf("six_d_zh:         %d\r\n", int_src.six_d_zh);
+        if (int_src.sleep_change)    printf("sleep_change:     %d\r\n", int_src.sleep_change);
+        if (int_src.sleep_state)     printf("sleep_state:      %d\r\n", int_src.sleep_state);
+#endif
+        if (int_src.double_tap) {
+            accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
+            printf("Double tap!\r\n");
+        }
+        if (int_src.single_tap) {
+            accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+            printf("Single tap!\r\n");
+        }
+    }
+#endif
+    return accelerometer_events;
 }
 
 static void _movement_handle_button_presses(uint32_t pending_events) {
@@ -942,7 +995,6 @@ bool movement_enable_tap_detection_if_available(void) {
         /* Configure interrupt pins */
         lis2dux12_pin_int1_route_get(&dev_ctx, &int1_route);
         int1_route.tap   = PROPERTY_ENABLE;
-        int1_route.six_d = PROPERTY_ENABLE;
         lis2dux12_pin_int1_route_set(&dev_ctx, &int1_route);
         int_mode.int_cfg = LIS2DUX12_INT_LEVEL;
         lis2dux12_int_config_set(&dev_ctx, &int_mode);
@@ -1428,6 +1480,7 @@ void app_init(void) {
     movement_volatile_state.enter_sleep_mode = false;
     movement_volatile_state.exit_sleep_mode = false;
     movement_volatile_state.has_pending_sequence = false;
+    movement_volatile_state.has_pending_accelerometer = false;
     movement_volatile_state.is_sleeping = false;
 
     movement_volatile_state.step_count_needs_updating = false;
@@ -1779,6 +1832,11 @@ bool app_loop(void) {
         }
     }
 
+    if (movement_volatile_state.has_pending_accelerometer) {
+        movement_volatile_state.has_pending_accelerometer = false;
+        pending_events |= _movement_get_accelerometer_events();
+    }
+
     // handle any button up/down events that occurred, e.g. schedule longpress timeouts, reset inactivity, etc.
     _movement_handle_button_presses(pending_events);
 
@@ -2053,62 +2111,17 @@ void cb_tick(void) {
 }
 
 void cb_accelerometer_event(void) {
-    if (!movement_state.tap_enabled) return;
-    uint8_t int_src = lis2dw_get_interrupt_source();
-
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
-        movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
-        printf("Double tap!\r\n");
-    }
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
-        movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
-        printf("Single tap!\r\n");
-    }
+    movement_volatile_state.has_pending_accelerometer = true;
+    return;
 }
 
-#define PRINT_LIS2DUX_EVENTS false
 void cb_accelerometer_lis2dux_event(void) {
-#ifdef I2C_SERCOM
     if (movement_state.tap_enabled) {
-        lis2dux12_all_sources_t int_src;
-        lis2dux12_all_sources_get(&dev_ctx, &int_src);
-#if PRINT_LIS2DUX_EVENTS
-        printf("cb_accelerometer_lis2dux_event\r\n");
-        if (int_src.drdy)             printf("drdy:             %d\r\n", int_src.drdy);
-        if (int_src.free_fall)       printf("free_fall:        %d\r\n", int_src.free_fall);
-        if (int_src.wake_up)         printf("wake_up:          %d\r\n", int_src.wake_up);
-        if (int_src.wake_up_x)       printf("wake_up_x:        %d\r\n", int_src.wake_up_x);
-        if (int_src.wake_up_y)       printf("wake_up_y:        %d\r\n", int_src.wake_up_y);
-        if (int_src.wake_up_z)       printf("wake_up_z:        %d\r\n", int_src.wake_up_z);
-        if (int_src.single_tap)      printf("single_tap:       %d\r\n", int_src.single_tap);
-        if (int_src.double_tap)      printf("double_tap:       %d\r\n", int_src.double_tap);
-        if (int_src.triple_tap)      printf("triple_tap:       %d\r\n", int_src.triple_tap);
-        if (int_src.six_d)           printf("six_d:            %d\r\n", int_src.six_d);
-        if (int_src.six_d_xl)        printf("six_d_xl:         %d\r\n", int_src.six_d_xl);
-        if (int_src.six_d_xh)        printf("six_d_xh:         %d\r\n", int_src.six_d_xh);
-        if (int_src.six_d_yl)        printf("six_d_yl:         %d\r\n", int_src.six_d_yl);
-        if (int_src.six_d_yh)        printf("six_d_yh:         %d\r\n", int_src.six_d_yh);
-        if (int_src.six_d_zl)        printf("six_d_zl:         %d\r\n", int_src.six_d_zl);
-        if (int_src.six_d_zh)        printf("six_d_zh:         %d\r\n", int_src.six_d_zh);
-        if (int_src.sleep_change)    printf("sleep_change:     %d\r\n", int_src.sleep_change);
-        if (int_src.sleep_state)     printf("sleep_state:      %d\r\n", int_src.sleep_state);
-#endif
-
-        if (int_src.single_tap) {
-            movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
-            printf("Single tap!\r\n");
-        }
-
-        if (int_src.double_tap) {
-            movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
-            printf("Double tap!\r\n");
-        }
+        movement_volatile_state.has_pending_accelerometer = true;
     }
-
-    if (movement_state.counting_steps && movement_state.has_lis2dux) {
+    if (movement_state.counting_steps) {
         movement_volatile_state.step_count_needs_updating = true;
     }
-#endif
 }
 
 void cb_accelerometer_wake_event(void) {

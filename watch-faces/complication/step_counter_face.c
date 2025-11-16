@@ -107,6 +107,8 @@ static void allow_sleeping(bool sleeping_is_wanted, step_counter_state_t *logger
 static void enable_sensor(step_counter_state_t *logger_state) {
     logger_state->sensor_seen = movement_enable_step_count_multiple_attempts(3, false);
     if (logger_state->sensor_seen) {
+        movement_set_step_count_keep_off(false);
+        movement_set_step_count_keep_on(true);
         logger_state->can_sleep = false;
         movement_schedule_background_task(distant_future);
         movement_update_step_count_lis2dux();

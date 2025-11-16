@@ -93,6 +93,12 @@ typedef enum {
   LIS2DW_FILTER_HIGH_PASS = 1,
 } lis2dw_filter_t;
 
+typedef enum
+{
+  LIS2DW12_INT_PULSED   = 0,
+  LIS2DW12_INT_LATCHED  = 1,
+} lis2dw12_lir_t;
+
 typedef enum {
   LIS2DW_RANGE_16_G = 0b11, // +/- 16g
   LIS2DW_RANGE_8_G = 0b10,  // +/- 8g
@@ -369,6 +375,10 @@ void lis2dw_configure_6d_threshold(uint8_t threshold);
 void lis2dw_configure_tap_threshold(uint8_t threshold_x, uint8_t threshold_y, uint8_t threshold_z, uint8_t axes_to_enable);
 
 void lis2dw_configure_tap_duration(uint8_t latency, uint8_t quiet, uint8_t shock);
+
+void lis2dw12_int_notification_set(lis2dw12_lir_t val);
+
+lis2dw12_lir_t lis2dw12_int_notification_get(void);
 
 void lis2dw_configure_int1(uint8_t sources);
 

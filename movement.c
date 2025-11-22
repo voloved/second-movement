@@ -1010,12 +1010,12 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
 }
 
 movement_step_count_option_t movement_get_when_to_count_steps(void) {
-    if (movement_state.has_lis2dw || movement_state.has_lis2dux) return movement_state.when_to_count_steps;
+    if (movement_state.has_lis2dw || movement_state.has_lis2dux) return movement_state.settings.bit.when_to_count_steps;
     return MOVEMENT_SC_NOT_INSTALLED;
 }
 
 void movement_set_when_to_count_steps(movement_step_count_option_t value) {
-    movement_state.when_to_count_steps = value;
+    movement_state.settings.bit.when_to_count_steps = value;
 }
 
 movement_clock_mode_t movement_clock_mode_24h(void) {
@@ -1719,7 +1719,7 @@ void app_init(void) {
 
     bool settings_file_exists = filesystem_file_exists("settings.u32");
     movement_settings_t maybe_settings;
-    if (settings_file_exists && maybe_settings.bit.version == 0) {
+    if (settings_file_exists) {
         filesystem_read_file("settings.u32", (char *) &maybe_settings, sizeof(movement_settings_t));
     }
 
@@ -1763,6 +1763,7 @@ void app_init(void) {
 #endif
         movement_state.settings.bit.led_duration = MOVEMENT_DEFAULT_LED_DURATION;
         movement_state.settings.bit.hourly_chime_times = MOVEMENT_DEFAULT_HOURLY_CHIME;
+        movement_state.settings.bit.when_to_count_steps = MOVEMENT_DEFAULT_COUNT_STEPS;
         movement_store_settings();
     }
     movement_set_location_if_needed();
@@ -1784,7 +1785,6 @@ void app_init(void) {
 
     if (movement_state.accelerometer_motion_threshold == 0) movement_state.accelerometer_motion_threshold = 32;
 
-    movement_state.when_to_count_steps = MOVEMENT_DEFAULT_COUNT_STEPS;
     movement_state.counting_steps = false;
     movement_state.count_steps_keep_on = false;
     movement_state.count_steps_keep_off = false;
@@ -1804,8 +1804,6 @@ void app_wake_from_backup(void) {
 }
 
 void app_setup(void) {
-    watch_store_backup_data(movement_state.settings.reg, 0);
-
     static bool is_first_launch = true;
 
     if (is_first_launch) {

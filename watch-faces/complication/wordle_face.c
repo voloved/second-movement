@@ -366,6 +366,7 @@ static void display_result(wordle_state_t *state, uint8_t subsecond) {
             break;
         }
     }
+    buf[WORDLE_LENGTH+1] = '\0';
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 

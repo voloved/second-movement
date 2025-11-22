@@ -104,15 +104,15 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_enable_i2c</b> 
 void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_i2c</b> (void)</td></tr>
 <tr class="memdesc:ga2189bdff3dcb40f451d0aa988ea99760"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the I2C peripheral. <br /></td></tr>
 <tr class="separator:ga2189bdff3dcb40f451d0aa988ea99760"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8b44030f78c30dd4026b349fc0c8cf08" id="r_ga8b44030f78c30dd4026b349fc0c8cf08"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga8b44030f78c30dd4026b349fc0c8cf08">watch_i2c_send</a> (int16_t addr, uint8_t *buf, uint16_t length)</td></tr>
-<tr class="memdesc:ga8b44030f78c30dd4026b349fc0c8cf08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a series of values to a device on the I2C bus.  <br /></td></tr>
-<tr class="separator:ga8b44030f78c30dd4026b349fc0c8cf08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga426971387b87286c8decca7342c06b4b" id="r_ga426971387b87286c8decca7342c06b4b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga426971387b87286c8decca7342c06b4b">watch_i2c_receive</a> (int16_t addr, uint8_t *buf, uint16_t length)</td></tr>
-<tr class="memdesc:ga426971387b87286c8decca7342c06b4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives a series of values from a device on the I2C bus.  <br /></td></tr>
-<tr class="separator:ga426971387b87286c8decca7342c06b4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf0a4c78215cbd85ab557fc6c786eb6ad" id="r_gaf0a4c78215cbd85ab557fc6c786eb6ad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaf0a4c78215cbd85ab557fc6c786eb6ad">watch_i2c_write8</a> (int16_t addr, uint8_t reg, uint8_t data)</td></tr>
-<tr class="memdesc:gaf0a4c78215cbd85ab557fc6c786eb6ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a byte to a register in an I2C device.  <br /></td></tr>
-<tr class="separator:gaf0a4c78215cbd85ab557fc6c786eb6ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga973cad02401a32129b32e0a27192f377" id="r_ga973cad02401a32129b32e0a27192f377"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga973cad02401a32129b32e0a27192f377">watch_i2c_send</a> (int16_t addr, uint8_t *buf, uint16_t length)</td></tr>
+<tr class="memdesc:ga973cad02401a32129b32e0a27192f377"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends a series of values to a device on the I2C bus.  <br /></td></tr>
+<tr class="separator:ga973cad02401a32129b32e0a27192f377"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga49a15af2ddf8a935e2c7b8f3339af9a9" id="r_ga49a15af2ddf8a935e2c7b8f3339af9a9"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga49a15af2ddf8a935e2c7b8f3339af9a9">watch_i2c_receive</a> (int16_t addr, uint8_t *buf, uint16_t length)</td></tr>
+<tr class="memdesc:ga49a15af2ddf8a935e2c7b8f3339af9a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receives a series of values from a device on the I2C bus.  <br /></td></tr>
+<tr class="separator:ga49a15af2ddf8a935e2c7b8f3339af9a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga107b5a6e8cad0530ef68ef1bc7809a41" id="r_ga107b5a6e8cad0530ef68ef1bc7809a41"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga107b5a6e8cad0530ef68ef1bc7809a41">watch_i2c_write8</a> (int16_t addr, uint8_t reg, uint8_t data)</td></tr>
+<tr class="memdesc:ga107b5a6e8cad0530ef68ef1bc7809a41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a byte to a register in an I2C device.  <br /></td></tr>
+<tr class="separator:ga107b5a6e8cad0530ef68ef1bc7809a41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac5644140ddda98198f9d5deabbeaf781" id="r_gac5644140ddda98198f9d5deabbeaf781"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac5644140ddda98198f9d5deabbeaf781">watch_i2c_read8</a> (int16_t addr, uint8_t reg)</td></tr>
 <tr class="memdesc:gac5644140ddda98198f9d5deabbeaf781"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a byte from a register in an I2C device.  <br /></td></tr>
 <tr class="separator:gac5644140ddda98198f9d5deabbeaf781"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -256,14 +256,14 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_i2c</b>
 
 </div>
 </div>
-<a id="ga426971387b87286c8decca7342c06b4b" name="ga426971387b87286c8decca7342c06b4b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga426971387b87286c8decca7342c06b4b">&#9670;&#160;</a></span>watch_i2c_receive()</h2>
+<a id="ga49a15af2ddf8a935e2c7b8f3339af9a9" name="ga49a15af2ddf8a935e2c7b8f3339af9a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga49a15af2ddf8a935e2c7b8f3339af9a9">&#9670;&#160;</a></span>watch_i2c_receive()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void watch_i2c_receive </td>
+          <td class="memname">int8_t watch_i2c_receive </td>
           <td>(</td>
           <td class="paramtype">int16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
         </tr>
@@ -289,17 +289,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_i2c</b>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>0 if no error code, otherwise a code via i2c_result_t </dd></dl>
 
 </div>
 </div>
-<a id="ga8b44030f78c30dd4026b349fc0c8cf08" name="ga8b44030f78c30dd4026b349fc0c8cf08"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8b44030f78c30dd4026b349fc0c8cf08">&#9670;&#160;</a></span>watch_i2c_send()</h2>
+<a id="ga973cad02401a32129b32e0a27192f377" name="ga973cad02401a32129b32e0a27192f377"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga973cad02401a32129b32e0a27192f377">&#9670;&#160;</a></span>watch_i2c_send()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void watch_i2c_send </td>
+          <td class="memname">int8_t watch_i2c_send </td>
           <td>(</td>
           <td class="paramtype">int16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
         </tr>
@@ -325,17 +326,18 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_i2c</b>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>0 if no error code, otherwise a code via i2c_result_t </dd></dl>
 
 </div>
 </div>
-<a id="gaf0a4c78215cbd85ab557fc6c786eb6ad" name="gaf0a4c78215cbd85ab557fc6c786eb6ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaf0a4c78215cbd85ab557fc6c786eb6ad">&#9670;&#160;</a></span>watch_i2c_write8()</h2>
+<a id="ga107b5a6e8cad0530ef68ef1bc7809a41" name="ga107b5a6e8cad0530ef68ef1bc7809a41"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga107b5a6e8cad0530ef68ef1bc7809a41">&#9670;&#160;</a></span>watch_i2c_write8()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void watch_i2c_write8 </td>
+          <td class="memname">int8_t watch_i2c_write8 </td>
           <td>(</td>
           <td class="paramtype">int16_t</td>          <td class="paramname"><span class="paramname"><em>addr</em></span>, </td>
         </tr>
@@ -361,6 +363,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_i2c</b>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>0 if no error code, otherwise a code via i2c_result_t </dd></dl>
 
 </div>
 </div>

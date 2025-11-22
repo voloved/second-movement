@@ -185,7 +185,7 @@ static inline void _beep(beep_type_t beep_type)
             break;
     }
 
-    movement_play_sequence(beep_sequence, 0);
+    movement_play_sequence (beep_sequence, 0);
 }
 
 /* Change tick frequency */

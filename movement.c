@@ -28,9 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <string.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include "app.h"
 #include "watch.h"
 #include "watch_utility.h"
@@ -95,6 +93,7 @@ typedef struct {
     volatile bool is_buzzing;
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
+    volatile bool has_pending_accelerometer;
 
     // button tracking for long press
     movement_button_t mode_button;
@@ -276,6 +275,24 @@ static void _movement_renew_top_of_minute_alarm(void) {
     movement_volatile_state.minute_counter += watch_rtc_get_ticks_per_minute();
     watch_rtc_register_comp_callback_no_schedule(cb_minute_alarm_fired, movement_volatile_state.minute_counter, MINUTE_TIMEOUT);
     movement_volatile_state.schedule_next_comp = true;
+}
+
+static uint32_t _movement_get_accelerometer_events() {
+    uint32_t accelerometer_events = 0;
+
+    uint8_t int_src = lis2dw_get_interrupt_source();
+
+    if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
+        accelerometer_events |= 1 << EVENT_DOUBLE_TAP;
+        printf("Double tap!\r\n");
+    }
+
+    if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
+        accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+        printf("Single tap!\r\n");
+    }
+
+    return accelerometer_events;
 }
 
 static void _movement_handle_button_presses(uint32_t pending_events) {
@@ -792,18 +809,19 @@ bool movement_enable_tap_detection_if_available(void) {
     if (movement_state.has_lis2dw) {
         // configure tap duration threshold and enable Z axis
         lis2dw_configure_tap_threshold(0, 0, 12, LIS2DW_REG_TAP_THS_Z_Z_AXIS_ENABLE);
-        lis2dw_configure_tap_duration(10, 2, 2);
+        lis2dw_configure_tap_duration(2, 2, 2);
 
         // ramp data rate up to 400 Hz and high performance mode
         lis2dw_set_low_noise_mode(true);
         lis2dw_set_data_rate(LIS2DW_DATA_RATE_HP_400_HZ);
-        lis2dw_set_mode(LIS2DW_MODE_HIGH_PERFORMANCE);
+        lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+        lis2dw_enable_double_tap();
 
         // Settling time (1 sample duration, i.e. 1/400Hz)
         delay_ms(3);
 
         // enable tap detection on INT1/A3.
-        lis2dw_configure_int1(LIS2DW_CTRL4_INT1_SINGLE_TAP | LIS2DW_CTRL4_INT1_6D);
+        lis2dw_configure_int1(LIS2DW_CTRL4_INT1_SINGLE_TAP | LIS2DW_CTRL4_INT1_DOUBLE_TAP);
 
         return true;
     }
@@ -817,6 +835,7 @@ bool movement_disable_tap_detection_if_available(void) {
         lis2dw_set_low_noise_mode(false);
         lis2dw_set_data_rate(movement_state.accelerometer_background_rate);
         lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+        lis2dw_disable_double_tap();
         // ...disable Z axis (not sure if this is needed, does this save power?)...
         lis2dw_configure_tap_threshold(0, 0, 0, 0);
 
@@ -864,6 +883,11 @@ bool movement_set_accelerometer_motion_threshold(uint8_t new_threshold) {
 
 float movement_get_temperature(void) {
     float temperature_c = (float)0xFFFFFFFF;
+#if __EMSCRIPTEN__
+    temperature_c = EM_ASM_DOUBLE({
+        return temp_c || 25.0;
+    });
+#else
 
     if (movement_state.has_thermistor) {
         thermistor_driver_enable();
@@ -874,6 +898,7 @@ float movement_get_temperature(void) {
             val = val >> 4;
             temperature_c = 25 + (float)val / 16.0;
     }
+#endif
 
     return temperature_c;
 }
@@ -904,6 +929,7 @@ void app_init(void) {
     movement_volatile_state.enter_sleep_mode = false;
     movement_volatile_state.exit_sleep_mode = false;
     movement_volatile_state.has_pending_sequence = false;
+    movement_volatile_state.has_pending_accelerometer = false;
     movement_volatile_state.is_sleeping = false;
 
     movement_volatile_state.is_buzzing = false;
@@ -1215,6 +1241,11 @@ bool app_loop(void) {
         }
     }
 
+    if (movement_volatile_state.has_pending_accelerometer) {
+        movement_volatile_state.has_pending_accelerometer = false;
+        pending_events |= _movement_get_accelerometer_events();
+    }
+
     // handle any button up/down events that occurred, e.g. schedule longpress timeouts, reset inactivity, etc.
     _movement_handle_button_presses(pending_events);
 
@@ -1462,16 +1493,7 @@ void cb_tick(void) {
 }
 
 void cb_accelerometer_event(void) {
-    uint8_t int_src = lis2dw_get_interrupt_source();
-
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
-        movement_volatile_state.pending_events |= 1 << EVENT_DOUBLE_TAP;
-        printf("Double tap!\n");
-    }
-    if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
-        movement_volatile_state.pending_events |= 1 << EVENT_SINGLE_TAP;
-        printf("Single tap!\n");
-    }
+    movement_volatile_state.has_pending_accelerometer = true;
 }
 
 void cb_accelerometer_wake(void) {

@@ -340,7 +340,6 @@ void go_to_teriary_face(void);
 
 bool movement_default_loop_handler(movement_event_t event);
 
-uint8_t movement_get_color_val(uint8_t led_color);
 void movement_illuminate_led(void);
 void movement_force_led_on(uint8_t red, uint8_t green, uint8_t blue);
 void movement_force_led_off(void);

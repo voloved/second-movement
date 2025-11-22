@@ -496,10 +496,11 @@ bool settings_face_loop(movement_event_t event, void *context) {
 
     if (state->current_page >= state->led_color_start && state->current_page < state->led_color_end) {
         movement_color_t color = movement_backlight_color();
-        movement_force_led_on(movement_get_color_val(color.red),
-                              movement_get_color_val(color.green),
-                              movement_get_color_val(color.blue));
-        return false;
+        // this bitwise math turns #000 into #000000, #111 into #111111, etc.
+        movement_force_led_on(color.red | color.red << 4,
+                              color.green | color.green << 4,
+                              color.blue | color.blue << 4);
+        return true;
     } else {
         movement_force_led_off();
         return true;

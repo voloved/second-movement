@@ -236,7 +236,6 @@ static void hourly_chime_setting_advance(void) {
     movement_set_hourly_chime_times(next_mode);
 }
 
-#ifdef I2C_SERCOM
 static void step_counter_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP", "SC");
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
@@ -269,7 +268,6 @@ static void step_counter_setting_advance(void) {
     movement_step_count_option_t next_mode = (when_to_count_steps + 1) % MOVEMENT_SC_NOT_INSTALLED;
     movement_set_when_to_count_steps(next_mode);
 }
-#endif
 
 static void led_duration_setting_display(uint8_t subsecond) {
     char buf[8];
@@ -417,6 +415,9 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         state->settings_screens[current_setting].display = step_counter_setting_display;
         state->settings_screens[current_setting].advance = step_counter_setting_advance;
         current_setting++;
+#else
+        (void)step_counter_setting_display;
+        (void)step_counter_setting_advance;
 #endif
         state->settings_screens[current_setting].display = led_duration_setting_display;
         state->settings_screens[current_setting].advance = led_duration_setting_advance;

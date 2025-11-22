@@ -29,9 +29,11 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-#if defined(I2C_SERCOM) && !defined(BUILD_TO_SHARE)
+#ifdef I2C_SERCOM
     step_counter_face,
+#ifndef BUILD_TO_SHARE
     voltage_face,
+#endif
 #endif
     fast_stopwatch_face,
     countdown_face,

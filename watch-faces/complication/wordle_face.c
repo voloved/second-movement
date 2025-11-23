@@ -611,7 +611,7 @@ bool wordle_face_loop(movement_event_t event, void *context) {
             state->position = get_prev_pos(state->position, state->word_elements_result);
             break;
 #if (WORDLE_USE_RANDOM_GUESS != 0)
-        case EVENT_ALARM_LONGER_PRESS:
+        case EVENT_ALARM_REALLY_LONG_PRESS:
             if (state->curr_screen != WORDLE_SCREEN_PLAYING) break;
             if (state->using_random_guess || (state->attempt == 0 && state->position == 0))
                 insert_random_guess(state);

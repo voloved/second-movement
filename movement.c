@@ -1481,6 +1481,7 @@ float movement_get_temperature(void) {
         temperature_c = data.heat.deg_c;
     }
 #endif
+#endif
 
     return temperature_c;
 }

@@ -73,6 +73,11 @@
 #include "wareki_face.h"
 #include "deadline_face.h"
 #include "wordle_face.h"
+#include "blackjack_face.h"
+#include "endless_runner_face.h"
+#include "higher_lower_game_face.h"
+#include "lander_face.h"
+#include "simon_face.h"
 #include "rtccount_face.h"
 #include "step_counter_face.h"
 // New includes go above this line.

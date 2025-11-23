@@ -97,9 +97,9 @@ typedef union {
         uint64_t le_interval : 3;            // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
         uint64_t screen_off_after_le : 2;    // If true and we're in LE mode and it's the top of the hour after movement_le_deep_sleep_deadline and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
         uint64_t led_duration : 3;           // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
-        uint64_t led_red_color : 4;          // for general purpose illumination, the red LED value (0-7)
-        uint64_t led_green_color : 4;        // for general purpose illumination, the green LED value (0-7)
-        uint64_t led_blue_color : 4;         // for general purpose illumination, the green LED value (0-7)
+        uint64_t led_red_color : 3;          // for general purpose illumination, the red LED value (0-7)
+        uint64_t led_green_color : 3;        // for general purpose illumination, the green LED value (0-7)
+        uint64_t led_blue_color : 3;         // for general purpose illumination, the green LED value (0-7)
         uint64_t time_zone : 6;              // an integer representing an index in the time zone table.
 
         // while Movement itself doesn't implement a clock or display units, it may make sense to include some
@@ -111,7 +111,7 @@ typedef union {
         uint64_t use_imperial_units : 1;     // indicates whether to use metric units (the default) or imperial.
         uint64_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
         uint64_t when_to_count_steps : 4;
-        uint64_t unused : 22;
+        uint64_t unused : 25;
       } bit;
     uint64_t reg;
 } movement_settings_t;
@@ -346,6 +346,7 @@ void go_to_teriary_face(void);
 
 bool movement_default_loop_handler(movement_event_t event);
 
+uint8_t movement_get_color_val(uint8_t led_color);
 void movement_illuminate_led(void);
 void movement_force_led_on(uint8_t red, uint8_t green, uint8_t blue);
 void movement_force_led_off(void);

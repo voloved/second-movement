@@ -26,6 +26,11 @@
 #include <string.h>
 #include "step_counter_face.h"
 
+#ifdef BUILD_TO_SHARE
+#define STEP_COUNTER_DISPLAY_NO_STEP_DAYS true
+#else
+#define STEP_COUNTER_DISPLAY_NO_STEP_DAYS false
+#endif
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MINUTES_SEC_BEFORE_START 2
 #define STEP_COUNTER_MAX_STEPS_DISPLAY 999999
@@ -58,14 +63,7 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
     return step_count;
 }
 
-static void _step_counter_face_log_data(step_counter_state_t *logger_state) {
-    uint32_t step_count = get_step_count();
-    // Only log days when steps were taken
-#ifndef BUILD_TO_SHARE
-    if (step_count == 0) {
-        return;
-    }
-#endif
+static void _step_counter_face_log_data(step_counter_state_t *logger_state, uint32_t step_count) {
     watch_date_time_t date_time = movement_get_local_date_time();
     size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
 
@@ -214,9 +212,12 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_BACKGROUND_TASK:
-            _step_counter_face_log_data(logger_state);
+            step_count = get_step_count();
+            if (STEP_COUNTER_DISPLAY_NO_STEP_DAYS || step_count != 0) {
+                _step_counter_face_log_data(logger_state, step_count);
+                logger_state->display_index = (logger_state->display_index + 1) % (logger_state->data_points + 1);
+            }
             movement_reset_step_count();
-            logger_state->display_index = (logger_state->display_index + 1) % (logger_state->data_points + 1);
             break;
         default:
             return movement_default_loop_handler(event);

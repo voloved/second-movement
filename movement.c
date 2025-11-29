@@ -26,7 +26,7 @@
 #define MOVEMENT_LONG_PRESS_TICKS 64
 #define MOVEMENT_REALLY_LONG_PRESS_TICKS 192
 #define MOVEMENT_MAX_LONG_PRESS_TICKS 1280 // get a chance to check if a button held down over 10 seconds is a glitch
-#define MOVEMENT_SETTINGS_VERSION 1
+#define MOVEMENT_SETTINGS_VERSION 0
 
 #include <stdio.h>
 #include <string.h>
@@ -1031,7 +1031,6 @@ movement_step_count_option_t movement_get_when_to_count_steps(void) {
 }
 
 void movement_set_when_to_count_steps(movement_step_count_option_t value) {
-    if (value > 3) value = 0;
     movement_state.settings.when_to_count_steps = value;
 }
 
@@ -1064,7 +1063,6 @@ uint8_t movement_get_fast_tick_timeout(void) {
 }
 
 void movement_set_fast_tick_timeout(uint8_t value) {
-    if (value > 3) value = 0;
     movement_state.settings.to_interval = value;
 }
 
@@ -1073,7 +1071,6 @@ movement_low_energy_screen_off_t movement_get_low_energy_screen_off_setting(void
 }
 
 void movement_set_low_energy_screen_off_setting(movement_low_energy_screen_off_t value) {
-    if (value > 3) value = 0;
     movement_state.settings.screen_off_after_le = value;
 }
 
@@ -1082,7 +1079,6 @@ uint8_t movement_get_low_energy_timeout(void) {
 }
 
 void movement_set_low_energy_timeout(uint8_t value) {
-    if (value > 7) value = 0;
     movement_state.settings.le_interval = value;
 }
 
@@ -1095,9 +1091,9 @@ movement_color_t movement_backlight_color(void) {
 }
 
 void movement_set_backlight_color(movement_color_t color) {
-    movement_state.settings.led_red_color =   (color.red > 7)   ? 0 : color.red;
-    movement_state.settings.led_green_color = (color.green > 7) ? 0 : color.green;
-    movement_state.settings.led_blue_color =  (color.blue > 7)  ? 0 : color.blue;
+    movement_state.settings.led_red_color = color.red;
+    movement_state.settings.led_green_color = color.green;
+    movement_state.settings.led_blue_color = color.blue;
 }
 
 uint8_t movement_get_backlight_dwell(void) {
@@ -1105,7 +1101,6 @@ uint8_t movement_get_backlight_dwell(void) {
 }
 
 void movement_set_backlight_dwell(uint8_t value) {
-    if (value > 7) value = 0;
     movement_state.settings.led_duration = value;
 }
 
@@ -1114,7 +1109,6 @@ movement_hourly_chime_t movement_get_hourly_chime_times(void) {
 }
 
 void movement_set_hourly_chime_times(uint8_t value) {
-    if (value > 3) value = 0;
     movement_state.settings.hourly_chime_times = value;
 }
 

@@ -88,29 +88,30 @@ typedef struct {
 // movement_settings_t contains global settings that cover watch behavior, including preferences around clock and unit
 // display, time zones, buzzer behavior, LED color and low energy mode timeouts.
 typedef struct {
-        uint8_t version;                     // A version number for the struct. 0-3; let's try not to update too often.
-        bool button_should_sound;            // if true, pressing a button emits a sound.
-        bool button_volume;                  // 0 for soft beep, 1 for loud beep. If button_should_sound (above) is false, this is ignored.
-        bool signal_volume;                  // 0 for soft beep, 1 for loud beep fror chimes and alarms.
-        uint8_t to_interval;                 // an inactivity interval for asking the active face to resign.
-        uint8_t le_interval;                 // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
-        uint8_t screen_off_after_le;         // If true and we're in LE mode and it's the top of the hour after movement_le_deep_sleep_deadline and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
-        uint8_t led_duration;                // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
-        uint8_t led_red_color;               // for general purpose illumination, the red LED value (0-7)
-        uint8_t led_green_color;             // for general purpose illumination, the green LED value (0-7)
-        uint8_t led_blue_color;              // for general purpose illumination, the green LED value (0-7)
-        uint8_t time_zone;                   // an integer representing an index in the time zone table.
+        uint32_t version : 2;                // A version number for the struct. 0-3; let's try not to update too often.
+        uint32_t button_should_sound : 1;    // if true, pressing a button emits a sound.
+        uint32_t button_volume : 1;          // 0 for soft beep, 1 for loud beep. If button_should_sound (above) is false, this is ignored.
+        uint32_t signal_volume : 1;          // 0 for soft beep, 1 for loud beep fror chimes and alarms.
+        uint32_t to_interval : 2;            // an inactivity interval for asking the active face to resign.
+        uint32_t le_interval : 3;            // 0 to disable low energy mode, or an inactivity interval for going into low energy mode.
+        uint32_t screen_off_after_le : 2;    // If true and we're in LE mode and it's the top of the hour after movement_le_deep_sleep_deadline and the temp is below #DEFAULT_TEMP_ASSUME_WEARING but not zero, then turn off the screen and other tasks.
+        uint32_t led_duration : 3;           // how many seconds to shine the LED for (x2), 0 to shine only while the button is depressed, or all bits set to disable the LED altogether.
+        uint32_t led_red_color : 3;          // for general purpose illumination, the red LED value (0-7)
+        uint32_t led_green_color : 3;        // for general purpose illumination, the green LED value (0-7)
+        uint32_t led_blue_color : 3;         // for general purpose illumination, the green LED value (0-7)
+        uint32_t time_zone : 6;              // an integer representing an index in the time zone table.
 
         // while Movement itself doesn't implement a clock or display units, it may make sense to include some
         // global settings for watch faces to check. The 12/24 hour preference could inform a clock or a
         // time-oriented complication like a sunrise/sunset timer, and a simple locale preference could tell an
         // altimeter to display feet or meters as easily as it tells a thermometer to display degrees in F or C.
-        bool clock_mode_24h;                 // indicates whether clock should use 12 or 24 hour mode.
-        bool clock_mode_toggle;              // If true, then pressing the alarm button toggles 24H mode
-        bool use_imperial_units;             // indicates whether to use metric units (the default) or imperial.
-        uint8_t hourly_chime_times;          // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
-        uint8_t when_to_count_steps;
-} movement_settings_t;
+        uint32_t clock_mode_24h : 1;         // indicates whether clock should use 12 or 24 hour mode.
+        uint32_t clock_mode_toggle : 1;      // If true, then pressing the alarm button toggles 24H mode
+        uint32_t use_imperial_units : 1;     // indicates whether to use metric units (the default) or imperial.
+        uint32_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
+        uint32_t when_to_count_steps : 4;
+        uint32_t unused : 25;
+} __attribute__((packed)) movement_settings_t;
 
 // movement_location_t is for storing the wearer's location. This will be useful for astronomical calculations such as
 // sunrise and sunset, or predictions of visible satellite passes.

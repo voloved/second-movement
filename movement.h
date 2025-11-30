@@ -105,12 +105,11 @@ typedef struct {
         // global settings for watch faces to check. The 12/24 hour preference could inform a clock or a
         // time-oriented complication like a sunrise/sunset timer, and a simple locale preference could tell an
         // altimeter to display feet or meters as easily as it tells a thermometer to display degrees in F or C.
-        uint32_t clock_mode_24h : 1;         // indicates whether clock should use 12 or 24 hour mode.
-        uint32_t clock_mode_toggle : 1;      // If true, then pressing the alarm button toggles 24H mode
-        uint32_t use_imperial_units : 1;     // indicates whether to use metric units (the default) or imperial.
-        uint32_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
-        uint32_t when_to_count_steps : 4;
-        uint32_t unused : 25;
+        uint8_t clock_mode_24h : 2;         // indicates whether clock should use 12 or 24 hour mode.
+        uint8_t clock_mode_toggle : 1;      // If true, then pressing the alarm button toggles 24H mode
+        uint8_t use_imperial_units : 1;     // indicates whether to use metric units (the default) or imperial.
+        uint8_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
+        uint8_t when_to_count_steps : 4;
 } __attribute__((packed)) movement_settings_t;
 
 // movement_location_t is for storing the wearer's location. This will be useful for astronomical calculations such as
@@ -328,11 +327,10 @@ typedef struct {
     uint8_t accelerometer_motion_threshold;
     uint8_t le_mode_and_not_worn_hours;
 
-    uint8_t unused              : 4;
-    uint8_t counting_steps      : 1;
-    uint8_t count_steps_keep_on : 1;
-    uint8_t count_steps_keep_off: 1;
-    uint8_t tap_enabled         : 1;
+    bool counting_steps;
+    bool count_steps_keep_on;
+    bool count_steps_keep_off;
+    bool tap_enabled;
     int8_t step_count_disable_req_sec;
 } movement_state_t;
 

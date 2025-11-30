@@ -30,7 +30,8 @@ static void clock_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CLOCK", "CL");
     if (subsecond % 2) {
         if (movement_clock_mode_toggle()) watch_display_text(WATCH_POSITION_BOTTOM, "Btn");
-        else if (movement_clock_mode_24h()) watch_display_text(WATCH_POSITION_BOTTOM, "24h");
+        else if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H) watch_display_text(WATCH_POSITION_BOTTOM, "024h");
+        else if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_24H) watch_display_text(WATCH_POSITION_BOTTOM, "24h");
         else watch_display_text(WATCH_POSITION_BOTTOM, "12h");
     }
 }
@@ -41,9 +42,7 @@ static void clock_setting_advance(void) {
         movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_12H);
         return;
     }
-    movement_clock_mode_t next_mode = !movement_clock_mode_24h();
-    // movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
-    // Uncomment the above line if you're using leading zeroes....you cretin.
+    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
     if (next_mode == 0)
         movement_set_clock_mode_toggle(true);
     movement_set_clock_mode_24h(next_mode);

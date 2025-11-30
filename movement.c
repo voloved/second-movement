@@ -1035,11 +1035,11 @@ void movement_set_when_to_count_steps(movement_step_count_option_t value) {
 }
 
 movement_clock_mode_t movement_clock_mode_24h(void) {
-    return movement_state.settings.clock_mode_24h ? MOVEMENT_CLOCK_MODE_24H : MOVEMENT_CLOCK_MODE_12H;
+    return movement_state.settings.clock_mode_24h;
 }
 
 void movement_set_clock_mode_24h(movement_clock_mode_t value) {
-    movement_state.settings.clock_mode_24h = (value == MOVEMENT_CLOCK_MODE_24H);
+    movement_state.settings.clock_mode_24h = value;
 }
 
 bool movement_clock_mode_toggle(void) {

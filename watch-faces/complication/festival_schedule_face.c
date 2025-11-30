@@ -191,16 +191,12 @@ static void _display_act_genre(uint8_t act_num, bool show_weekday){
     }
 }
 
-static void _display_act_time(uint8_t act_num, bool clock_mode_24h, bool display_end){
+static void _display_act_time(uint8_t act_num, movement_clock_mode_t clock_mode_24h, bool display_end){
     char buf[11];
     watch_date_time_t disp_time = display_end ? festival_acts[act_num].end_time : festival_acts[act_num].start_time;
     watch_clear_display();
     watch_set_colon();
-    if (clock_mode_24h){
-        watch_set_indicator(WATCH_INDICATOR_24H);
-
-    }
-    else{
+    if (clock_mode_24h == MOVEMENT_CLOCK_MODE_12H){
         watch_clear_indicator(WATCH_INDICATOR_24H);
         // if we are in 12 hour mode, do some cleanup.
         if (disp_time.unit.hour < 12) {
@@ -211,10 +207,14 @@ static void _display_act_time(uint8_t act_num, bool clock_mode_24h, bool display
         disp_time.unit.hour %= 12;
         if (disp_time.unit.hour == 0) disp_time.unit.hour = 12;
     }
+    else{
+        watch_set_indicator(WATCH_INDICATOR_24H);
+    }
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time), watch_utility_get_weekday(disp_time));
     sprintf(buf, "%2d", disp_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    sprintf(buf, "%2d%.2d%s", disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
+    sprintf(buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%s" : "%2d%02d%s",
+        disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
@@ -317,7 +317,7 @@ static void _display_title(festival_schedule_state_t *state){
     if (state -> festival_occurring) _display_curr_day(curr_time);
 }
 
-static void _display_screen(festival_schedule_state_t *state, bool clock_mode_24h){
+static void _display_screen(festival_schedule_state_t *state, movement_clock_mode_t clock_mode_24h){
     set_ticks_purpose(FESTIVAL_SCHEDULE_TICK_SCREEN);
     if (state->curr_screen != FESTIVAL_SCHEDULE_SCREEN_START_TIME && state->curr_screen != FESTIVAL_SCHEDULE_SCREEN_END_TIME)
     {
@@ -359,7 +359,7 @@ void festival_schedule_face_setup(uint8_t watch_face_index, void ** context_ptr)
     }
 }
 
-static void _cyc_all_acts(festival_schedule_state_t *state, bool clock_mode_24h, bool handling_light){
+static void _cyc_all_acts(festival_schedule_state_t *state, movement_clock_mode_t clock_mode_24h, bool handling_light){
     state->cyc_through_all_acts = true;
     watch_set_indicator(WATCH_INDICATOR_LAP);
     state->curr_act = _get_next_act_num(state->curr_act, handling_light);
@@ -369,7 +369,7 @@ static void _cyc_all_acts(festival_schedule_state_t *state, bool clock_mode_24h,
     return; 
 }
 
-static void _handle_btn_up(festival_schedule_state_t *state, bool clock_mode_24h, bool handling_light){
+static void _handle_btn_up(festival_schedule_state_t *state, movement_clock_mode_t clock_mode_24h, bool handling_light){
     set_ticks_purpose(FESTIVAL_SCHEDULE_TICK_NONE);
     if (state->cyc_through_all_acts){
         _cyc_all_acts(state, clock_mode_24h, handling_light);
@@ -432,7 +432,7 @@ static int16_t _loop_text(const char *text, uint8_t text_len, int8_t curr_loc) {
     return curr_loc + 1;
 }
 
-static void handle_ts_ticks(festival_schedule_state_t *state, bool clock_mode_24h){
+static void handle_ts_ticks(festival_schedule_state_t *state, movement_clock_mode_t clock_mode_24h){
     static bool _light_held;
     if (_light_held){
         if (!HAL_GPIO_BTN_LIGHT_read()) _light_held = false;

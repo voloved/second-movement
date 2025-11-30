@@ -184,15 +184,17 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
         if (date_time.reg < scratch_time.reg) _sunrise_sunset_set_expiration(state, scratch_time);
 
         if (date_time.reg < scratch_time.reg || show_next_match) {
+            movement_clock_mode_t clock_mode_24h = movement_clock_mode_24h();
             if (state->rise_index == 0 || show_next_match) {
-                if (!movement_clock_mode_24h()) {
+                if (clock_mode_24h == MOVEMENT_CLOCK_MODE_12H) {
                     if (watch_utility_convert_to_12_hour(&scratch_time)) watch_set_indicator(WATCH_INDICATOR_PM);
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-                sprintf(buf, "%2d%02d%2s", scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
+                sprintf(buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%2s" : "%2d%02d%2s",
+                    scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);
                 return;
             } else {
@@ -223,15 +225,17 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
         if (date_time.reg < scratch_time.reg) _sunrise_sunset_set_expiration(state, scratch_time);
 
         if (date_time.reg < scratch_time.reg || show_next_match) {
+            movement_clock_mode_t clock_mode_24h = movement_clock_mode_24h();
             if (state->rise_index == 0 || show_next_match) {
-                if (!movement_clock_mode_24h()) {
+                if (clock_mode_24h == MOVEMENT_CLOCK_MODE_12H) {
                     if (watch_utility_convert_to_12_hour(&scratch_time)) watch_set_indicator(WATCH_INDICATOR_PM);
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-                sprintf(buf, "%2d%02d%2s", scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
+                sprintf(buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%2s" : "%2d%02d%2s",
+                    scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);
                 return;
             } else {

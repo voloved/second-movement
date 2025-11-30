@@ -29,10 +29,23 @@
 static void clock_setting_display(uint8_t subsecond) {
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "CLOCK", "CL");
     if (subsecond % 2) {
-        if (movement_clock_mode_toggle()) watch_display_text(WATCH_POSITION_BOTTOM, "Btn");
-        else if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H) watch_display_text(WATCH_POSITION_BOTTOM, "024h");
-        else if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_24H) watch_display_text(WATCH_POSITION_BOTTOM, "24h");
-        else watch_display_text(WATCH_POSITION_BOTTOM, "12h");
+        if (movement_clock_mode_toggle()) {
+            watch_display_text(WATCH_POSITION_BOTTOM, "Btn");
+            return;
+        }
+        switch (movement_clock_mode_24h())
+        {
+        case MOVEMENT_CLOCK_MODE_024H:
+            watch_display_text(WATCH_POSITION_BOTTOM, "024h");
+            break;
+        case MOVEMENT_CLOCK_MODE_24H:
+            watch_display_text(WATCH_POSITION_BOTTOM, "24h");
+            break;
+        case MOVEMENT_CLOCK_MODE_12H:
+        default:
+            watch_display_text(WATCH_POSITION_BOTTOM, "12h");
+            break;
+        }
     }
 }
 

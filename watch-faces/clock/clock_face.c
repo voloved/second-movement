@@ -305,7 +305,12 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
 
 static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     char buf[2 + 1];
-    movement_set_clock_mode_24h(((movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES));
+    if (movement_clock_mode_24h() != MOVEMENT_CLOCK_MODE_12H) {
+        movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_12H);
+    } else {
+        movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_24H);
+        // Change the input to MOVEMENT_CLOCK_MODE_024H if you'd like the button to toggle between 12hr and 024hr mode.
+    }
     bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H;
     bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
     if (in_12h_mode) {

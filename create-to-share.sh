@@ -4,9 +4,11 @@ set -e
 
 if [[ "$1" == "--me" ]]; then
     SHARE=false
+    RELEASE_DIR="release-no-share"
     echo "NOT BUILDING TO SHARE"
 else
     SHARE=true
+    RELEASE_DIR="release"
     echo "BUILDING TO SHARE"
 fi
 
@@ -19,7 +21,7 @@ else
     return_to_branch=$current_branch
 fi
 
-rm -rf release
+rm -rf "$RELEASE_DIR"
 
 # Function to build and move firmware
 build_and_move() {
@@ -33,8 +35,8 @@ build_and_move() {
     else
         make BOARD="$board" DISPLAY="$display"
     fi
-    mkdir -p "release/$branch"
-    mv build/firmware.uf2 "release/$branch/firmware-${board}-${display}.uf2"
+    mkdir -p "$RELEASE_DIR/$branch"
+    mv build/firmware.uf2 "$RELEASE_DIR/$branch/firmware-${board}-${display}.uf2"
 }
 
 build_all_for_branch() {

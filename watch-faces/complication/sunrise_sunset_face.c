@@ -121,8 +121,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
         return;
     }
 
-    watch_date_time_t utc_now = movement_get_utc_date_time();
-    watch_date_time_t date_time = watch_utility_date_time_convert_zone(utc_now, 0, tz);
+    watch_date_time_t date_time = movement_get_local_date_time(); // the current local date / time
     watch_date_time_t scratch_time; // scratchpad, contains different values at different times
     scratch_time.reg = date_time.reg;
 

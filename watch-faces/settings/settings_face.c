@@ -60,7 +60,7 @@ static void clock_setting_advance(void) {
     }
     movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
 #ifndef BUILD_TO_SHARE
-    if (next_mode == MOVEMENT_CLOCK_MODE_024H) next_mode = 0;  // This avoids using trailing zeroes.
+    if (next_mode > MOVEMENT_CLOCK_MODE_24H) next_mode = 0;  // This avoids using trailing zeroes.
 #endif
     if (next_mode == 0)
         movement_set_clock_mode_toggle(true);

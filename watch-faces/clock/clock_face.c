@@ -227,7 +227,7 @@ static void clock_display_all(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d%02d" : "%2d%2d%02d%02d",
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d%02d%02d" : "%2d%2d%02d%02d",
         date_time.unit.day,
         date_time.unit.hour,
         date_time.unit.minute,
@@ -274,7 +274,7 @@ static bool clock_display_some(watch_date_time_t current, watch_date_time_t prev
 
 static void clock_display_clock(clock_state_t *state, watch_date_time_t current) {
     if (!clock_display_some(current, state->date_time.previous)) {
-        if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H) {
+        if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) {
             clock_indicate_pm(current);
             current = clock_24h_to_12h(current);
         }
@@ -283,7 +283,7 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
 }
 
 static void clock_display_low_energy(watch_date_time_t date_time) {
-    if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H) {
+    if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) {
         clock_indicate_pm(date_time);
         date_time = clock_24h_to_12h(date_time);
     }
@@ -292,7 +292,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%02d  " : "%2d%2d%02d  ",
+        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d%02d  " : "%2d%2d%02d  ",
         date_time.unit.day,
         date_time.unit.hour,
         date_time.unit.minute
@@ -305,20 +305,19 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
 
 static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     char buf[2 + 1];
-    if (movement_clock_mode_24h() != MOVEMENT_CLOCK_MODE_12H) {
-        movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_12H);
-    } else {
-        movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_24H);
-        // Change the input to MOVEMENT_CLOCK_MODE_024H if you'd like the button to toggle between 12hr and 024hr mode.
-    }
-    bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H;
+    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
+#ifndef BUILD_TO_SHARE
+    if (next_mode > MOVEMENT_CLOCK_MODE_24H) next_mode = 0;  // This avoids using trailing zeroes.
+#endif
+    movement_set_clock_mode_24h(next_mode);
+    bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H;
     bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
     if (in_12h_mode) {
         date_time = clock_24h_to_12h(date_time);
     }
     clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
     clock_indicate_24h();
-    snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H ? "%02d" : "%2d", date_time.unit.hour);
+    snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d" : "%2d", date_time.unit.hour);
     watch_display_text(WATCH_POSITION_HOURS, buf);
 }
 

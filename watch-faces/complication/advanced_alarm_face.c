@@ -97,7 +97,7 @@ static void _alarm_show_alarm_on_text(alarm_state_t *state) {
 
 static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
     char buf[12];
-    bool set_leading_zero = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H;
+    bool set_leading_zero = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H;
 
     uint8_t i = 0;
     if (state->is_setting) {

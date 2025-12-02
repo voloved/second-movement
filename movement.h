@@ -53,6 +53,7 @@ typedef struct {
 typedef enum {
     MOVEMENT_CLOCK_MODE_12H = 0,    /// use 12 hour clock
     MOVEMENT_CLOCK_MODE_24H,        /// use 24 hour clock
+    MOVEMENT_CLOCK_MODE_012H,       /// use 12 hour clock with leading zero
     MOVEMENT_CLOCK_MODE_024H,       /// use 24 hour clock with leading zero
     MOVEMENT_NUM_CLOCK_MODES
 } movement_clock_mode_t;

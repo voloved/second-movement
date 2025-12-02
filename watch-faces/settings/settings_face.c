@@ -35,6 +35,9 @@ static void clock_setting_display(uint8_t subsecond) {
         }
         switch (movement_clock_mode_24h())
         {
+        case MOVEMENT_CLOCK_MODE_012H:
+            watch_display_text(WATCH_POSITION_BOTTOM, "012h");
+            break;
         case MOVEMENT_CLOCK_MODE_024H:
             watch_display_text(WATCH_POSITION_BOTTOM, "024h");
             break;
@@ -57,7 +60,7 @@ static void clock_setting_advance(void) {
     }
     movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
 #ifndef BUILD_TO_SHARE
-    if (next_mode == MOVEMENT_CLOCK_MODE_024H) next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;  // This avoids using 024Hr mode.
+    if (next_mode == MOVEMENT_CLOCK_MODE_024H) next_mode = 0;  // This avoids using trailing zeroes.
 #endif
     if (next_mode == 0)
         movement_set_clock_mode_toggle(true);

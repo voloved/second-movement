@@ -196,7 +196,7 @@ static void _display_act_time(uint8_t act_num, movement_clock_mode_t clock_mode_
     watch_date_time_t disp_time = display_end ? festival_acts[act_num].end_time : festival_acts[act_num].start_time;
     watch_clear_display();
     watch_set_colon();
-    if (clock_mode_24h == MOVEMENT_CLOCK_MODE_12H){
+    if (clock_mode_24h == MOVEMENT_CLOCK_MODE_12H || clock_mode_24h == MOVEMENT_CLOCK_MODE_012H){
         watch_clear_indicator(WATCH_INDICATOR_24H);
         // if we are in 12 hour mode, do some cleanup.
         if (disp_time.unit.hour < 12) {
@@ -213,7 +213,7 @@ static void _display_act_time(uint8_t act_num, movement_clock_mode_t clock_mode_
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time), watch_utility_get_weekday(disp_time));
     sprintf(buf, "%2d", disp_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    sprintf(buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H ? "%02d%02d%s" : "%2d%02d%s",
+    sprintf(buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H || clock_mode_24h == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d%s" : "%2d%02d%s",
         disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

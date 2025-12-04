@@ -163,7 +163,7 @@ static void show_main_screen(solstice_state_t *state) {
 static void show_date_time(solstice_state_t *state) {
     char buf[11];
     watch_date_time_t date_time = state->datetimes[state->index];
-    if (!movement_clock_mode_24h()) {
+    if (!movement_clock_is_24h()) {
         if (date_time.unit.hour < 12) {
             watch_clear_indicator(WATCH_INDICATOR_PM);
         } else {

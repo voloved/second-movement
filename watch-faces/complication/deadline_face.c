@@ -374,10 +374,10 @@ static void _deadline_settings_display(movement_event_t event,
     if (state->current_page > 2) {
         /* Time settings */
         watch_set_colon();
-        if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_24H) {
+        if (movement_clock_is_24h()) {
             /* 24h format */
             watch_set_indicator(WATCH_INDICATOR_24H);
-            sprintf(buf, "%2d%02d  ", date_time.unit.hour, date_time.unit.minute);
+            sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d  ": "%2d%02d  ", date_time.unit.hour, date_time.unit.minute);
         } else {
             /* 12h format */
             if (date_time.unit.hour < 12)
@@ -392,7 +392,7 @@ static void _deadline_settings_display(movement_event_t event,
         watch_clear_colon();
         watch_clear_indicator(WATCH_INDICATOR_24H);
         watch_clear_indicator(WATCH_INDICATOR_PM);
-        sprintf(buf, "%2d%02d%02d",
+        sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
                 date_time.unit.year + 20, date_time.unit.month, date_time.unit.day);
     }
 

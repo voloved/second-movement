@@ -59,7 +59,7 @@ void simple_clock_bin_led_face_activate(void *context) {
 
     if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
 
-    if (movement_clock_mode_24h()) watch_set_indicator(WATCH_INDICATOR_24H);
+    if (movement_clock_is_24h()) watch_set_indicator(WATCH_INDICATOR_24H);
 
     // handle chime indicator
     if (state->signal_enabled) watch_set_indicator(WATCH_INDICATOR_BELL);
@@ -146,7 +146,7 @@ bool simple_clock_bin_led_face_loop(movement_event_t event, void *context) {
                     sprintf(buf, "%02d%02d", date_time.unit.minute, date_time.unit.second);
                 } else {
                     // other stuff changed; let's do it all.
-                    if (!movement_clock_mode_24h()) {
+                    if (!movement_clock_is_24h()) {
                         // if we are in 12 hour mode, do some cleanup.
                         if (date_time.unit.hour < 12) {
                             watch_clear_indicator(WATCH_INDICATOR_PM);
@@ -184,7 +184,7 @@ bool simple_clock_bin_led_face_loop(movement_event_t event, void *context) {
                 date_time = movement_get_local_date_time();
                 state->flashing_state = 1 + 128;
                 state->ticks = 4;
-                if (!movement_clock_mode_24h()) {
+                if (!movement_clock_is_24h()) {
                     date_time.unit.hour %= 12;
                     if (date_time.unit.hour == 0) date_time.unit.hour = 12;
                 }

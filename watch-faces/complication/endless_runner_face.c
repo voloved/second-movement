@@ -376,7 +376,6 @@ static void display_score_screen(endless_runner_state_t *state) {
 static void display_time(void) {
     static watch_date_time_t previous_date_time;
     watch_date_time_t date_time = movement_get_local_date_time();
-    movement_clock_mode_t clock_mode_24h = movement_clock_mode_24h();
     char buf[6 + 1];
 
     // If the hour needs updating or it's the first time displaying the time
@@ -387,13 +386,13 @@ static void display_time(void) {
             watch_set_colon();
             watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
         }
-        if (clock_mode_24h != MOVEMENT_CLOCK_MODE_12H && clock_mode_24h != MOVEMENT_CLOCK_MODE_012H) watch_set_indicator(WATCH_INDICATOR_24H);
+        if (movement_clock_is_24h()) watch_set_indicator(WATCH_INDICATOR_24H);
         else {
             if (hour >= 12) watch_set_indicator(WATCH_INDICATOR_PM);
             hour %= 12;
             if (hour == 0) hour = 12;
         }
-        sprintf( buf, clock_mode_24h == MOVEMENT_CLOCK_MODE_024H || clock_mode_24h == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d  " : "%2d%02d  ", hour, date_time.unit.minute);
+        sprintf( buf, movement_clock_has_leading_zeroes() ? "%02d%02d  " : "%2d%02d  ", hour, date_time.unit.minute);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     }
     // If only the minute need updating

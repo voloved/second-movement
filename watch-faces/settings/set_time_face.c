@@ -168,10 +168,9 @@ bool set_time_face_loop(movement_event_t event, void *context) {
         sprintf(buf, "%2d%02d%02d", date_time.unit.year + 20, date_time.unit.month, date_time.unit.day);
     } else {
         watch_set_colon();
-        if (movement_clock_mode_24h()) {
+        if (movement_clock_is_24h()) {
             watch_set_indicator(WATCH_INDICATOR_24H);
-            sprintf(buf, (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H)
-                ? "%02d%02d%02d" :"%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+            sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" :"%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
         } else {
             sprintf(buf, "%2d%02d%02d", (date_time.unit.hour % 12) ? (date_time.unit.hour % 12) : 12, date_time.unit.minute, date_time.unit.second);
             if (date_time.unit.hour < 12) watch_clear_indicator(WATCH_INDICATOR_PM);

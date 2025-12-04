@@ -170,7 +170,7 @@ static bool mode_display(movement_event_t event, world_clock2_state_t *state)
 	    if (refresh_face) {
 		watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
 		watch_set_colon();
-                if (movement_clock_mode_24h())
+                if (movement_clock_is_24h())
                     watch_set_indicator(WATCH_INDICATOR_24H);
 
                 state->previous_date_time = REFRESH_TIME;
@@ -192,7 +192,7 @@ static bool mode_display(movement_event_t event, world_clock2_state_t *state)
 		sprintf(buf, "%02d%02d", date_time.unit.minute, date_time.unit.second);
 	    } else {
 		/* Other stuff changed; Let's do it all. */
-		if (!movement_clock_mode_24h()) {
+		if (!movement_clock_is_24h()) {
 		    /* If we are in 12 hour mode, do some cleanup. */
 		    if (date_time.unit.hour < 12) {
 			watch_clear_indicator(WATCH_INDICATOR_PM);

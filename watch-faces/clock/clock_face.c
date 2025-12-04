@@ -170,7 +170,7 @@ static void clock_indicate_time_signal(clock_state_t *state) {
 }
 
 static void clock_indicate_24h() {
-    clock_indicate(WATCH_INDICATOR_24H, !!movement_clock_mode_24h());
+    clock_indicate(WATCH_INDICATOR_24H, movement_clock_is_24h());
 }
 
 static bool clock_is_pm(watch_date_time_t date_time) {
@@ -178,7 +178,7 @@ static bool clock_is_pm(watch_date_time_t date_time) {
 }
 
 static void clock_indicate_pm(watch_date_time_t date_time) {
-    if (movement_clock_mode_24h()) { return; }
+    if (movement_clock_is_24h()) { return; }
     clock_indicate(WATCH_INDICATOR_PM, clock_is_pm(date_time));
 }
 
@@ -229,7 +229,7 @@ static void clock_display_all(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) ? "%02d" : "%2d",
+        (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
         date_time.unit.day
     );
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);   
@@ -237,7 +237,7 @@ static void clock_display_all(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d%02d" : "%2d%02d%02d",
+        movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
         date_time.unit.hour,
         date_time.unit.minute,
         date_time.unit.second
@@ -280,7 +280,7 @@ static bool clock_display_some(watch_date_time_t current, watch_date_time_t prev
 
 static void clock_display_clock(clock_state_t *state, watch_date_time_t current) {
     if (!clock_display_some(current, state->date_time.previous)) {
-        if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) {
+        if (!movement_clock_is_24h()) {
             clock_indicate_pm(current);
             current = clock_24h_to_12h(current);
         }
@@ -289,7 +289,7 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
 }
 
 static void clock_display_low_energy(watch_date_time_t date_time) {
-    if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) {
+    if (!movement_clock_is_24h()) {
         clock_indicate_pm(date_time);
         date_time = clock_24h_to_12h(date_time);
     }
@@ -300,7 +300,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) ? "%02d" : "%2d",
+        (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
         date_time.unit.day
     );
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);   
@@ -308,7 +308,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     snprintf(
         buf,
         sizeof(buf),
-        movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d%02d  " : "%2d%02d  ",
+        movement_clock_has_leading_zeroes() ? "%02d%02d  " : "%2d%02d  ",
         date_time.unit.hour,
         date_time.unit.minute
     );
@@ -322,7 +322,7 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     if (next_mode > MOVEMENT_CLOCK_MODE_24H) next_mode = 0;  // This avoids using trailing zeroes.
 #endif
     movement_set_clock_mode_24h(next_mode);
-    bool in_12h_mode = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H;
+    bool in_12h_mode = !movement_clock_is_24h();
     bool indicate_pm = in_12h_mode && clock_is_pm(date_time);
     if (in_12h_mode) {
         date_time = clock_24h_to_12h(date_time);
@@ -330,10 +330,10 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
     clock_indicate_24h();
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {
-        snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d" : "%2d", date_time.unit.day);
+        snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     } 
-    snprintf(buf, sizeof(buf), movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H ? "%02d" : "%2d", date_time.unit.hour);
+    snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.hour);
     watch_display_text(WATCH_POSITION_HOURS, buf);
 }
 

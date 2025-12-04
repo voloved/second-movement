@@ -93,9 +93,11 @@ static void _voltage_face_logging_update_display(voltage_face_state_t *logger_st
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        sprintf(buf, "%2d", date_time.unit.day);
+        sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
+                ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-        sprintf(buf, "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+        sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
+                date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else {
         // we are displaying the voltage
@@ -133,25 +135,25 @@ bool voltage_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + VOLTAGE_LOGGING_CYC - 1) % VOLTAGE_LOGGING_CYC;
             logger_state->ts_ticks = 0;
-            _voltage_face_logging_update_display(logger_state, movement_clock_mode_24h(), true);
+            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
             break;
         case EVENT_ALARM_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + 1) % VOLTAGE_LOGGING_CYC;
             logger_state->ts_ticks = 0;
-            _voltage_face_logging_update_display(logger_state, movement_clock_mode_24h(), true);
+            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
             break;
         case EVENT_ALARM_LONG_PRESS:
             if (displaying_curr_volt) break;
             else logger_state->ts_ticks = 2;
-            _voltage_face_logging_update_display(logger_state, movement_clock_mode_24h(), true);
+            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
             break;
         case EVENT_ACTIVATE:
-            _voltage_face_logging_update_display(logger_state, movement_clock_mode_24h(), true);
+            _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), true);
             break;
         case EVENT_TICK:
             if(displaying_curr_volt) _voltage_face_blink_display(false);
             else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
-                _voltage_face_logging_update_display(logger_state, movement_clock_mode_24h(), false);
+                _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), false);
             }
             break;
         case EVENT_BACKGROUND_TASK:

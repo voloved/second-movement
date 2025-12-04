@@ -52,7 +52,7 @@ static void ish_face_update_display(ish_face_state_t *state, watch_date_time_t d
     uint8_t hour = date_time.unit.hour;
     uint8_t minute = date_time.unit.minute;
     // Support 12/24h mode
-    if (movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_12H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H) {
+    if (movement_clock_has_leading_zeroes()) {
         hour = hour % 12;
         if (hour == 0) hour = 12;
     }

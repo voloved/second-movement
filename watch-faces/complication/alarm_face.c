@@ -36,7 +36,7 @@
 static void _alarm_face_display_alarm_time(alarm_face_state_t *state) {
     uint8_t hour = state->hour;
 
-    if ( movement_clock_mode_24h() )
+    if ( movement_clock_is_24h() )
         watch_set_indicator(WATCH_INDICATOR_24H);
     else {
         if ( hour >= 12 ) watch_set_indicator(WATCH_INDICATOR_PM);
@@ -45,7 +45,7 @@ static void _alarm_face_display_alarm_time(alarm_face_state_t *state) {
     }
 
     static char lcdbuf[7];
-    sprintf(lcdbuf, "%2d%02d  ", hour, state->minute);
+    sprintf(lcdbuf, movement_clock_has_leading_zeroes() ? "%02d%02d  " : "%2d%02d  ", hour, state->minute);
 
     watch_display_text(WATCH_POSITION_BOTTOM, lcdbuf);
 }

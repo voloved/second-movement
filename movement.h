@@ -460,6 +460,9 @@ void movement_set_clock_mode_24h(movement_clock_mode_t value);
 bool movement_clock_mode_toggle(void);
 void movement_set_clock_mode_toggle(bool value);
 
+bool movement_clock_has_leading_zeroes(void);
+bool movement_clock_is_24h(void);
+
 bool movement_use_imperial_units(void);
 void movement_set_use_imperial_units(bool value);
 

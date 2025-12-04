@@ -97,7 +97,7 @@ static void _alarm_show_alarm_on_text(alarm_state_t *state) {
 
 static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
     char buf[12];
-    bool set_leading_zero = movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_024H || movement_clock_mode_24h() == MOVEMENT_CLOCK_MODE_012H;
+    bool set_leading_zero = movement_clock_has_leading_zeroes();
 
     uint8_t i = 0;
     if (state->is_setting) {
@@ -106,7 +106,7 @@ static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
     }
     //handle am/pm for hour display
     uint8_t h = state->alarm[state->alarm_idx].hour;
-    if (!movement_clock_mode_24h()) {
+    if (!movement_clock_is_24h()) {
         if (h >= 12) {
             watch_set_indicator(WATCH_INDICATOR_PM);
             h %= 12;

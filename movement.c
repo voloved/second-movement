@@ -1046,6 +1046,16 @@ bool movement_clock_mode_toggle(void) {
     return movement_state.settings.clock_mode_toggle;
 }
 
+bool movement_clock_has_leading_zeroes(void) {
+    return (movement_state.settings.clock_mode_24h == MOVEMENT_CLOCK_MODE_012H
+        || movement_state.settings.clock_mode_24h == MOVEMENT_CLOCK_MODE_024H);
+}
+
+bool movement_clock_is_24h(void) {
+    return (movement_state.settings.clock_mode_24h == MOVEMENT_CLOCK_MODE_24H
+        || movement_state.settings.clock_mode_24h == MOVEMENT_CLOCK_MODE_024H);
+}
+
 void movement_set_clock_mode_toggle(bool value) {
     movement_state.settings.clock_mode_toggle = value;
 }

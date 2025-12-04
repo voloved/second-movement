@@ -50,7 +50,7 @@ static void _lis2dw_logging_face_update_display(lis2dw_logger_state_t *logger_st
         } else {
             date_time = logger_state->data[pos].timestamp;
             watch_set_colon();
-            if (movement_clock_mode_24h()) {
+            if (movement_clock_is_24h()) {
                 watch_set_indicator(WATCH_INDICATOR_24H);
             } else {
                 if (date_time.unit.hour > 11) watch_set_indicator(WATCH_INDICATOR_PM);

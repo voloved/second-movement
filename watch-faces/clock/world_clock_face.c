@@ -165,7 +165,7 @@ static bool world_clock_face_do_display_mode(movement_event_t event, world_clock
     watch_date_time_t date_time;
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (movement_clock_mode_24h()) watch_set_indicator(WATCH_INDICATOR_24H);
+            if (movement_clock_is_24h()) watch_set_indicator(WATCH_INDICATOR_24H);
             watch_set_colon();
             state->previous_date_time = 0xFFFFFFFF;
             // fall through
@@ -189,7 +189,7 @@ static bool world_clock_face_do_display_mode(movement_event_t event, world_clock
                 }
             } else {
                 // other stuff changed; let's do it all.
-                if (!movement_clock_mode_24h()) {
+                if (!movement_clock_is_24h()) {
                     // if we are in 12 hour mode, do some cleanup.
                     if (date_time.unit.hour < 12) {
                         watch_clear_indicator(WATCH_INDICATOR_PM);
@@ -204,17 +204,21 @@ static bool world_clock_face_do_display_mode(movement_event_t event, world_clock
                 if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
                     watch_display_character(state->settings.bit.char_2, 10);
                 }
-                sprintf(buf, "%2d%2d%02d%02d", date_time.unit.day, date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+                sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
+                        ? "%02d" : "%2d", date_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-                watch_display_text(WATCH_POSITION_HOURS, buf + 2);
-                watch_display_text(WATCH_POSITION_MINUTES, buf + 4);
+                sprintf(buf, movement_clock_has_leading_zeroes()
+                        ? "%2d%02d%02d" : "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute);
+                watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+                watch_display_text(WATCH_POSITION_HOURS, buf);
+                watch_display_text(WATCH_POSITION_MINUTES, buf + 2);
                 if (event.event_type == EVENT_LOW_ENERGY_UPDATE) {
                     if (!watch_sleep_animation_is_running()) {
                         watch_display_text(WATCH_POSITION_SECONDS, "  ");
                         watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
                     }
                 } else {
-                    watch_display_text(WATCH_POSITION_SECONDS, buf + 6);
+                    watch_display_text(WATCH_POSITION_SECONDS, buf + 4);
                 }
             }
             break;

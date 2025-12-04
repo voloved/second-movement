@@ -99,9 +99,12 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        sprintf(buf, "%2d", date_time.unit.day);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
+        sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
+                ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-        sprintf(buf, "%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+        sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" : "%2d%02d%02d",
+                date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else {
         // we are displaying the temperature
@@ -147,29 +150,29 @@ bool temperature_logging_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + THERMISTOR_LOGGING_CYC - 1) % THERMISTOR_LOGGING_CYC;
             logger_state->ts_ticks = 0;
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
             break;
         case EVENT_ALARM_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + 1) % THERMISTOR_LOGGING_CYC;
             logger_state->ts_ticks = 0;
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
             break;
         case EVENT_ALARM_LONG_PRESS:
             if (displaying_curr_temp) movement_set_use_imperial_units(!movement_use_imperial_units());
             else logger_state->ts_ticks = 2;
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
             break;
         case EVENT_ACTIVATE:
             if (skip) {
                 movement_move_to_next_face();
                 return false;
             }
-            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), true);
+            _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
             break;
         case EVENT_TICK:
             if(displaying_curr_temp) _temperature_logging_face_blink_display(movement_use_imperial_units(), false);
             else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
-                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_mode_24h(), false);
+                _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), false);
             }
             break;
         case EVENT_BACKGROUND_TASK:

@@ -30,7 +30,7 @@ static void _minimal_clock_face_update_display() {
     watch_date_time_t date_time = movement_get_local_date_time();
     char buffer[11];
 
-    if (!movement_clock_mode_24h()) {
+    if (!movement_clock_is_24h()) {
         date_time.unit.hour %= 12;
         sprintf(buffer, "%2d%02d  ", date_time.unit.hour, date_time.unit.minute);
     } else {

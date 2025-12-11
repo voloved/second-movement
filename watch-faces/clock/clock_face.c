@@ -318,9 +318,6 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
 static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     char buf[2 + 1];
     movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
-#ifndef BUILD_TO_SHARE
-    if (next_mode > MOVEMENT_CLOCK_MODE_24H) next_mode = 0;  // This avoids using trailing zeroes.
-#endif
     movement_set_clock_mode_24h(next_mode);
     bool in_12h_mode = !movement_clock_is_24h();
     bool indicate_pm = in_12h_mode && clock_is_pm(date_time);

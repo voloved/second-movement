@@ -82,4 +82,5 @@
 #include "simon_face.h"
 #include "rtccount_face.h"
 #include "step_counter_face.h"
+#include "ping_face.h"
 // New includes go above this line.

@@ -76,9 +76,9 @@ const watch_face_t watch_faces[] = {
  */
 
 #ifdef BUILD_TO_SHARE
-#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 7)
-#else
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 8)
+#else
+#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 9)
 #endif
 
 #ifdef I2C_SERCOM

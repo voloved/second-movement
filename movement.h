@@ -51,20 +51,17 @@ typedef struct {
 // This allows these preferences to be stored before entering BACKUP mode and and restored after waking from reset.
 
 typedef enum {
-#ifdef BUILD_TO_SHARE
     MOVEMENT_CLOCK_MODE_12H = 0,    /// use 12 hour clock
     MOVEMENT_CLOCK_MODE_24H,        /// use 24 hour clock
-    MOVEMENT_CLOCK_MODE_012H,       /// use 12 hour clock with leading zero
-    MOVEMENT_CLOCK_MODE_024H,       /// use 24 hour clock with leading zero
-    MOVEMENT_NUM_CLOCK_MODES
-  #else
-    MOVEMENT_CLOCK_MODE_12H = 0,    /// use 12 hour clock
-    MOVEMENT_CLOCK_MODE_24H,        /// use 24 hour clock
-    MOVEMENT_NUM_CLOCK_MODES,
     MOVEMENT_CLOCK_MODE_012H,       /// use 12 hour clock with leading zero
     MOVEMENT_CLOCK_MODE_024H        /// use 24 hour clock with leading zero
-  #endif
 } movement_clock_mode_t;
+
+#ifdef BUILD_TO_SHARE
+#define MOVEMENT_LAST_CLOCK_MODE MOVEMENT_CLOCK_MODE_024H
+#else  // Don't use trailing zeroes on my build
+#define MOVEMENT_LAST_CLOCK_MODE MOVEMENT_CLOCK_MODE_24H
+#endif
 
 typedef enum {
     MOVEMENT_LE_SCREEN_OFF_DISABLE = 0,

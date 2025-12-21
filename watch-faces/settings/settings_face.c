@@ -58,7 +58,7 @@ static void clock_setting_advance(void) {
         movement_set_clock_mode_24h(MOVEMENT_CLOCK_MODE_12H);
         return;
     }
-    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % MOVEMENT_NUM_CLOCK_MODES;
+    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_LAST_CLOCK_MODE + 1);
     if (next_mode == 0)
         movement_set_clock_mode_toggle(true);
     movement_set_clock_mode_24h(next_mode);

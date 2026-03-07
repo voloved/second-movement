@@ -25,6 +25,14 @@ ifeq ($(BOARD),lite)
     $(info Setting Display to: $(DISPLAY))
 endif
 
+ifneq (,$(filter $(BOARD),jolt sensorwatch_jolt))
+    DISPLAY = jolt
+    override BOARD = sensorwatch_jolt
+    $(info Setting Board to: $(BOARD))
+    $(info Setting Display to: $(DISPLAY))
+    DEFINES += -DFORCE_JOLT_LCD_TYPE
+endif
+
 # Set this to the type of display in your watch: classic or custom. Commented out to force a choice when building.
 # DISPLAY=classic
 ifeq ($(DISPLAY),:0)
@@ -69,7 +77,7 @@ ifeq (,$(filter clean,$(MAKECMDGOALS)))
         DEFINES += -DFORCE_CLASSIC_LCD_TYPE
       else ifeq ($(DISPLAY), autodetect)
         $(warning WARNING: LCD autodetection is experimental and not reliable! We suggest specifying DISPLAY=classic or DISPLAY=custom for reliable operation.)
-      else
+      else ifneq ($(DISPLAY), jolt)
         $(error Build failed: invalid DISPLAY type. Use one of the options below, depending on your hardware:$n$n    make BOARD=board_type DISPLAY=classic$n    make BOARD=board_type DISPLAY=custom$n$n)
       endif
     endif

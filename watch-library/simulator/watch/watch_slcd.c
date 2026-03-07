@@ -48,14 +48,23 @@ watch_lcd_type_t watch_get_lcd_type(void) {
 void watch_enable_display(void) {
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     _watch_update_indicator_segments();
+#elif defined(FORCE_GSHOCK_LCD_TYPE)
+    _watch_update_indicator_segments_gshock();
 #endif
 
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     EM_ASM({document.getElementById("custom").style.display = "";});
     EM_ASM({document.getElementById("classic").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
+#elif defined(FORCE_GSHOCK_LCD_TYPE)
+    EM_ASM({document.getElementById("custom").style.display = "none";});
+    EM_ASM({document.getElementById("classic").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "";});
+    EM_ASM({ setNewSkin("dw5600"); });
 #else
     EM_ASM({document.getElementById("custom").style.display = "none";});
     EM_ASM({document.getElementById("classic").style.display = "";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
 #endif
 
     watch_clear_display();
@@ -65,6 +74,7 @@ void watch_disable_display(void) {
     watch_clear_display();
     EM_ASM({document.getElementById("classic").style.display = "none";});
     EM_ASM({document.getElementById("custom").style.display = "none";});
+    EM_ASM({document.getElementById("gshock").style.display = "none";});
 }
 
 void watch_set_pixel(uint8_t com, uint8_t seg) {
@@ -109,7 +119,7 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
 }
 
 void watch_set_sleep_indicator_if_possible(void) {
-#if defined(FORCE_CUSTOM_LCD_TYPE)
+#if defined(FORCE_CUSTOM_LCD_TYPE) || defined(FORCE_GSHOCK_LCD_TYPE)
     watch_set_indicator(WATCH_INDICATOR_SLEEP);
 #endif
 }
@@ -144,7 +154,7 @@ bool watch_sleep_animation_is_running(void) {
 }
 
 void watch_clear_sleep_indicator_if_possible(void) {
-#if defined(FORCE_CUSTOM_LCD_TYPE)
+#if defined(FORCE_CUSTOM_LCD_TYPE) || defined(FORCE_GSHOCK_LCD_TYPE)
     watch_clear_indicator(WATCH_INDICATOR_SLEEP);
 #endif
 }

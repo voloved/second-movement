@@ -30,7 +30,7 @@ ifneq (,$(filter $(BOARD),jolt sensorwatch_jolt))
     override BOARD = sensorwatch_jolt
     $(info Setting Board to: $(BOARD))
     $(info Setting Display to: $(DISPLAY))
-    DEFINES += -DFORCE_JOLT_LCD_TYPE
+    DEFINES += -DFORCE_GSHOCK_LCD_TYPE
 endif
 
 # Set this to the type of display in your watch: classic or custom. Commented out to force a choice when building.

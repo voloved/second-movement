@@ -50,6 +50,10 @@ void watch_discover_lcd_type(void) {
     _installed_display = WATCH_LCD_TYPE_CUSTOM;
     _watch_update_indicator_segments();
     return;
+    #elif defined(FORCE_GSHOCK_LCD_TYPE)
+    _installed_display = WATCH_LCD_TYPE_GSHOCK;
+    _watch_update_indicator_segments();
+    return;
     #elif defined(FORCE_CLASSIC_LCD_TYPE)
     _installed_display = WATCH_LCD_TYPE_CLASSIC;
     return;
@@ -240,6 +244,11 @@ void watch_enable_display(void) {
         slcd_init(LCD_PIN_ENABLE, SLCD_BIAS_THIRD, SLCD_DUTY_4_COMMON, SLCD_CLOCKSOURCE_XOSC, SLCD_PRESCALER_DIV64, SLCD_CLOCKDIV_4);
         // exact frame rate is: 32768 / (4 * 64 * 4) ≈ 32 Hz
         _slcd_framerate = 32;
+    } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
+        // Custom LCD: 1/3 bias, 1/4 duty with a frame rate of 32 Hz
+        slcd_init(LCD_PIN_ENABLE, SLCD_BIAS_THIRD, SLCD_DUTY_4_COMMON, SLCD_CLOCKSOURCE_XOSC, SLCD_PRESCALER_DIV64, SLCD_CLOCKDIV_4);
+        // exact frame rate is: 32768 / (4 * 64 * 4) ≈ 32 Hz
+        _slcd_framerate = 32;
     } else {
         // Original famous Casio LCD: 1/3 bias, 1/3 duty with a frame rate of ~34 Hz
         slcd_init(LCD_PIN_ENABLE, SLCD_BIAS_THIRD, SLCD_DUTY_3_COMMON, SLCD_CLOCKSOURCE_XOSC, SLCD_PRESCALER_DIV64, SLCD_CLOCKDIV_5);
@@ -340,13 +349,13 @@ void watch_stop_blink(void) {
 }
 
 void watch_set_sleep_indicator_if_possible(void) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         watch_set_indicator(WATCH_INDICATOR_SLEEP);
     }
 }
 
 void watch_start_sleep_animation(uint32_t duration) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         // on pro LCD, we just show the sleep indicator
         watch_set_indicator(WATCH_INDICATOR_SLEEP);
     } else {

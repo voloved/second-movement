@@ -434,7 +434,7 @@ static void _movement_handle_button_presses(uint64_t pending_events) {
         _movement_start_button_events_mask
     };
 
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
     for (uint8_t i = 0; i < 4; i++) {  // START button logic only runs on the G-Shock
 #else
     for (uint8_t i = 0; i < 3; i++) {
@@ -678,6 +678,15 @@ bool movement_default_loop_handler(movement_event_t event) {
         case EVENT_LIGHT_LONG_UP:
             if (movement_state.settings.led_duration == 0) {
                 movement_force_led_off();
+            }
+            break;
+        case EVENT_START_BUTTON_UP:
+            if (can_go_to_teriary_face() ) {
+                if (movement_state.current_face_idx < MOVEMENT_TERIARY_FACE_INDEX) {
+                    go_to_teriary_face();
+                } else {
+                    movement_move_to_face(0);
+                }
             }
             break;
         case EVENT_MODE_LONG_PRESS:
@@ -1751,7 +1760,7 @@ void app_init(void) {
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
     movement_volatile_state.start_button.down_event = EVENT_START_BUTTON_DOWN;
     movement_volatile_state.start_button.is_down = false;
     movement_volatile_state.start_button.down_timestamp = 0;
@@ -1889,7 +1898,7 @@ void app_setup(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
         watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #endif
 
@@ -2210,7 +2219,7 @@ bool app_loop(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_NONE);
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
         watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_extwake, INTERRUPT_TRIGGER_RISING);
 #endif
@@ -2337,7 +2346,7 @@ void cb_alarm_btn_interrupt(void) {
 }
 
 void cb_start_btn_interrupt(void) {
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
     bool pin_level = HAL_GPIO_BTN_START_read();
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.start_button);
@@ -2400,7 +2409,7 @@ void cb_alarm_btn_timeout_interrupt(void) {
 }
 
 void cb_start_btn_timeout_interrupt(void) {
-#if defined(FORCE_JOLT_LCD_TYPE)
+#if defined(FORCE_GSHOCK_LCD_TYPE)
     bool pin_level = HAL_GPIO_BTN_START_read();
     movement_button_t* button = &movement_volatile_state.start_button;
 

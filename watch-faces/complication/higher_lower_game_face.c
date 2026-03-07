@@ -154,8 +154,11 @@ static void init_game(void) {
 
 static void set_segment_at_position(segment_t segment, uint8_t position) {
     digit_mapping_t segmap;
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         segmap = Custom_LCD_Display_Mapping[position];
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        segmap = GShock_LCD_Display_Mapping[position];
     } else {
         segmap = Classic_LCD_Display_Mapping[position];
     }

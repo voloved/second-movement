@@ -613,145 +613,145 @@ static const digit_mapping_t GShock_LCD_Display_Mapping[] = {
             { .address = { .com = 3, .seg = 18 } }, // 0A
             { .address = { .com = 2, .seg = 17 } }, // 0B
             { .address = { .com = 0, .seg = 17 } }, // 0C
-            { .address = { .com = 0, .seg = 19 } }, // 0D
-            { .address = { .com = 1, .seg = 18 } }, // 0E
+            { .address = { .com = 0, .seg = 18 } }, // 0D
+            { .address = { .com = 1, .seg = 20 } }, // 0E
             { .address = { .com = 2, .seg = 18 } }, // 0F
-            { .address = { .com = 1, .seg = 19 } }, // 0G
-            { .address = { .com = 2, .seg = 19 } }, // 0H
+            { .address = { .com = 1, .seg = 6 } },  // 0G
+            { .address = { .com = 2, .seg = 21 } }, // 0H
+          //{ .address = { .com = 0, .seg = 21 } }, // 0I
         },
     },
     {
         .segment = {
-            { .address = { .com = 3, .seg = 19 } }, // 1A
+            { .address = { .com = 3, .seg = 9 } },  // 1A
             { .address = { .com = 2, .seg = 9 } },  // 1B
             { .address = { .com = 1, .seg = 9 } },  // 1C
             { .address = { .com = 0, .seg = 10 } }, // 1D
             { .address = { .com = 1, .seg = 17 } }, // 1E
             { .address = { .com = 2, .seg = 10 } }, // 1F
             { .address = { .com = 1, .seg = 10 } }, // 1G
-            { .value = segment_does_not_exist },    // 1H
+            { .address = { .com = 3, .seg = 6 } },  // 1H
         },
     },
-    // Positions 2 and 3 are the Month digits
+    // Positions 2 and 3 are the Day digits
     {
         .segment = {
-            { .address = { .com = 2, .seg =  8 } }, // 2A
-            { .address = { .com = 0, .seg =  9 } }, // 2B
-            { .address = { .com = 2, .seg =  9 } }, // 2C
-            { .address = { .com = 1, .seg =  9 } }, // 2D, same address as 2A and 2G
-            { .address = { .com = 0, .seg = 10 } }, // 2E
-            { .value = segment_does_not_exist },    // 2F
-            { .address = { .com = 1, .seg =  9 } }, // 2G, will override 2A and 2D when displaying a character
+            { .address = { .com = 3, .seg = 3 } },  // 2A
+            { .address = { .com = 3, .seg = 2 } },  // 2B
+            { .address = { .com = 1, .seg = 2 } },  // 2C
+            { .address = { .com = 1, .seg = 3 } },  // 2D
+            { .address = { .com = 2, .seg = 5 } },  // 2E
+            { .address = { .com = 3, .seg = 5 } },  // 2F
+            { .address = { .com = 2, .seg = 3 } },  // 2G
             { .value = segment_does_not_exist },    // 2H
         },
     },
     {
         .segment = {
-            { .address = { .com = 0, .seg =  7 } }, // 3A
-            { .address = { .com = 1, .seg =  7 } }, // 3B
-            { .address = { .com = 2, .seg =  7 } }, // 3C
-            { .address = { .com = 2, .seg =  6 } }, // 3D
-            { .address = { .com = 2, .seg =  8 } }, // 3E
-            { .address = { .com = 0, .seg =  8 } }, // 3F
-            { .address = { .com = 1, .seg =  8 } }, // 3G
+            { .address = { .com = 3, .seg = 0 } },  // 3A
+            { .address = { .com = 2, .seg = 0 } },  // 3B
+            { .address = { .com = 1, .seg = 0 } },  // 3C
+            { .address = { .com = 1, .seg = 1 } },  // 3D
+            { .address = { .com = 2, .seg = 2 } },  // 3E
+            { .address = { .com = 3, .seg = 1 } },  // 3F
+            { .address = { .com = 2, .seg = 1 } },  // 3G
             { .value = segment_does_not_exist },    // 3H
         },
     },
     // Positions 4-9 are the Clock digits
     {
         .segment = {
-            { .address = { .com = 1, .seg = 18 } }, // 4A, note that 4A and 4D have the same address
-            { .address = { .com = 2, .seg = 19 } }, // 4B
-            { .address = { .com = 0, .seg = 19 } }, // 4C
-            { .address = { .com = 1, .seg = 18 } }, // 4D, will override 4A when displaying a character
-            { .address = { .com = 0, .seg = 18 } }, // 4E
-            { .address = { .com = 2, .seg = 18 } }, // 4F
-            { .address = { .com = 1, .seg = 19 } }, // 4G
+            { .address = { .com = 0, .seg = 19 } }, // 4A
+            { .address = { .com = 1, .seg = 21 } }, // 4B
+            { .address = { .com = 3, .seg = 19 } }, // 4C
+            { .address = { .com = 3, .seg = 20 } }, // 4D
+            { .address = { .com = 2, .seg = 20 } }, // 4E
+            { .address = { .com = 1, .seg = 19 } }, // 4F
+            { .address = { .com = 2, .seg = 19 } }, // 4G
             { .value = segment_does_not_exist },    // 4H
         },
     },
     {
         .segment = {
-            { .address = { .com = 2, .seg = 20 } }, // 5A
-            { .address = { .com = 2, .seg = 21 } }, // 5B
-            { .address = { .com = 1, .seg = 21 } }, // 5C
-            { .address = { .com = 0, .seg = 21 } }, // 5D
-            { .address = { .com = 0, .seg = 20 } }, // 5E
-            { .address = { .com = 1, .seg = 17 } }, // 5F
-            { .address = { .com = 1, .seg = 20 } }, // 5G
+            { .address = { .com = 1, .seg = 26 } }, // 5A
+            { .address = { .com = 1, .seg = 23 } }, // 5B
+            { .address = { .com = 3, .seg = 26 } }, // 5C
+            { .address = { .com = 3, .seg = 23 } }, // 5D
+            { .address = { .com = 3, .seg = 21 } }, // 5E
+            { .address = { .com = 2, .seg = 22 } }, // 5F
+            { .address = { .com = 2, .seg = 26 } }, // 5G
             { .value = segment_does_not_exist },    // 5H
         },
     },
     {
         .segment = {
-            { .address = { .com = 0, .seg = 22 } }, // 6A, note that 6A and 6D have the same address
-            { .address = { .com = 2, .seg = 23 } }, // 6B
-            { .address = { .com = 0, .seg = 23 } }, // 6C
-            { .address = { .com = 0, .seg = 22 } }, // 6D, will override 6A when displaying a character
-            { .address = { .com = 1, .seg = 22 } }, // 6E
-            { .address = { .com = 2, .seg = 22 } }, // 6F
-            { .address = { .com = 1, .seg = 23 } }, // 6G
+            { .address = { .com = 0, .seg = 16 } }, // 6A
+            { .address = { .com = 1, .seg = 15 } }, // 6B
+            { .address = { .com = 2, .seg = 15 } }, // 6C
+            { .address = { .com = 3, .seg = 15 } }, // 6D
+            { .address = { .com = 3, .seg = 16 } }, // 6E
+            { .address = { .com = 1, .seg = 16 } }, // 6F
+            { .address = { .com = 2, .seg = 16 } }, // 6G
             { .value = segment_does_not_exist },    // 6H
         },
     },
     {
         .segment = {
-            { .address = { .com = 2, .seg =  1 } }, // 7A
-            { .address = { .com = 2, .seg = 10 } }, // 7B
-            { .address = { .com = 0, .seg =  1 } }, // 7C
-            { .address = { .com = 0, .seg =  0 } }, // 7D
-            { .address = { .com = 1, .seg =  0 } }, // 7E
-            { .address = { .com = 2, .seg =  0 } }, // 7F
-            { .address = { .com = 1, .seg =  1 } }, // 7G
+            { .address = { .com = 1, .seg = 13 } }, // 7A
+            { .address = { .com = 1, .seg = 14 } }, // 7B
+            { .address = { .com = 3, .seg = 25 } }, // 7C
+            { .address = { .com = 3, .seg = 13 } }, // 7D
+            { .address = { .com = 3, .seg = 14 } }, // 7E
+            { .address = { .com = 2, .seg = 13 } }, // 7F
+            { .address = { .com = 2, .seg = 14 } }, // 7G
             { .value = segment_does_not_exist },    // 7H
         },
     },
     {
         .segment = {
-            { .address = { .com = 2, .seg =  2 } }, // 8A
-            { .address = { .com = 2, .seg =  3 } }, // 8B
-            { .address = { .com = 0, .seg =  4 } }, // 8C
-            { .address = { .com = 0, .seg =  3 } }, // 8D
-            { .address = { .com = 0, .seg =  2 } }, // 8E
-            { .address = { .com = 1, .seg =  2 } }, // 8F
-            { .address = { .com = 1, .seg =  3 } }, // 8G
+            { .address = { .com = 0, .seg = 24 } }, // 8A
+            { .address = { .com = 1, .seg = 24 } }, // 8B
+            { .address = { .com = 2, .seg = 24 } }, // 8C
+            { .address = { .com = 3, .seg = 24 } }, // 8D
+            { .address = { .com = 2, .seg = 25 } }, // 8E
+            { .address = { .com = 0, .seg = 25 } }, // 8F
+            { .address = { .com = 1, .seg = 25 } }, // 8G
             { .value = segment_does_not_exist },    // 8H
         },
     },
     {
         .segment = {
-            { .address = { .com = 2, .seg =  4 } }, // 9A
-            { .address = { .com = 2, .seg =  5 } }, // 9B
-            { .address = { .com = 1, .seg =  6 } }, // 9C
-            { .address = { .com = 0, .seg =  6 } }, // 9D
-            { .address = { .com = 0, .seg =  5 } }, // 9E
-            { .address = { .com = 1, .seg =  4 } }, // 9F
-            { .address = { .com = 1, .seg =  5 } }, // 9G
+            { .address = { .com = 0, .seg = 11 } }, // 9A
+            { .address = { .com = 1, .seg = 11 } }, // 9B
+            { .address = { .com = 2, .seg = 11 } }, // 9C
+            { .address = { .com = 3, .seg = 11 } }, // 9D
+            { .address = { .com = 3, .seg = 12 } }, // 9E
+            { .address = { .com = 1, .seg = 12 } }, // 9F
+            { .address = { .com = 2, .seg = 12 } }, // 9G
             { .value = segment_does_not_exist },    // 9H
         },
     },
-    // Positions 2 and 3 are the Day digits
+    // Positions 10 and 11 are the Month digits
     {
         .segment = {
-            { .address = { .com = 2, .seg =  4 } }, // 10A
-            { .address = { .com = 2, .seg =  5 } }, // 10B
-            { .address = { .com = 1, .seg =  6 } }, // 10C
-            { .address = { .com = 0, .seg =  6 } }, // 10D
-            { .address = { .com = 0, .seg =  5 } }, // 10E
-            { .address = { .com = 1, .seg =  4 } }, // 10F
-            { .address = { .com = 1, .seg =  5 } }, // 10G
-            { .value = segment_does_not_exist },    // 10H
+            { .address = { .com = 2, .seg = 8 } },  // 10A
+            { .address = { .com = 0, .seg = 7 } },  // 10B
+            { .address = { .com = 0, .seg = 8 } },  // 10C
+            { .address = { .com = 0, .seg = 9 } },  // 10D
+            { .address = { .com = 2, .seg = 7 } },  // 10E
+            { .value = segment_does_not_exist },    // 10F
+            { .address = { .com = 1, .seg = 22 } }, // 10G
         },
     },
     {
         .segment = {
-            { .address = { .com = 2, .seg =  4 } }, // 11A
-            { .address = { .com = 2, .seg =  5 } }, // 11B
-            { .address = { .com = 1, .seg =  6 } }, // 11C
-            { .address = { .com = 0, .seg =  6 } }, // 11D
-            { .address = { .com = 0, .seg =  5 } }, // 11E
-            { .address = { .com = 1, .seg =  4 } }, // 11F
-            { .address = { .com = 1, .seg =  5 } }, // 11G
+            { .address = { .com = 3, .seg = 10 } }, // 11A
+            { .address = { .com = 3, .seg = 7 } },  // 11B
+            { .address = { .com = 1, .seg = 4 } },  // 11C
+            { .address = { .com = 1, .seg = 8 } },  // 11D
+            { .address = { .com = 1, .seg = 7 } },  // 11E
+            { .address = { .com = 3, .seg = 8 } },  // 11F
+            { .address = { .com = 2, .seg = 6 } },  // 11G
             { .value = segment_does_not_exist },    // 11H
         },
     },

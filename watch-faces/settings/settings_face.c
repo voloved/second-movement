@@ -313,7 +313,11 @@ static void red_led_setting_display(uint8_t subsecond) {
     movement_color_t color = movement_backlight_color();
 
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LED", "LT");
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    watch_display_text(WATCH_POSITION_BOTTOM, " white");
+#else
     watch_display_text(WATCH_POSITION_BOTTOM, " red  ");
+#endif
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.red);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);

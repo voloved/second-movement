@@ -449,15 +449,27 @@ void watch_set_led_color_rgb(uint8_t red, uint8_t green, uint8_t blue) {
 }
 
 void watch_set_led_red(void) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    watch_set_led_color_rgb(255, 255, 255);
+#else
     watch_set_led_color_rgb(255, 0, 0);
+#endif
 }
 
 void watch_set_led_green(void) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    watch_set_led_color_rgb(255, 255, 255);
+#else
     watch_set_led_color_rgb(0, 255, 0);
+#endif
 }
 
 void watch_set_led_yellow(void) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    watch_set_led_color_rgb(255, 255, 255);
+#else
     watch_set_led_color_rgb(255, 255, 0);
+#endif
 }
 
 void watch_set_led_off(void) {

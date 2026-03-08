@@ -27,6 +27,7 @@
 #include "all_segments_face.h"
 #include "watch.h"
 #include "delay.h"
+#include "watch_common_display.h"
 
 #define TICK_FREQ 4
 #define WAIT_SEC 2
@@ -36,6 +37,7 @@ typedef enum {
     ALL_SEGMENTS_SHOW_FULL_SLOWLY,
     ALL_SEGMENTS_SHOW_FULL_COM,
     ALL_SEGMENTS_SHOW_INDIVIDUAL,
+    ALL_SEGMENTS_SHOW_CHARACTERS,
     ALL_SEGMENTS_COUNT
 } all_segments_show;
 
@@ -45,6 +47,8 @@ static uint8_t _num_seg;
 static uint8_t _curr_com;
 static uint8_t _curr_seg;
 static uint8_t _delay_ticks;
+static uint8_t _character;
+static uint8_t _segment;
 
 void all_segments_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
@@ -68,6 +72,8 @@ void all_segments_face_activate(void *context) {
 
     _curr_com = 0;
     _curr_seg = 0;
+    _character = '0';
+    _segment = 0;
     _delay_ticks = 0;
     _curr_show = ALL_SEGMENTS_SHOW_FULL;
     movement_request_tick_frequency(TICK_FREQ);
@@ -76,6 +82,15 @@ void all_segments_face_activate(void *context) {
 bool all_segments_face_loop(movement_event_t event, void *context) {
     (void) context;
     switch (event.event_type) {
+        case EVENT_ALARM_BUTTON_UP:
+            _character = '0';
+            _segment = 0;
+            _curr_com = 0;
+            _curr_seg = 0;
+            _delay_ticks = 0;
+            _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
+            watch_clear_display();
+            break;
         case EVENT_TICK:
         if (_delay_ticks > 0) {
             _delay_ticks--;
@@ -142,6 +157,17 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                 watch_set_pixel(_curr_com, _curr_seg);
                 printf("COM: %d SEG: %d\r\n", _curr_com, _curr_seg);
                 _curr_seg += 1;
+                break;
+            case ALL_SEGMENTS_SHOW_CHARACTERS:
+                watch_display_character(_character, _segment);
+                if (_character == 'z'){
+                    _character = '0';
+                    _segment += 1;
+                    watch_clear_display();
+                    if (_segment > 11) _segment = 0;
+                } else {
+                    _character +=1;
+                }
                 break;
             case ALL_SEGMENTS_COUNT:
                 break;

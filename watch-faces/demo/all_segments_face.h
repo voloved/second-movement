@@ -31,6 +31,7 @@
  * Then, it energizes each segment in a row while leaving the previous ones on (ALL_SEGMENTS_SHOW_FULL_SLOWLY)
  * Then, it energizes each segment in a row while leaving the previous ones on, clearing at each new COM (ALL_SEGMENTS_SHOW_FULL_COM)
  * Then, it energizes each segment in a row, clearing at each time (ALL_SEGMENTS_SHOW_INDIVIDUAL)
+ * Then, it writes text ('0'-'z') on each segment, one at a time (ALL_SEGMENTS_SHOW_CHARACTERS)
  */
 
 #include "movement.h"

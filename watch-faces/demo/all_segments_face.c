@@ -30,7 +30,7 @@
 #include "watch_common_display.h"
 
 #define TICK_FREQ 4
-#define WAIT_SEC 2
+#define WAIT_SEC 1
 
 typedef enum {
     ALL_SEGMENTS_SHOW_FULL = 0,
@@ -107,10 +107,6 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                         watch_set_pixel(_curr_com, _curr_seg);
                     }
                 }
-                _curr_com = 0;
-                _curr_seg = 0;
-                _delay_ticks = TICK_FREQ * WAIT_SEC;
-                _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 break;
             case ALL_SEGMENTS_SHOW_FULL_SLOWLY:
                 if (_curr_seg >= _num_seg) {
@@ -121,7 +117,6 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                     _curr_com = 0;
                     _curr_seg = 0;
                     _delay_ticks = TICK_FREQ * WAIT_SEC;
-                    _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 }
                 watch_set_pixel(_curr_com, _curr_seg);
                 printf("COM: %d SEG: %d\r\n", _curr_com, _curr_seg);
@@ -137,7 +132,6 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                     _curr_com = 0;
                     _curr_seg = 0;
                     _delay_ticks = TICK_FREQ * WAIT_SEC;
-                    _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 }
                 watch_set_pixel(_curr_com, _curr_seg);
                 printf("COM: %d SEG: %d\r\n", _curr_com, _curr_seg);
@@ -153,7 +147,6 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                     _curr_com = 0;
                     _curr_seg = 0;
                     _delay_ticks = TICK_FREQ * WAIT_SEC;
-                    _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 }
                 watch_set_pixel(_curr_com, _curr_seg);
                 printf("COM: %d SEG: %d\r\n", _curr_com, _curr_seg);
@@ -170,7 +163,7 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                         _curr_seg = 0;
                         _character = '0';
                         _segment = 0;
-                        _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
+                        _delay_ticks = TICK_FREQ * WAIT_SEC;
                     }
                 } else {
                     _character +=1;
@@ -183,10 +176,8 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                 printf("watch_set_indicator: %d\r\n", _segment);
                 _segment += 1;
                 if (_segment > WATCH_INDICATOR_BOX_COLON_BOTTOM){
-                    _curr_com = 0;
-                    _curr_seg = 0;
+                    _segment = 0;
                     _delay_ticks = TICK_FREQ * WAIT_SEC;
-                    _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 }
                 break;
             case ALL_SEGMENTS_COUNT:

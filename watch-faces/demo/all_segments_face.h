@@ -28,10 +28,11 @@
  * ALL SEGMENTS FACE
  *
  * This watch face energizes all segments on the screen at once. (ALL_SEGMENTS_SHOW_FULL)
- * Then, it energizes each segment in a row while leaving the previous ones on (ALL_SEGMENTS_SHOW_FULL_SLOWLY)
- * Then, it energizes each segment in a row while leaving the previous ones on, clearing at each new COM (ALL_SEGMENTS_SHOW_FULL_COM)
- * Then, it energizes each segment in a row, clearing at each time (ALL_SEGMENTS_SHOW_INDIVIDUAL)
- * Then, it writes text ('0'-'z') on each segment, one at a time (ALL_SEGMENTS_SHOW_CHARACTERS)
+ * If ALARM is pressed, it then energizes each segment in a row while leaving the previous ones on (ALL_SEGMENTS_SHOW_FULL_SLOWLY)
+ * If ALARM is pressed, it then energizes each segment in a row while leaving the previous ones on, clearing at each new COM (ALL_SEGMENTS_SHOW_FULL_COM)
+ * If ALARM is pressed, it then energizes each segment in a row, clearing at each time (ALL_SEGMENTS_SHOW_INDIVIDUAL)
+ * If ALARM is pressed, it then writes text ('0'-'z') on each segment, one at a time (ALL_SEGMENTS_SHOW_CHARACTERS)
+ * If ALARM is pressed, it then writes text each of the indicators, one at a time (ALL_SEGMENTS_SHOW_SEGMENTS)
  */
 
 #include "movement.h"

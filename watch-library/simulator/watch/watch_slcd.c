@@ -40,6 +40,8 @@ static long tick_interval_id = -1;
 watch_lcd_type_t watch_get_lcd_type(void) {
 #if defined(FORCE_CUSTOM_LCD_TYPE)
     return WATCH_LCD_TYPE_CUSTOM;
+#elif defined(FORCE_GSHOCK_LCD_TYPE)
+    return WATCH_LCD_TYPE_GSHOCK;
 #else
     return WATCH_LCD_TYPE_CLASSIC;
 #endif

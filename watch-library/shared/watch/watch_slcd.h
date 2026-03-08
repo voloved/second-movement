@@ -64,7 +64,7 @@ typedef enum {
     // These are G-Shock Specific Inidcators
     WATCH_INDICATOR_SINGLE_QUOTE,   ///< Top-right of hour digit
     WATCH_INDICATOR_DOUBLE_QUOTE,   ///< Top-right of minutes digit
-    WATCH_INDICATOR_BOX_MINUS,      ///< In the Date box between the colon
+    WATCH_INDICATOR_BOX_DASH,      ///< In the Date box between the colon
     WATCH_INDICATOR_BOX_COLON_TOP,  ///< In the Date box
     WATCH_INDICATOR_BOX_COLON_BOTTOM, ///< In the Date box
 } watch_indicator_t;
@@ -86,7 +86,7 @@ typedef enum {
     WATCH_LCD_TYPE_UNKNOWN  = 0, ///< Value at boot: unknown LCD
     WATCH_LCD_TYPE_CLASSIC  = 0b10101001, ///< The original famous F-91W LCD
     WATCH_LCD_TYPE_CUSTOM   = 0b01010110, ///< The custom Oddly Specific LCD
-    WATCH_LCD_TYPE_GSHOCK   = 0b01010110, ///< The original G-Shock DW5600 LCD
+    WATCH_LCD_TYPE_GSHOCK   = 0b01010111, ///< The original G-Shock DW5600 LCD
 } watch_lcd_type_t;
 
 /** @brief Determines the type of LCD being used by the watch.

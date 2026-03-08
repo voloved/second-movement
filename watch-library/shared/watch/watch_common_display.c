@@ -45,7 +45,7 @@ uint8_t IndicatorSegments[13] = {
     // Placeholders for indicators avaialbe only for G-Shock display
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_SINGLE_QUOTE (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_DOUBLE_QUOTE (does not exist, will set in SDATAL4 which is harmless)
-    SLCD_SEGID(4, 0),  // WATCH_INDICATOR_BOX_MINUS (does not exist, will set in SDATAL4 which is harmless)
+    SLCD_SEGID(4, 0),  // WATCH_INDICATOR_BOX_DASH (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_BOX_COLON_TOP (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0)   // WATCH_INDICATOR_BOX_COLON_BOTTOM (does not exist, will set in SDATAL4 which is harmless)
 };
@@ -346,7 +346,10 @@ void watch_display_float_with_best_effort(float value, const char *units) {
 }
 
 void watch_set_colon(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
+        watch_set_pixel(0, 0);
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         watch_set_pixel(0, 0);
     } else {
         watch_set_pixel(1, 16);
@@ -354,7 +357,10 @@ void watch_set_colon(void) {
 }
 
 void watch_clear_colon(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
+        watch_clear_pixel(0, 0);
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         watch_clear_pixel(0, 0);
     } else {
         watch_clear_pixel(1, 16);
@@ -362,14 +368,20 @@ void watch_clear_colon(void) {
 }
 
 void watch_set_decimal_if_available(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 14);
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        watch_set_pixel(0, 0);
     }
 }
 
 void watch_clear_decimal_if_available(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 14);
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        watch_clear_pixel(0, 0);
     }
 }
 
@@ -398,7 +410,7 @@ void watch_clear_all_indicators(void) {
     watch_clear_indicator(WATCH_INDICATOR_SLEEP);
     watch_clear_indicator(WATCH_INDICATOR_SINGLE_QUOTE);
     watch_clear_indicator(WATCH_INDICATOR_DOUBLE_QUOTE);
-    watch_clear_indicator(WATCH_INDICATOR_BOX_MINUS);
+    watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
     watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
     watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
 }
@@ -417,7 +429,7 @@ void _watch_update_indicator_segments(void) {
 }
 
 void _watch_update_indicator_segments_gshock(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
         IndicatorSegments[ 0] = SLCD_SEGID(0, 22); // WATCH_INDICATOR_SIGNAL
         IndicatorSegments[ 1] = SLCD_SEGID(0, 21); // WATCH_INDICATOR_BELL
         IndicatorSegments[ 2] = SLCD_SEGID(3, 21); // WATCH_INDICATOR_PM

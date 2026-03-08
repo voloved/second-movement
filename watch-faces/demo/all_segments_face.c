@@ -26,34 +26,118 @@
 #include <string.h>
 #include "all_segments_face.h"
 #include "watch.h"
+#include "delay.h"
+
+#define TICK_FREQ 4
+#define WAIT_SEC 2
 
 void all_segments_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
-    (void) context_ptr;
+    if (*context_ptr == NULL) {
+        *context_ptr = malloc(sizeof(all_segments_state_t));
+        memset(*context_ptr, 0, sizeof(all_segments_state_t));
+    }
 }
 
 void all_segments_face_activate(void *context) {
-    (void) context;
+    all_segments_state_t *state = (all_segments_state_t *)context;
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
-    uint8_t num_com = 3;
-    uint8_t num_seg = 27 - num_com;
+    state->num_com = 3;
+    state->num_seg = 27 - state->num_com;
 
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
-        num_com = 4;
+        state->num_com = 4;
     }
 
-    for (int com = 0; com < num_com; com++) {
-        for (int seg = 0; seg < num_seg; seg++) {
-            watch_set_pixel(com, seg);
-        }
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        state->num_com = 4;
+        state->num_seg = 27;
     }
+
+    state->curr_com = 0;
+    state->curr_seg = 0;
+    state->delay_ticks = 0;
+    state->curr_show = ALL_SEGMENTS_SHOW_FULL;
+    movement_request_tick_frequency(TICK_FREQ);
 }
 
 bool all_segments_face_loop(movement_event_t event, void *context) {
-    (void) context;
-
-    movement_default_loop_handler(event);
-
+    all_segments_state_t *state = (all_segments_state_t *)context;
+    switch (event.event_type) {
+        case EVENT_TICK:
+        if (state->delay_ticks > 0) {
+            state->delay_ticks--;
+            if (state->delay_ticks == 0) {
+                watch_clear_display();
+            }
+            break;
+        }
+        switch (state->curr_show) {
+            case ALL_SEGMENTS_SHOW_FULL:
+                for (state->curr_com = 0; state->curr_com < state->num_com; state->curr_com++) {
+                    for (state->curr_seg = 0; state->curr_seg < state->num_seg; state->curr_seg++) {
+                        watch_set_pixel(state->curr_com, state->curr_seg);
+                    }
+                }
+                state->curr_com = 0;
+                state->curr_seg = 0;
+                state->delay_ticks = TICK_FREQ * WAIT_SEC;
+                state->curr_show = (state->curr_show + 1) % ALL_SEGMENTS_COUNT;
+                break;
+            case ALL_SEGMENTS_SHOW_FULL_SLOWLY:
+                if (state->curr_seg >= state->num_seg) {
+                    state->curr_com = state->curr_com + 1;
+                    state->curr_seg = 0 ;
+                }
+                if (state->curr_com >= state->num_com) {
+                    state->curr_com = 0;
+                    state->curr_seg = 0;
+                    state->delay_ticks = TICK_FREQ * WAIT_SEC;
+                    state->curr_show = (state->curr_show + 1) % ALL_SEGMENTS_COUNT;
+                }
+                watch_set_pixel(state->curr_com, state->curr_seg);
+                printf("COM: %d SEG: %d\r\n", state->curr_com, state->curr_seg);
+                state->curr_seg += 1;
+                break;
+            case ALL_SEGMENTS_SHOW_FULL_COM:
+                if (state->curr_seg >= state->num_seg) {
+                    state->curr_com = state->curr_com + 1;
+                    state->curr_seg = 0 ;
+                    watch_clear_display();
+                }
+                if (state->curr_com >= state->num_com) {
+                    state->curr_com = 0;
+                    state->curr_seg = 0;
+                    state->delay_ticks = TICK_FREQ * WAIT_SEC;
+                    state->curr_show = (state->curr_show + 1) % ALL_SEGMENTS_COUNT;
+                }
+                watch_set_pixel(state->curr_com, state->curr_seg);
+                printf("COM: %d SEG: %d\r\n", state->curr_com, state->curr_seg);
+                state->curr_seg += 1;
+                break;
+            case ALL_SEGMENTS_SHOW_INDIVIDUAL:
+                watch_clear_display();
+                if (state->curr_seg >= state->num_seg) {
+                    state->curr_com = state->curr_com + 1;
+                    state->curr_seg = 0 ;
+                }
+                if (state->curr_com >= state->num_com) {
+                    state->curr_com = 0;
+                    state->curr_seg = 0;
+                    state->delay_ticks = TICK_FREQ * WAIT_SEC;
+                    state->curr_show = (state->curr_show + 1) % ALL_SEGMENTS_COUNT;
+                }
+                watch_set_pixel(state->curr_com, state->curr_seg);
+                printf("COM: %d SEG: %d\r\n", state->curr_com, state->curr_seg);
+                state->curr_seg += 1;
+                break;
+            case ALL_SEGMENTS_COUNT:
+                break;
+        }
+        break;
+        default:
+            return movement_default_loop_handler(event);
+    }
     return true;
 }
 

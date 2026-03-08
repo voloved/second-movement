@@ -27,10 +27,30 @@
 /*
  * ALL SEGMENTS FACE
  *
- * This watch face energizes all segments on the screen at once.
+ * This watch face energizes all segments on the screen at once. (ALL_SEGMENTS_SHOW_FULL)
+ * Then, it energizes each segment in a row while leaving the previous ones on (ALL_SEGMENTS_SHOW_FULL_SLOWLY)
+ * Then, it energizes each segment in a row while leaving the previous ones on, clearing at each new COM (ALL_SEGMENTS_SHOW_FULL_COM)
+ * Then, it energizes each segment in a row, clearing at each time (ALL_SEGMENTS_SHOW_INDIVIDUAL)
  */
 
 #include "movement.h"
+
+typedef enum {
+    ALL_SEGMENTS_SHOW_FULL = 0,
+    ALL_SEGMENTS_SHOW_FULL_SLOWLY,
+    ALL_SEGMENTS_SHOW_FULL_COM,
+    ALL_SEGMENTS_SHOW_INDIVIDUAL,
+    ALL_SEGMENTS_COUNT
+} all_segments_show;
+
+typedef struct {
+    all_segments_show curr_show;
+    uint8_t num_com;
+    uint8_t num_seg;
+    uint8_t curr_com;
+    uint8_t curr_seg;
+    uint8_t delay_ticks;
+} all_segments_state_t;
 
 void all_segments_face_setup(uint8_t watch_face_index, void ** context_ptr);
 void all_segments_face_activate(void *context);

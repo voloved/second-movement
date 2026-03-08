@@ -38,6 +38,7 @@ typedef enum {
     ALL_SEGMENTS_SHOW_FULL_COM,
     ALL_SEGMENTS_SHOW_INDIVIDUAL,
     ALL_SEGMENTS_SHOW_CHARACTERS,
+    ALL_SEGMENTS_SHOW_SEGMENTS,
     ALL_SEGMENTS_COUNT
 } all_segments_show;
 
@@ -164,9 +165,28 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                     _character = '0';
                     _segment += 1;
                     watch_clear_display();
-                    if (_segment > 11) _segment = 0;
+                    if (_segment > 11) {
+                        _curr_com = 0;
+                        _curr_seg = 0;
+                        _character = '0';
+                        _segment = 0;
+                        _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
+                    }
                 } else {
                     _character +=1;
+                }
+                break;
+
+            case ALL_SEGMENTS_SHOW_SEGMENTS:
+                watch_clear_all_indicators();
+                watch_set_indicator(_segment);
+                printf("watch_set_indicator: %d\r\n", _segment);
+                _segment += 1;
+                if (_segment > WATCH_INDICATOR_BOX_COLON_BOTTOM){
+                    _curr_com = 0;
+                    _curr_seg = 0;
+                    _delay_ticks = TICK_FREQ * WAIT_SEC;
+                    _curr_show = (_curr_show + 1) % ALL_SEGMENTS_COUNT;
                 }
                 break;
             case ALL_SEGMENTS_COUNT:

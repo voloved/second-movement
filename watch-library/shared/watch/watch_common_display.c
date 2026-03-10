@@ -323,8 +323,8 @@ static void watch_display_text_with_fallback_gshock(watch_position_t location, c
         case WATCH_POSITION_TOP:
             for (size_t i = 0; i < strlen(string); i++) {
                 if (i < 2) watch_display_character(string[i], i);
-                else if (i < 5) watch_display_character(string[i], i + 8);
-                else if (i < 7) watch_display_character(string[i], i - 2);
+                else if (i < 4) watch_display_character(string[i], i + 8);
+                else if (i < 6) watch_display_character(string[i], i - 2);
                 else break;
             }
             break;

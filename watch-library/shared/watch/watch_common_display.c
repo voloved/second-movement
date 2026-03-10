@@ -231,6 +231,22 @@ void watch_display_text(watch_position_t location, const char *string) {
                 watch_display_character(string[1], 9);
             }
             break;
+        case WATCH_POSITION_MONTH_GSHOCK:
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_display_character(string[0], 10);
+                if (string[1]) {
+                    watch_display_character(string[1], 11);
+                }
+            }
+            break;
+        case WATCH_POSITION_DAY_GSHOCK:
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_display_character(string[0], 2);
+                if (string[1]) {
+                    watch_display_character(string[1], 3);
+                }
+            }
+            break;
         case WATCH_POSITION_FULL:
             // This is deprecated, but we use it for the legacy behavior.
             #pragma GCC diagnostic push
@@ -240,59 +256,115 @@ void watch_display_text(watch_position_t location, const char *string) {
             if (watch_get_lcd_type()  == WATCH_LCD_TYPE_CUSTOM) {
                 if (strlen(string) >= 11) watch_display_character(string[10], 10);
                 else watch_display_character(' ', 10);
+            } else if (watch_get_lcd_type()  == WATCH_LCD_TYPE_GSHOCK) {
+                if (strlen(string) >= 11) watch_display_character(string[10], 10);
+                else watch_display_character(' ', 10);
+                if (strlen(string) >= 12) watch_display_character(string[11], 11);
+                else watch_display_character(' ', 11);
             }
     }
 }
 
-void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
-        switch (location) {
-            case WATCH_POSITION_TOP:
-                for (size_t i = 0; i < strlen(string); i++) {
-                    if (i < 2) watch_display_character(string[i], i);
-                    else if (i == 2) watch_display_character(string[i], 10);
-                    else if (i < 5) watch_display_character(string[i], i - 1);
-                    else break;
-                }
-                break;
-            case WATCH_POSITION_TOP_LEFT:
-                watch_display_character(string[0], 0);
-                if (string[1]) {
-                    watch_display_character(string[1], 1);
-                } else {
-                    return;
-                }
-                if (string[2]) {
-                    // position 3 is at index 10 in the display mapping
-                    watch_display_character(string[2], 10);
-                }
-                break;
-            case WATCH_POSITION_BOTTOM:
-            {
-                watch_clear_pixel(0, 22);
-                int i = 0;
-                int offset = 0;
-                size_t len = strlen(string);
-                if (len == 7 && string[0] == '1') {
-                    watch_set_pixel(0, 22);
-                    offset = 1;
-                    i++;
-                }
-                while (string[i] != 0) {
-                    if (4 + i - offset == 10) break;
-                    watch_display_character(string[i], 4 + i - offset);
-                    i++;
-                }
+static void watch_display_text_with_fallback_custom(watch_position_t location, const char *string) {
+    switch (location) {
+        case WATCH_POSITION_TOP:
+            for (size_t i = 0; i < strlen(string); i++) {
+                if (i < 2) watch_display_character(string[i], i);
+                else if (i == 2) watch_display_character(string[i], 10);
+                else if (i < 5) watch_display_character(string[i], i - 1);
+                else break;
             }
-                break;
-            case WATCH_POSITION_TOP_RIGHT:
-            case WATCH_POSITION_HOURS:
-            case WATCH_POSITION_MINUTES:
-            case WATCH_POSITION_SECONDS:
-            case WATCH_POSITION_FULL:
-                watch_display_text(location, string);
-                break;
+            break;
+        case WATCH_POSITION_TOP_LEFT:
+            watch_display_character(string[0], 0);
+            if (string[1]) {
+                watch_display_character(string[1], 1);
+            } else {
+                return;
+            }
+            if (string[2]) {
+                // position 3 is at index 10 in the display mapping
+                watch_display_character(string[2], 10);
+            }
+            break;
+        case WATCH_POSITION_BOTTOM:
+        {
+            watch_clear_pixel(0, 22);
+            int i = 0;
+            int offset = 0;
+            size_t len = strlen(string);
+            if (len == 7 && string[0] == '1') {
+                watch_set_pixel(0, 22);
+                offset = 1;
+                i++;
+            }
+            while (string[i] != 0) {
+                if (4 + i - offset == 10) break;
+                watch_display_character(string[i], 4 + i - offset);
+                i++;
+            }
         }
+            break;
+        case WATCH_POSITION_TOP_RIGHT:
+        case WATCH_POSITION_HOURS:
+        case WATCH_POSITION_MINUTES:
+        case WATCH_POSITION_SECONDS:
+        case WATCH_POSITION_FULL:
+            watch_display_text(location, string);
+            break;
+        case WATCH_POSITION_MONTH_GSHOCK:
+        case WATCH_POSITION_DAY_GSHOCK:
+            break;
+    }
+}
+
+static void watch_display_text_with_fallback_gshock(watch_position_t location, const char *string) {
+    switch (location) {
+        case WATCH_POSITION_TOP:
+            for (size_t i = 0; i < strlen(string); i++) {
+                if (i < 2) watch_display_character(string[i], i);
+                else if (i < 5) watch_display_character(string[i], i + 8);
+                else if (i < 7) watch_display_character(string[i], i - 2);
+                else break;
+            }
+            break;
+        case WATCH_POSITION_TOP_RIGHT:
+            if (strlen(string) <= 2) {
+                watch_display_character(string[0], 2);
+                if (string[1]) {
+                    watch_display_character(string[1], 3);
+                }
+                break;
+            } else {
+                watch_display_character(string[0], 10);
+                if (!string[1]) {return;}
+                watch_display_character(string[1], 11);
+                if (!string[2]) {return;}
+                watch_display_character(string[2], 2);
+                if (!string[3]) {return;}
+                watch_display_character(string[3], 3);
+                break;
+            }
+            break;
+        case WATCH_POSITION_BOTTOM:
+        case WATCH_POSITION_TOP_LEFT:
+        case WATCH_POSITION_HOURS:
+        case WATCH_POSITION_MINUTES:
+        case WATCH_POSITION_SECONDS:
+        case WATCH_POSITION_FULL:
+        case WATCH_POSITION_MONTH_GSHOCK:
+        case WATCH_POSITION_DAY_GSHOCK:
+            watch_display_text(location, string);
+            break;
+    }
+}
+
+void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
+        watch_display_text_with_fallback_custom(location, string);
+    }else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        watch_display_text_with_fallback_gshock(location, string);
     } else {
         watch_display_text(location, fallback);
     }
@@ -408,6 +480,7 @@ void watch_clear_all_indicators(void) {
     watch_clear_indicator(WATCH_INDICATOR_LAP);
     watch_clear_indicator(WATCH_INDICATOR_ARROWS);
     watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+    watch_clear_indicator(WATCH_INDICATOR_COLON);
     watch_clear_indicator(WATCH_INDICATOR_SINGLE_QUOTE);
     watch_clear_indicator(WATCH_INDICATOR_DOUBLE_QUOTE);
     watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);

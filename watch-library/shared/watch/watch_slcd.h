@@ -79,6 +79,8 @@ typedef enum {
     WATCH_POSITION_HOURS,       ///< Display 2 characters in the hours portion of the main line.
     WATCH_POSITION_MINUTES,     ///< Display 2 characters in the minutes portion of the main line.
     WATCH_POSITION_SECONDS,     ///< Display 2 characters in the seconds portion of the main line.
+    WATCH_POSITION_MONTH_GSHOCK,///< Display 2 characters in the month portion of the G-Shock DW5600
+    WATCH_POSITION_DAY_GSHOCK,  ///< Display 2 characters in the day portion of the G-Shock DW5600
 } watch_position_t;
 
 /// an enum describing the possible LCD types

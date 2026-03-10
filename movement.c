@@ -682,7 +682,7 @@ bool movement_default_loop_handler(movement_event_t event) {
             break;
         case EVENT_START_BUTTON_UP:
             if (can_go_to_teriary_face() ) {
-                if (movement_state.current_face_idx < MOVEMENT_TERIARY_FACE_INDEX) {
+                if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
                     go_to_teriary_face();
                 } else {
                     movement_move_to_face(0);

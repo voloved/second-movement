@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=11"/>
 <meta name="generator" content="Doxygen 1.12.0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Movement: segment_mapping_t Union Reference</title>
+<title>Movement: rtc_date_time_t Union Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -87,29 +87,41 @@ $(function(){ initResizable(false); });
 <div class="header">
   <div class="summary">
 <a href="#pub-attribs">Data Fields</a>  </div>
-  <div class="headertitle"><div class="title">segment_mapping_t Union Reference</div></div>
+  <div class="headertitle"><div class="title">rtc_date_time_t Union Reference<div class="ingroups"><a class="el" href="group__rtc.html">Real-Time Clock</a></div></div></div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-attribs" name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a804baba45f9a7f2f1de670b7f4d97efb" id="r_a804baba45f9a7f2f1de670b7f4d97efb"><td class="memItemLeft" ><a id="a804baba45f9a7f2f1de670b7f4d97efb" name="a804baba45f9a7f2f1de670b7f4d97efb"></a>
+<tr class="memitem:a15fa79c756a265c8f367153bca1c8794" id="r_a15fa79c756a265c8f367153bca1c8794"><td class="memItemLeft" ><a id="a15fa79c756a265c8f367153bca1c8794" name="a15fa79c756a265c8f367153bca1c8794"></a>
 struct {&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2ca55ede98236df294ff460b55d65977" id="r_a2ca55ede98236df294ff460b55d65977"><td class="memItemLeft" >
-&#160;&#160;&#160;uint8_t&#160;&#160;&#160;<b>com</b>: 2&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
-<tr class="separator:a2ca55ede98236df294ff460b55d65977"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f373ce731e44870760007567fdd84e5" id="r_a8f373ce731e44870760007567fdd84e5"><td class="memItemLeft" >
-&#160;&#160;&#160;uint8_t&#160;&#160;&#160;<b>seg</b>: 6&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
-<tr class="separator:a8f373ce731e44870760007567fdd84e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a804baba45f9a7f2f1de670b7f4d97efb" id="r_a804baba45f9a7f2f1de670b7f4d97efb"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>address</b>&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
-<tr class="separator:a804baba45f9a7f2f1de670b7f4d97efb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4b00caf9379658b0425c72c81b61e450" id="r_a4b00caf9379658b0425c72c81b61e450"><td class="memItemLeft" align="right" valign="top"><a id="a4b00caf9379658b0425c72c81b61e450" name="a4b00caf9379658b0425c72c81b61e450"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>value</b></td></tr>
-<tr class="separator:a4b00caf9379658b0425c72c81b61e450"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a054a28aca15dea1535722d3bf421045a" id="r_a054a28aca15dea1535722d3bf421045a"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>second</b>: 6&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a054a28aca15dea1535722d3bf421045a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f364f1f4449eb355b01596313bd76b0" id="r_a3f364f1f4449eb355b01596313bd76b0"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>minute</b>: 6&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a3f364f1f4449eb355b01596313bd76b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acaadd109f7429abd697519d1daf5a740" id="r_acaadd109f7429abd697519d1daf5a740"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>hour</b>: 5&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:acaadd109f7429abd697519d1daf5a740"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affaf41350a3495dd3fbe567c5d9d48d0" id="r_affaf41350a3495dd3fbe567c5d9d48d0"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>day</b>: 5&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:affaf41350a3495dd3fbe567c5d9d48d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3999bad88e961d2dff98c5ac418437c9" id="r_a3999bad88e961d2dff98c5ac418437c9"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>month</b>: 4&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a3999bad88e961d2dff98c5ac418437c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a930e3fbf917f1f5c7ab38dd67922993d" id="r_a930e3fbf917f1f5c7ab38dd67922993d"><td class="memItemLeft" >
+&#160;&#160;&#160;uint32_t&#160;&#160;&#160;<b>year</b>: 6&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a930e3fbf917f1f5c7ab38dd67922993d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a15fa79c756a265c8f367153bca1c8794" id="r_a15fa79c756a265c8f367153bca1c8794"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>unit</b>&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
+<tr class="separator:a15fa79c756a265c8f367153bca1c8794"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1370b62aada1f567f5bf9a4f7821919e" id="r_a1370b62aada1f567f5bf9a4f7821919e"><td class="memItemLeft" align="right" valign="top"><a id="a1370b62aada1f567f5bf9a4f7821919e" name="a1370b62aada1f567f5bf9a4f7821919e"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>reg</b></td></tr>
+<tr class="separator:a1370b62aada1f567f5bf9a4f7821919e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this union was generated from the following file:<ul>
-<li>watch-library/shared/watch/<a class="el" href="watch__common__display_8h_source.html">watch_common_display.h</a></li>
+<li>watch-library/shared/watch/<a class="el" href="rtc32_8h_source.html">rtc32.h</a></li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

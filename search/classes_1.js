@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['segment_5fmapping_5ft_0',['segment_mapping_t',['../unionsegment__mapping__t.html',1,'']]]
+  ['rtc_5fdate_5ftime_5ft_0',['rtc_date_time_t',['../unionrtc__date__time__t.html',1,'']]]
 ];

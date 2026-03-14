@@ -139,6 +139,9 @@ Functions</h2></td></tr>
 <tr class="memitem:gab114acabc53647cdd044b085c496a5dc" id="r_gab114acabc53647cdd044b085c496a5dc"><td class="memItemLeft" align="right" valign="top">watch_date_time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab114acabc53647cdd044b085c496a5dc">watch_utility_date_time_convert_zone</a> (watch_date_time_t date_time, uint32_t origin_utc_offset, uint32_t destination_utc_offset)</td></tr>
 <tr class="memdesc:gab114acabc53647cdd044b085c496a5dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a time from a given time zone to another time zone.  <br /></td></tr>
 <tr class="separator:gab114acabc53647cdd044b085c496a5dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab23e1b7d6377938885fe05e2ea82b7b2" id="r_gab23e1b7d6377938885fe05e2ea82b7b2"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab23e1b7d6377938885fe05e2ea82b7b2">watch_utility_unix_time_convert_zone</a> (uint32_t timestamp, uint32_t origin_utc_offset, uint32_t destination_utc_offset)</td></tr>
+<tr class="memdesc:gab23e1b7d6377938885fe05e2ea82b7b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a unix time from a given time zone to another time zone.  <br /></td></tr>
+<tr class="separator:gab23e1b7d6377938885fe05e2ea82b7b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2753ff031c28202d23b0f3e80de2c920" id="r_ga2753ff031c28202d23b0f3e80de2c920"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2753ff031c28202d23b0f3e80de2c920">watch_utility_thermistor_temperature</a> (uint16_t value, bool highside, float b_coefficient, float nominal_temperature, float nominal_resistance, float series_resistance)</td></tr>
 <tr class="memdesc:ga2753ff031c28202d23b0f3e80de2c920"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a temperature in degrees Celsius for a given thermistor voltage divider circuit.  <br /></td></tr>
 <tr class="separator:ga2753ff031c28202d23b0f3e80de2c920"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -719,6 +722,44 @@ uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>watch_duration_t:
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="gab23e1b7d6377938885fe05e2ea82b7b2" name="gab23e1b7d6377938885fe05e2ea82b7b2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab23e1b7d6377938885fe05e2ea82b7b2">&#9670;&#160;</a></span>watch_utility_unix_time_convert_zone()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t watch_utility_unix_time_convert_zone </td>
+          <td>(</td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>timestamp</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>origin_utc_offset</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t</td>          <td class="paramname"><span class="paramname"><em>destination_utc_offset</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts a unix time from a given time zone to another time zone. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">timestamp</td><td>The unix time that you wish to convert </td></tr>
+    <tr><td class="paramname">origin_utc_offset</td><td>The number of seconds from UTC in the origin time zone </td></tr>
+    <tr><td class="paramname">destination_utc_offset</td><td>The number of seconds from UTC in the destination time zone </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A unix time for the given UNIX timestamp and UTC offset. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Adapted from MIT-licensed code from musl, Copyright © 2005-2014 Rich Felker, et al.: <a href="https://github.com/esmil/musl/blob/1cc81f5cb0df2b66a795ff0c26d7bbc4d16e13c6/src/time/__secs_to_tm.c">https://github.com/esmil/musl/blob/1cc81f5cb0df2b66a795ff0c26d7bbc4d16e13c6/src/time/__secs_to_tm.c</a> </dd></dl>
 
 </div>
 </div>

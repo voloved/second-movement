@@ -86,49 +86,142 @@ $(function(){ initResizable(false); });
 
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle"><div class="title">Real-Time Clock</div></div>
 </div><!--header-->
 <div class="contents">
 
-<p>This section covers functions related to the SAM L22's real-time clock peripheral, including date, time and alarm functions.  
+<p>Functions for configuring and using the Real-Time Clock peripheral.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Data Structures</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
+<tr class="memitem:gaf95a4a902b49423b85cfd6dd32190275" id="r_gaf95a4a902b49423b85cfd6dd32190275"><td class="memItemLeft" align="right" valign="top"><a id="gaf95a4a902b49423b85cfd6dd32190275" name="gaf95a4a902b49423b85cfd6dd32190275"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>RTC_REFERENCE_YEAR</b>&#160;&#160;&#160;(2020)</td></tr>
+<tr class="separator:gaf95a4a902b49423b85cfd6dd32190275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9bc41a324472cc3c2f39679849e3a4e9" id="r_ga9bc41a324472cc3c2f39679849e3a4e9"><td class="memItemLeft" align="right" valign="top"><a id="ga9bc41a324472cc3c2f39679849e3a4e9" name="ga9bc41a324472cc3c2f39679849e3a4e9"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>WATCH_RTC_REFERENCE_YEAR</b>&#160;&#160;&#160;(2020)</td></tr>
 <tr class="separator:ga9bc41a324472cc3c2f39679849e3a4e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga07caf35fd7424fb0286d81790bbfa5a9" id="r_ga07caf35fd7424fb0286d81790bbfa5a9"><td class="memItemLeft" align="right" valign="top"><a id="ga07caf35fd7424fb0286d81790bbfa5a9" name="ga07caf35fd7424fb0286d81790bbfa5a9"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>watch_date_time_t</b>&#160;&#160;&#160;rtc_date_time_t</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>watch_date_time_t</b>&#160;&#160;&#160;<a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a></td></tr>
 <tr class="separator:ga07caf35fd7424fb0286d81790bbfa5a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga8c7992a24e334a4b18ea89025e5d8689" id="r_ga8c7992a24e334a4b18ea89025e5d8689"><td class="memItemLeft" align="right" valign="top"><a id="ga8c7992a24e334a4b18ea89025e5d8689" name="ga8c7992a24e334a4b18ea89025e5d8689"></a>
+typedef enum rtc_alarm_match_t&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_alarm_match_t</b></td></tr>
+<tr class="separator:ga8c7992a24e334a4b18ea89025e5d8689"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5ff7af52ce0cec816725773671a1d01c" id="r_ga5ff7af52ce0cec816725773671a1d01c"><td class="memItemLeft" align="right" valign="top"><a id="ga5ff7af52ce0cec816725773671a1d01c" name="ga5ff7af52ce0cec816725773671a1d01c"></a>
+typedef uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_counter_t</b></td></tr>
+<tr class="separator:ga5ff7af52ce0cec816725773671a1d01c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga04fb46d903d942c391505750dbd3539b" id="r_ga04fb46d903d942c391505750dbd3539b"><td class="memItemLeft" align="right" valign="top"><a id="ga04fb46d903d942c391505750dbd3539b" name="ga04fb46d903d942c391505750dbd3539b"></a>
+typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_cb_t</b>) (uint16_t intflag)</td></tr>
+<tr class="separator:ga04fb46d903d942c391505750dbd3539b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d613a629e034cc5fa3db57c76d2a1e5" id="r_ga1d613a629e034cc5fa3db57c76d2a1e5"><td class="memItemLeft" align="right" valign="top"><a id="ga1d613a629e034cc5fa3db57c76d2a1e5" name="ga1d613a629e034cc5fa3db57c76d2a1e5"></a>
+typedef rtc_counter_t&#160;</td><td class="memItemRight" valign="bottom"><b>watch_counter_t</b></td></tr>
+<tr class="separator:ga1d613a629e034cc5fa3db57c76d2a1e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e8f659522569f52169cb6c3b8f7db8d" id="r_ga0e8f659522569f52169cb6c3b8f7db8d"><td class="memItemLeft" align="right" valign="top"><a id="ga0e8f659522569f52169cb6c3b8f7db8d" name="ga0e8f659522569f52169cb6c3b8f7db8d"></a>
+typedef uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>unix_timestamp_t</b></td></tr>
+<tr class="separator:ga0e8f659522569f52169cb6c3b8f7db8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="enum-members" name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:ga4655ea5d1bcd98992d207f0bc3e0f358" id="r_ga4655ea5d1bcd98992d207f0bc3e0f358"><td class="memItemLeft" align="right" valign="top"><a id="ga4655ea5d1bcd98992d207f0bc3e0f358" name="ga4655ea5d1bcd98992d207f0bc3e0f358"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>rtc_alarm_match_t</b> { <b>ALARM_MATCH_DISABLED</b> = 0
+, <b>ALARM_MATCH_SS</b>
+, <b>ALARM_MATCH_MMSS</b>
+, <b>ALARM_MATCH_HHMMSS</b>
+ }</td></tr>
+<tr class="separator:ga4655ea5d1bcd98992d207f0bc3e0f358"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:gacf9024748b942a7ae375cf75951afa9c" id="r_gacf9024748b942a7ae375cf75951afa9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gacf9024748b942a7ae375cf75951afa9c">rtc_init</a> (void)</td></tr>
+<tr class="memdesc:gacf9024748b942a7ae375cf75951afa9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes the RTC.  <br /></td></tr>
+<tr class="separator:gacf9024748b942a7ae375cf75951afa9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabec68bd2863d22f5a8e12ab89f8134f4" id="r_gabec68bd2863d22f5a8e12ab89f8134f4"><td class="memItemLeft" align="right" valign="top"><a id="gabec68bd2863d22f5a8e12ab89f8134f4" name="gabec68bd2863d22f5a8e12ab89f8134f4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_enable</b> (void)</td></tr>
+<tr class="memdesc:gabec68bd2863d22f5a8e12ab89f8134f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables the RTC. <br /></td></tr>
+<tr class="separator:gabec68bd2863d22f5a8e12ab89f8134f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga72309e05f8aa147cfdd0eb6ac2037889" id="r_ga72309e05f8aa147cfdd0eb6ac2037889"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga72309e05f8aa147cfdd0eb6ac2037889">rtc_is_enabled</a> (void)</td></tr>
+<tr class="memdesc:ga72309e05f8aa147cfdd0eb6ac2037889"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if the RTC is enabled.  <br /></td></tr>
+<tr class="separator:ga72309e05f8aa147cfdd0eb6ac2037889"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3a86aa9281c120847b69ba929773c9a5" id="r_ga3a86aa9281c120847b69ba929773c9a5"><td class="memItemLeft" align="right" valign="top"><a id="ga3a86aa9281c120847b69ba929773c9a5" name="ga3a86aa9281c120847b69ba929773c9a5"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_set_counter</b> (rtc_counter_t counter)</td></tr>
+<tr class="memdesc:ga3a86aa9281c120847b69ba929773c9a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the value of the counter register. <br /></td></tr>
+<tr class="separator:ga3a86aa9281c120847b69ba929773c9a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga153616a0ad936831a61ee37e7396dc66" id="r_ga153616a0ad936831a61ee37e7396dc66"><td class="memItemLeft" align="right" valign="top"><a id="ga153616a0ad936831a61ee37e7396dc66" name="ga153616a0ad936831a61ee37e7396dc66"></a>
+rtc_counter_t&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_get_counter</b> (void)</td></tr>
+<tr class="memdesc:ga153616a0ad936831a61ee37e7396dc66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value of the counter register. <br /></td></tr>
+<tr class="separator:ga153616a0ad936831a61ee37e7396dc66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8dd6108752ed8c8e5dad649d650dc1d5" id="r_ga8dd6108752ed8c8e5dad649d650dc1d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga8dd6108752ed8c8e5dad649d650dc1d5">rtc_configure_callback</a> (rtc_cb_t callback)</td></tr>
+<tr class="memdesc:ga8dd6108752ed8c8e5dad649d650dc1d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configures the RTC alarm callback.  <br /></td></tr>
+<tr class="separator:ga8dd6108752ed8c8e5dad649d650dc1d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga149c9b77dbba2a26a87fe70333a73b36" id="r_ga149c9b77dbba2a26a87fe70333a73b36"><td class="memItemLeft" align="right" valign="top"><a id="ga149c9b77dbba2a26a87fe70333a73b36" name="ga149c9b77dbba2a26a87fe70333a73b36"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_enable_compare_interrupt</b> (uint32_t compare_time)</td></tr>
+<tr class="separator:ga149c9b77dbba2a26a87fe70333a73b36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad5052b4e557c16812ecf69457f6e744b" id="r_gad5052b4e557c16812ecf69457f6e744b"><td class="memItemLeft" align="right" valign="top"><a id="gad5052b4e557c16812ecf69457f6e744b" name="gad5052b4e557c16812ecf69457f6e744b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>rtc_disable_compare_interrupt</b> (void)</td></tr>
+<tr class="separator:gad5052b4e557c16812ecf69457f6e744b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3ac65a314540ae8b7be5b9015785d565" id="r_ga3ac65a314540ae8b7be5b9015785d565"><td class="memItemLeft" align="right" valign="top"><a id="ga3ac65a314540ae8b7be5b9015785d565" name="ga3ac65a314540ae8b7be5b9015785d565"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>_watch_rtc_is_enabled</b> (void)</td></tr>
 <tr class="memdesc:ga3ac65a314540ae8b7be5b9015785d565"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called by main.c to check if the RTC is enabled. You may call this function, but outside of app_init, it should always return true. <br /></td></tr>
 <tr class="separator:ga3ac65a314540ae8b7be5b9015785d565"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga286f36dfcc0a3c8890e5064c32d59d9c" id="r_ga286f36dfcc0a3c8890e5064c32d59d9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga286f36dfcc0a3c8890e5064c32d59d9c">watch_rtc_set_date_time</a> (rtc_date_time_t date_time)</td></tr>
-<tr class="memdesc:ga286f36dfcc0a3c8890e5064c32d59d9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the date and time.  <br /></td></tr>
+<tr class="memitem:ga286f36dfcc0a3c8890e5064c32d59d9c" id="r_ga286f36dfcc0a3c8890e5064c32d59d9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga286f36dfcc0a3c8890e5064c32d59d9c">watch_rtc_set_date_time</a> (<a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a> date_time)</td></tr>
+<tr class="memdesc:ga286f36dfcc0a3c8890e5064c32d59d9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the date and time. Calls watch_rtc_set_unix_time internally.  <br /></td></tr>
 <tr class="separator:ga286f36dfcc0a3c8890e5064c32d59d9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8035abf642b311ee58a6a144f79e675c" id="r_ga8035abf642b311ee58a6a144f79e675c"><td class="memItemLeft" align="right" valign="top">rtc_date_time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga8035abf642b311ee58a6a144f79e675c">watch_rtc_get_date_time</a> (void)</td></tr>
-<tr class="memdesc:ga8035abf642b311ee58a6a144f79e675c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the date and time.  <br /></td></tr>
+<tr class="memitem:ga8035abf642b311ee58a6a144f79e675c" id="r_ga8035abf642b311ee58a6a144f79e675c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga8035abf642b311ee58a6a144f79e675c">watch_rtc_get_date_time</a> (void)</td></tr>
+<tr class="memdesc:ga8035abf642b311ee58a6a144f79e675c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the date and time. Calls watch_rtc_get_unix_time internally.  <br /></td></tr>
 <tr class="separator:ga8035abf642b311ee58a6a144f79e675c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga533c60672dc2346c0a614f84e58fa23e" id="r_ga533c60672dc2346c0a614f84e58fa23e"><td class="memItemLeft" align="right" valign="top">rtc_date_time_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga533c60672dc2346c0a614f84e58fa23e">watch_get_init_date_time</a> (void)</td></tr>
+<tr class="memitem:ga533c60672dc2346c0a614f84e58fa23e" id="r_ga533c60672dc2346c0a614f84e58fa23e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga533c60672dc2346c0a614f84e58fa23e">watch_get_init_date_time</a> (void)</td></tr>
 <tr class="memdesc:ga533c60672dc2346c0a614f84e58fa23e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the date and time that the watch defaults to when power cycled. Often comes from the Makefile flags.  <br /></td></tr>
 <tr class="separator:ga533c60672dc2346c0a614f84e58fa23e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga69a8c28e3ecda6c01e206efb25e41714" id="r_ga69a8c28e3ecda6c01e206efb25e41714"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga69a8c28e3ecda6c01e206efb25e41714">watch_rtc_register_alarm_callback</a> (<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback, rtc_date_time_t alarm_time, rtc_alarm_match_t mask)</td></tr>
-<tr class="memdesc:ga69a8c28e3ecda6c01e206efb25e41714"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers an alarm callback that will be called when the RTC time matches the target time, as masked by the provided mask.  <br /></td></tr>
-<tr class="separator:ga69a8c28e3ecda6c01e206efb25e41714"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga836cade77c24e93c06bf534eaded55bf" id="r_ga836cade77c24e93c06bf534eaded55bf"><td class="memItemLeft" align="right" valign="top"><a id="ga836cade77c24e93c06bf534eaded55bf" name="ga836cade77c24e93c06bf534eaded55bf"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_disable_alarm_callback</b> (void)</td></tr>
-<tr class="memdesc:ga836cade77c24e93c06bf534eaded55bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the alarm callback. <br /></td></tr>
-<tr class="separator:ga836cade77c24e93c06bf534eaded55bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaffa03accf8d5be49a24eeee89ff9887d" id="r_gaffa03accf8d5be49a24eeee89ff9887d"><td class="memItemLeft" align="right" valign="top"><a id="gaffa03accf8d5be49a24eeee89ff9887d" name="gaffa03accf8d5be49a24eeee89ff9887d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_set_unix_time</b> (unix_timestamp_t unix_time)</td></tr>
+<tr class="memdesc:gaffa03accf8d5be49a24eeee89ff9887d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the current UTC date and time using a unix timestamp. <br /></td></tr>
+<tr class="separator:gaffa03accf8d5be49a24eeee89ff9887d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga844e7f43a4cd85ac6db575802d237fdf" id="r_ga844e7f43a4cd85ac6db575802d237fdf"><td class="memItemLeft" align="right" valign="top"><a id="ga844e7f43a4cd85ac6db575802d237fdf" name="ga844e7f43a4cd85ac6db575802d237fdf"></a>
+unix_timestamp_t&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_get_unix_time</b> (void)</td></tr>
+<tr class="memdesc:ga844e7f43a4cd85ac6db575802d237fdf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current UTC date and time using a unix timestamp. <br /></td></tr>
+<tr class="separator:ga844e7f43a4cd85ac6db575802d237fdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf35bfe33529a10d582b802b75a3daa3b" id="r_gaf35bfe33529a10d582b802b75a3daa3b"><td class="memItemLeft" align="right" valign="top">rtc_counter_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaf35bfe33529a10d582b802b75a3daa3b">watch_rtc_get_counter</a> (void)</td></tr>
+<tr class="memdesc:gaf35bfe33529a10d582b802b75a3daa3b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the current value of the internal hardware counter.  <br /></td></tr>
+<tr class="separator:gaf35bfe33529a10d582b802b75a3daa3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1ab93631db9b0de2380a4bf60dfa1338" id="r_ga1ab93631db9b0de2380a4bf60dfa1338"><td class="memItemLeft" align="right" valign="top"><a id="ga1ab93631db9b0de2380a4bf60dfa1338" name="ga1ab93631db9b0de2380a4bf60dfa1338"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_get_frequency</b> (void)</td></tr>
+<tr class="memdesc:ga1ab93631db9b0de2380a4bf60dfa1338"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the RTC counter frequency. <br /></td></tr>
+<tr class="separator:ga1ab93631db9b0de2380a4bf60dfa1338"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1dbb3872c50f21ec588984f38d1ba71d" id="r_ga1dbb3872c50f21ec588984f38d1ba71d"><td class="memItemLeft" align="right" valign="top"><a id="ga1dbb3872c50f21ec588984f38d1ba71d" name="ga1dbb3872c50f21ec588984f38d1ba71d"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_get_ticks_per_minute</b> (void)</td></tr>
+<tr class="memdesc:ga1dbb3872c50f21ec588984f38d1ba71d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get how many counter ticks are in one minute. <br /></td></tr>
+<tr class="separator:ga1dbb3872c50f21ec588984f38d1ba71d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa85a89a0b66145fd0c2899f30a67dcae" id="r_gaa85a89a0b66145fd0c2899f30a67dcae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaa85a89a0b66145fd0c2899f30a67dcae">watch_rtc_register_comp_callback</a> (<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback, rtc_counter_t counter, uint8_t index)</td></tr>
+<tr class="memdesc:gaa85a89a0b66145fd0c2899f30a67dcae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a callback that will be called when the RTC counter matches the target counter.  <br /></td></tr>
+<tr class="separator:gaa85a89a0b66145fd0c2899f30a67dcae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9b98b9b3ca7abe11e6d657446b27b322" id="r_ga9b98b9b3ca7abe11e6d657446b27b322"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga9b98b9b3ca7abe11e6d657446b27b322">watch_rtc_register_comp_callback_no_schedule</a> (<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback, rtc_counter_t counter, uint8_t index)</td></tr>
+<tr class="memdesc:ga9b98b9b3ca7abe11e6d657446b27b322"><td class="mdescLeft">&#160;</td><td class="mdescRight">Just like watch_rtc_register_comp_callback but doesn't actually schedule the callback.  <br /></td></tr>
+<tr class="separator:ga9b98b9b3ca7abe11e6d657446b27b322"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9884ee75e07a964e91dff457f684c236" id="r_ga9884ee75e07a964e91dff457f684c236"><td class="memItemLeft" align="right" valign="top"><a id="ga9884ee75e07a964e91dff457f684c236" name="ga9884ee75e07a964e91dff457f684c236"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_disable_comp_callback</b> (uint8_t index)</td></tr>
+<tr class="memdesc:ga9884ee75e07a964e91dff457f684c236"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the specified comp callback. <br /></td></tr>
+<tr class="separator:ga9884ee75e07a964e91dff457f684c236"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7a4a21e7b08fff9d21aecb8ae9e519ba" id="r_ga7a4a21e7b08fff9d21aecb8ae9e519ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga7a4a21e7b08fff9d21aecb8ae9e519ba">watch_rtc_disable_comp_callback_no_schedule</a> (uint8_t index)</td></tr>
+<tr class="memdesc:ga7a4a21e7b08fff9d21aecb8ae9e519ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Just like watch_rtc_disable_comp_callback but doesn't actually schedule the callback.  <br /></td></tr>
+<tr class="separator:ga7a4a21e7b08fff9d21aecb8ae9e519ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga66fdc9701791d3abbc4a43975e865c90" id="r_ga66fdc9701791d3abbc4a43975e865c90"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga66fdc9701791d3abbc4a43975e865c90">watch_rtc_schedule_next_comp</a> (void)</td></tr>
+<tr class="memdesc:ga66fdc9701791d3abbc4a43975e865c90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines the first comp callback that should fire and schedule it with the RTC.  <br /></td></tr>
+<tr class="separator:ga66fdc9701791d3abbc4a43975e865c90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2ae80877a9912efbfb790c2b9f0e54ce" id="r_ga2ae80877a9912efbfb790c2b9f0e54ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2ae80877a9912efbfb790c2b9f0e54ce">watch_rtc_register_tick_callback</a> (<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback)</td></tr>
-<tr class="memdesc:ga2ae80877a9912efbfb790c2b9f0e54ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a "tick" callback that will be called once per second.  <br /></td></tr>
+<tr class="memdesc:ga2ae80877a9912efbfb790c2b9f0e54ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the alarm callback.  <br /></td></tr>
 <tr class="separator:ga2ae80877a9912efbfb790c2b9f0e54ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga685f2afb2e99dfebf8d2ef058a5bc19d" id="r_ga685f2afb2e99dfebf8d2ef058a5bc19d"><td class="memItemLeft" align="right" valign="top"><a id="ga685f2afb2e99dfebf8d2ef058a5bc19d" name="ga685f2afb2e99dfebf8d2ef058a5bc19d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_rtc_disable_tick_callback</b> (void)</td></tr>
@@ -167,11 +260,81 @@ Variables</h2></td></tr>
 <tr class="memitem:ga794390fc26591654ecfe090fdb4535a2" id="r_ga794390fc26591654ecfe090fdb4535a2"><td class="memItemLeft" align="right" valign="top"><a id="ga794390fc26591654ecfe090fdb4535a2" name="ga794390fc26591654ecfe090fdb4535a2"></a>
 <a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>a4_callback</b></td></tr>
 <tr class="separator:ga794390fc26591654ecfe090fdb4535a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaba54ec38d0b2e47a4773ae7e7da2ca8a" id="r_gaba54ec38d0b2e47a4773ae7e7da2ca8a"><td class="memItemLeft" align="right" valign="top"><a id="gaba54ec38d0b2e47a4773ae7e7da2ca8a" name="gaba54ec38d0b2e47a4773ae7e7da2ca8a"></a>
+<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>comp_callback</b></td></tr>
+<tr class="separator:gaba54ec38d0b2e47a4773ae7e7da2ca8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>This section covers functions related to the SAM L22's real-time clock peripheral, including date, time and alarm functions. </p>
+<p>Functions for configuring and using the Real-Time Clock peripheral. </p>
+<p>This section covers functions related to the SAM L22's real-time clock peripheral, including date, time and alarm functions.</p>
+<p>This is the rtc implementation for MODE0 (counter32)</p>
 <p>The real-time clock is the only peripheral that main.c enables for you. It is the cornerstone of low power operation on the watch, and it is required for several key functions that we assume will be available, namely waking on a press of the ALARM button. It is also required for the operation of the 1 Hz tick interrupt, which we use to wake from STANDBY mode. </p>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ga8dd6108752ed8c8e5dad649d650dc1d5" name="ga8dd6108752ed8c8e5dad649d650dc1d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8dd6108752ed8c8e5dad649d650dc1d5">&#9670;&#160;</a></span>rtc_configure_callback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void rtc_configure_callback </td>
+          <td>(</td>
+          <td class="paramtype">rtc_cb_t</td>          <td class="paramname"><span class="paramname"><em>callback</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Configures the RTC alarm callback. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">callback</td><td>The function to call when an RTC interrupt occurs. The callback will be passed a bitmask of the interrupt flags, the full contents of the RTC peripheral's INTFLAG register. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gacf9024748b942a7ae375cf75951afa9c" name="gacf9024748b942a7ae375cf75951afa9c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gacf9024748b942a7ae375cf75951afa9c">&#9670;&#160;</a></span>rtc_init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void rtc_init </td>
+          <td>(</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes the RTC. </p>
+<p>Configures the RTC for COUNT32 mode, with a 1 Hz tick derived from the 1024 Hz clock on GCLK3 (for SAM D devices) or OSC32KCTRL's most accurate 1024 Hz output (for SAM L devices). </p>
+
+</div>
+</div>
+<a id="ga72309e05f8aa147cfdd0eb6ac2037889" name="ga72309e05f8aa147cfdd0eb6ac2037889"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga72309e05f8aa147cfdd0eb6ac2037889">&#9670;&#160;</a></span>rtc_is_enabled()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool rtc_is_enabled </td>
+          <td>(</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks if the RTC is enabled. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if the RTC is enabled; false if not. </dd></dl>
+
+</div>
+</div>
 <a id="ga533c60672dc2346c0a614f84e58fa23e" name="ga533c60672dc2346c0a614f84e58fa23e"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga533c60672dc2346c0a614f84e58fa23e">&#9670;&#160;</a></span>watch_get_init_date_time()</h2>
 
@@ -179,7 +342,7 @@ Variables</h2></td></tr>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">rtc_date_time_t watch_get_init_date_time </td>
+          <td class="memname"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a> watch_get_init_date_time </td>
           <td>(</td>
           <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -188,7 +351,28 @@ Variables</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the date and time that the watch defaults to when power cycled. Often comes from the Makefile flags. </p>
-<dl class="section return"><dt>Returns</dt><dd>A rtc_date_time_t with the current date and time, with a year value from 0-63 representing 2020-2083. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a> with the current date and time, with a year value from 0-63 representing 2020-2083. </dd></dl>
+
+</div>
+</div>
+<a id="ga7a4a21e7b08fff9d21aecb8ae9e519ba" name="ga7a4a21e7b08fff9d21aecb8ae9e519ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga7a4a21e7b08fff9d21aecb8ae9e519ba">&#9670;&#160;</a></span>watch_rtc_disable_comp_callback_no_schedule()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_rtc_disable_comp_callback_no_schedule </td>
+          <td>(</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Just like watch_rtc_disable_comp_callback but doesn't actually schedule the callback. </p>
+<p>Useful if you need disable multiple callbacks at once, avoids multiple calls to the expensive watch_rtc_schedule_next_comp: Usage: watch_rtc_disable_comp_callback_no_schedule(index0); watch_rtc_disable_comp_callback_no_schedule(index1); <a class="el" href="#ga66fdc9701791d3abbc4a43975e865c90" title="Determines the first comp callback that should fire and schedule it with the RTC.">watch_rtc_schedule_next_comp()</a>;</p>
+<p>Disables the specified comp callback. </p>
 
 </div>
 </div>
@@ -242,14 +426,14 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ga8035abf642b311ee58a6a144f79e675c" name="ga8035abf642b311ee58a6a144f79e675c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga8035abf642b311ee58a6a144f79e675c">&#9670;&#160;</a></span>watch_rtc_get_date_time()</h2>
+<a id="gaf35bfe33529a10d582b802b75a3daa3b" name="gaf35bfe33529a10d582b802b75a3daa3b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaf35bfe33529a10d582b802b75a3daa3b">&#9670;&#160;</a></span>watch_rtc_get_counter()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">rtc_date_time_t watch_rtc_get_date_time </td>
+          <td class="memname">rtc_counter_t watch_rtc_get_counter </td>
           <td>(</td>
           <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
           <td></td>
@@ -257,50 +441,95 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Returns the date and time. </p>
-<dl class="section return"><dt>Returns</dt><dd>A rtc_date_time_t with the current date and time, with a year value from 0-63 representing 2020-2083. </dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ga286f36dfcc0a3c8890e5064c32d59d9c" title="Sets the date and time.">watch_rtc_set_date_time</a> for notes about how the year is stored. </dd></dl>
+<p>Get the current value of the internal hardware counter. </p>
+<p>The counter starts at 0 and it increases at a 128Hz rate until it overflows and starts over. We never manually set the counter. Doing so allows us to calculate absolute elapsed and more. When the user sets the time, what is modified is the reference time (i.e. the date and time when the counter is 0). </p>
 
 </div>
 </div>
-<a id="ga69a8c28e3ecda6c01e206efb25e41714" name="ga69a8c28e3ecda6c01e206efb25e41714"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga69a8c28e3ecda6c01e206efb25e41714">&#9670;&#160;</a></span>watch_rtc_register_alarm_callback()</h2>
+<a id="ga8035abf642b311ee58a6a144f79e675c" name="ga8035abf642b311ee58a6a144f79e675c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8035abf642b311ee58a6a144f79e675c">&#9670;&#160;</a></span>watch_rtc_get_date_time()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void watch_rtc_register_alarm_callback </td>
+          <td class="memname"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a> watch_rtc_get_date_time </td>
+          <td>(</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the date and time. Calls watch_rtc_get_unix_time internally. </p>
+<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a> with the current date and time, with a year value from 0-63 representing 2020-2083. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ga286f36dfcc0a3c8890e5064c32d59d9c" title="Sets the date and time. Calls watch_rtc_set_unix_time internally.">watch_rtc_set_date_time</a> for notes about how the year is stored. </dd></dl>
+
+</div>
+</div>
+<a id="gaa85a89a0b66145fd0c2899f30a67dcae" name="gaa85a89a0b66145fd0c2899f30a67dcae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaa85a89a0b66145fd0c2899f30a67dcae">&#9670;&#160;</a></span>watch_rtc_register_comp_callback()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_rtc_register_comp_callback </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a></td>          <td class="paramname"><span class="paramname"><em>callback</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">rtc_date_time_t</td>          <td class="paramname"><span class="paramname"><em>alarm_time</em></span>, </td>
+          <td class="paramtype">rtc_counter_t</td>          <td class="paramname"><span class="paramname"><em>counter</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">rtc_alarm_match_t</td>          <td class="paramname"><span class="paramname"><em>mask</em></span>&#160;)</td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Registers an alarm callback that will be called when the RTC time matches the target time, as masked by the provided mask. </p>
+<p>Registers a callback that will be called when the RTC counter matches the target counter. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">callback</td><td>The function you wish to have called when the alarm fires. If this value is NULL, the alarm interrupt will still be enabled, but no callback function will be called. </td></tr>
-    <tr><td class="paramname">alarm_time</td><td>The time that you wish to match. The date is currently ignored. </td></tr>
-    <tr><td class="paramname">mask</td><td>One of the values in rtc_alarm_match_t indicating which values to check.</td></tr>
+    <tr><td class="paramname">callback</td><td>The function you wish to have called when the target counter is reached. If this value is NULL, the comp interrupt will still be enabled, but no callback function will be called. </td></tr>
+    <tr><td class="paramname">counter</td><td>The time that you wish to match. The date is currently ignored. </td></tr>
+    <tr><td class="paramname">index</td><td>We can have up to 8 active callbacks at a time. This parameter specifies which of the 8 callbacks should be set.</td></tr>
   </table>
   </dd>
 </dl>
-<p>The alarm interrupt is a versatile tool for scheduling events in the future, especially since it can wake the device from all sleep modes. The key to its versatility is the mask parameter. Suppose we set an alarm for midnight, 00:00:00.</p><ul>
-<li>if mask is ALARM_MATCH_SS, the alarm will fire every minute when the clock ticks to seconds == 0.</li>
-<li>with ALARM_MATCH_MMSS, the alarm will once an hour, at the top of each hour.</li>
-<li>with ALARM_MATCH_HHMMSS, the alarm will fire at midnight every day. In theory the SAM L22's alarm function can match on days, months and even years, but I have not had success with this yet; as such, I am omitting these options for now. </li>
-</ul>
+<p>The hardware RTC provides us with single interrupt that fires when the RTC counter matches a target counter COMP0. With a little bit of logic, we can provide multiple active compare callbacks. Every time a comp callback is registered/disabled/fired we iterate over all the active comp callbacks and set the hardware COMP0 counter to the next occurring one. With this very simple API, movement can implement one-shot timers to turn off the led and determine button longpresses as well as the inactivity timeouts for resigning and sleeping, as well as emulating the top of the minute alarm. </p>
+
+</div>
+</div>
+<a id="ga9b98b9b3ca7abe11e6d657446b27b322" name="ga9b98b9b3ca7abe11e6d657446b27b322"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9b98b9b3ca7abe11e6d657446b27b322">&#9670;&#160;</a></span>watch_rtc_register_comp_callback_no_schedule()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_rtc_register_comp_callback_no_schedule </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a></td>          <td class="paramname"><span class="paramname"><em>callback</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">rtc_counter_t</td>          <td class="paramname"><span class="paramname"><em>counter</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t</td>          <td class="paramname"><span class="paramname"><em>index</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Just like watch_rtc_register_comp_callback but doesn't actually schedule the callback. </p>
+<p>Useful if you need register multiple callbacks at once, avoids multiple calls to the expensive watch_rtc_schedule_next_comp: Usage: watch_rtc_register_comp_callback_no_schedule(cb0, counter0, index0); watch_rtc_register_comp_callback_no_schedule(cb1, counter1, index1); <a class="el" href="#ga66fdc9701791d3abbc4a43975e865c90" title="Determines the first comp callback that should fire and schedule it with the RTC.">watch_rtc_schedule_next_comp()</a>; </p>
 
 </div>
 </div>
@@ -332,8 +561,7 @@ Variables</h2></td></tr>
   </dd>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>A 1 Hz tick (</dd></dl>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ga2ae80877a9912efbfb790c2b9f0e54ce" title="Registers a &quot;tick&quot; callback that will be called once per second.">watch_rtc_register_tick_callback</a>) is suitable for most applications, in that it gives you a chance to update the display once a second — an ideal update rate for a watch! If however you are displaying a value (such as an accelerometer output) that updates more frequently than once per second, you may want to tick at 16 or 32 Hz to update the screen more quickly. Just remember that the more frequent the tick, the more power your app will consume. Ideally you should enable the fast tick only when the user requires it (i.e. in response to an input event), and move back to the slow tick after some time.</dd></dl>
-<p>Also note that the RTC peripheral does not have sub-second resolution, so even if you set a 2 or 4 Hz interval, the system will not have any way of telling you where you are within a given second; watch_rtc_get_date_time will return the exact same timestamp until the second ticks over. </p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="#ga2ae80877a9912efbfb790c2b9f0e54ce" title="Disables the alarm callback.">watch_rtc_register_tick_callback</a>) is suitable for most applications, in that it gives you a chance to update the display once a second — an ideal update rate for a watch! If however you are displaying a value (such as an accelerometer output) that updates more frequently than once per second, you may want to tick at 16 or 32 Hz to update the screen more quickly. Just remember that the more frequent the tick, the more power your app will consume. Ideally you should enable the fast tick only when the user requires it (i.e. in response to an input event), and move back to the slow tick after some time. </dd></dl>
 
 </div>
 </div>
@@ -352,14 +580,34 @@ Variables</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Registers a "tick" callback that will be called once per second. </p>
-<dl class="params"><dt>Parameters</dt><dd>
+<p>Disables the alarm callback. </p>
+<p>Registers a "tick" callback that will be called once per second. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">callback</td><td>The function you wish to have called when the clock ticks. If you pass in NULL, the tick interrupt will still be enabled, but no callback function will be called. </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section note"><dt>Note</dt><dd>this is equivalent to calling watch_rtc_register_periodic_callback with a frequency of 1. It can be disabled with either <a class="el" href="#ga685f2afb2e99dfebf8d2ef058a5bc19d" title="Disables the tick callback for the given period.">watch_rtc_disable_tick_callback()</a> or watch_rtc_disable_periodic_callback(1), and will also be disabled when watch_rtc_disable_all_periodic_callbacks is called. </dd></dl>
+
+</div>
+</div>
+<a id="ga66fdc9701791d3abbc4a43975e865c90" name="ga66fdc9701791d3abbc4a43975e865c90"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga66fdc9701791d3abbc4a43975e865c90">&#9670;&#160;</a></span>watch_rtc_schedule_next_comp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_rtc_schedule_next_comp </td>
+          <td>(</td>
+          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Determines the first comp callback that should fire and schedule it with the RTC. </p>
+<p>You would never need to call this manually, unless you used the 'no_schedule' functions above. </p>
 
 </div>
 </div>
@@ -372,13 +620,13 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">void watch_rtc_set_date_time </td>
           <td>(</td>
-          <td class="paramtype">rtc_date_time_t</td>          <td class="paramname"><span class="paramname"><em>date_time</em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="unionrtc__date__time__t.html">rtc_date_time_t</a></td>          <td class="paramname"><span class="paramname"><em>date_time</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Sets the date and time. </p>
+<p>Sets the date and time. Calls watch_rtc_set_unix_time internally. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">date_time</td><td>The date and time you wish to set, with a year value from 0-63 representing 2020-2083. </td></tr>

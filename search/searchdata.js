@@ -1,9 +1,9 @@
 var indexSectionsWithContent =
 {
   0: "_abcdefilnoprstuvw",
-  1: "dsw",
+  1: "drsw",
   2: "w",
-  3: "_isw",
+  3: "_irsw",
   4: "n",
   5: "w",
   6: "w",

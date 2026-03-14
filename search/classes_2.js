@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['watch_5fduration_5ft_0',['watch_duration_t',['../structwatch__duration__t.html',1,'']]]
+  ['segment_5fmapping_5ft_0',['segment_mapping_t',['../unionsegment__mapping__t.html',1,'']]]
 ];

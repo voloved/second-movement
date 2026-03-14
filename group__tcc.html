@@ -112,8 +112,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_enable_buzzer</
 <tr class="memitem:ga64cb6d242fa06bb1da4c34d8d0a2f138" id="r_ga64cb6d242fa06bb1da4c34d8d0a2f138"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga64cb6d242fa06bb1da4c34d8d0a2f138">watch_set_buzzer_period_and_duty_cycle</a> (uint32_t period, uint8_t duty)</td></tr>
 <tr class="memdesc:ga64cb6d242fa06bb1da4c34d8d0a2f138"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the period of the buzzer.  <br /></td></tr>
 <tr class="separator:ga64cb6d242fa06bb1da4c34d8d0a2f138"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga24cef76bc304371e7914c7c5bb579f93" id="r_ga24cef76bc304371e7914c7c5bb579f93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga24cef76bc304371e7914c7c5bb579f93">watch_disable_buzzer</a> (void)</td></tr>
-<tr class="memdesc:ga24cef76bc304371e7914c7c5bb579f93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the TCC peripheral that drives the buzzer.  <br /></td></tr>
+<tr class="memitem:ga24cef76bc304371e7914c7c5bb579f93" id="r_ga24cef76bc304371e7914c7c5bb579f93"><td class="memItemLeft" align="right" valign="top"><a id="ga24cef76bc304371e7914c7c5bb579f93" name="ga24cef76bc304371e7914c7c5bb579f93"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_buzzer</b> (void)</td></tr>
+<tr class="memdesc:ga24cef76bc304371e7914c7c5bb579f93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the TCC peripheral that drives the buzzer (if LED not active). <br /></td></tr>
 <tr class="separator:ga24cef76bc304371e7914c7c5bb579f93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6a2d48712d70aff4a1ab463afe6fdd98" id="r_ga6a2d48712d70aff4a1ab463afe6fdd98"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga6a2d48712d70aff4a1ab463afe6fdd98">watch_set_buzzer_on</a> (void)</td></tr>
 <tr class="memdesc:ga6a2d48712d70aff4a1ab463afe6fdd98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns the buzzer output on. It will emit a continuous sound at the given frequency.  <br /></td></tr>
@@ -131,10 +132,22 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_set_buzzer_off<
 <tr class="memitem:ga73713e47359708ef8eae50e8a505bf4b" id="r_ga73713e47359708ef8eae50e8a505bf4b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga73713e47359708ef8eae50e8a505bf4b">watch_buzzer_play_sequence</a> (int8_t *note_sequence, void(*callback_on_end)(void))</td></tr>
 <tr class="memdesc:ga73713e47359708ef8eae50e8a505bf4b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the given sequence of notes in a non-blocking way.  <br /></td></tr>
 <tr class="separator:ga73713e47359708ef8eae50e8a505bf4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga42267037590f11e5411887778a2af661" id="r_ga42267037590f11e5411887778a2af661"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga42267037590f11e5411887778a2af661">watch_buzzer_play_sequence_with_volume</a> (int8_t *note_sequence, void(*callback_on_end)(void), watch_buzzer_volume_t volume)</td></tr>
+<tr class="memdesc:ga42267037590f11e5411887778a2af661"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the given sequence of notes in a non-blocking way.  <br /></td></tr>
+<tr class="separator:ga42267037590f11e5411887778a2af661"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga73658bdea6425d3c82ecd52fa7b573a7" id="r_ga73658bdea6425d3c82ecd52fa7b573a7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga73658bdea6425d3c82ecd52fa7b573a7">watch_buzzer_play_raw_source</a> (watch_buzzer_raw_source_t raw_source, void *userdata, <a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback_on_end)</td></tr>
+<tr class="memdesc:ga73658bdea6425d3c82ecd52fa7b573a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the given raw buzzer source function in a non-blocking way.  <br /></td></tr>
+<tr class="separator:ga73658bdea6425d3c82ecd52fa7b573a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab82c251dfdd381fa28fc0d8bb168dd71" id="r_gab82c251dfdd381fa28fc0d8bb168dd71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gab82c251dfdd381fa28fc0d8bb168dd71">watch_buzzer_play_raw_source_with_volume</a> (watch_buzzer_raw_source_t raw_source, void *userdata, <a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> callback_on_end, watch_buzzer_volume_t volume)</td></tr>
+<tr class="memdesc:gab82c251dfdd381fa28fc0d8bb168dd71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Plays the given raw buzzer source function in a non-blocking way.  <br /></td></tr>
+<tr class="separator:gab82c251dfdd381fa28fc0d8bb168dd71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga73e7868fa41359376c9c4f9fd33aed7a" id="r_ga73e7868fa41359376c9c4f9fd33aed7a"><td class="memItemLeft" align="right" valign="top"><a id="ga73e7868fa41359376c9c4f9fd33aed7a" name="ga73e7868fa41359376c9c4f9fd33aed7a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_buzzer_abort_sequence</b> (void)</td></tr>
 <tr class="memdesc:ga73e7868fa41359376c9c4f9fd33aed7a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Aborts a playing sequence. <br /></td></tr>
 <tr class="separator:ga73e7868fa41359376c9c4f9fd33aed7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8964a08863f4ef636b6fcb774c30d4fa" id="r_ga8964a08863f4ef636b6fcb774c30d4fa"><td class="memItemLeft" align="right" valign="top"><a id="ga8964a08863f4ef636b6fcb774c30d4fa" name="ga8964a08863f4ef636b6fcb774c30d4fa"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_buzzer_register_global_callbacks</b> (<a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> cb_start, <a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a> cb_stop)</td></tr>
+<tr class="separator:ga8964a08863f4ef636b6fcb774c30d4fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga9e56a8a1f9234bbfbb75bb8c9bc0e749" id="r_ga9e56a8a1f9234bbfbb75bb8c9bc0e749"><td class="memItemLeft" align="right" valign="top"><a id="ga9e56a8a1f9234bbfbb75bb8c9bc0e749" name="ga9e56a8a1f9234bbfbb75bb8c9bc0e749"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>irq_handler_tc0</b> (void)</td></tr>
 <tr class="separator:ga9e56a8a1f9234bbfbb75bb8c9bc0e749"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -176,7 +189,6 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>Note that this will block your UI for the duration of the note's play time, and it will after this call, the buzzer period will be set to the period of this note. </dd></dl>
 
 </div>
 </div>
@@ -213,7 +225,98 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>This will block your UI for the duration of the note's play time, and after this call, the buzzer will stop sounding, but the TCC period will remain set to the period of this note. </dd></dl>
+
+</div>
+</div>
+<a id="ga73658bdea6425d3c82ecd52fa7b573a7" name="ga73658bdea6425d3c82ecd52fa7b573a7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga73658bdea6425d3c82ecd52fa7b573a7">&#9670;&#160;</a></span>watch_buzzer_play_raw_source()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_buzzer_play_raw_source </td>
+          <td>(</td>
+          <td class="paramtype">watch_buzzer_raw_source_t</td>          <td class="paramname"><span class="paramname"><em>raw_source</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>userdata</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a></td>          <td class="paramname"><span class="paramname"><em>callback_on_end</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Plays the given raw buzzer source function in a non-blocking way. </p>
+<p>This function plays audio data generated by a raw source callback function, allowing for precise control over buzzer timing and frequency. The raw source function is called repeatedly to generate audio samples, each containing a period and duration for the buzzer tone. Useful for applications such as chirpy, so that they won't need to allocate a long note sequence, and we will also take care of all the timing logic.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">raw_source</td><td>Pointer to the callback function that generates raw buzzer data. The function should take a position parameter and return true if more data is available, false if end of sequence is reached. Parameters:<ul>
+<li>position: Current position in the audio sequence (0-based)</li>
+<li>userdata: User-provided data passed through to the callback</li>
+<li>period: Pointer to store the period (in microseconds) for the tone</li>
+<li>duration: Pointer to store the duration (in microseconds) for the tone </li>
+</ul>
+</td></tr>
+    <tr><td class="paramname">userdata</td><td>Pointer to user data that will be passed to the raw_source callback </td></tr>
+    <tr><td class="paramname">callback_on_end</td><td>A pointer to a callback function to be invoked when the sequence has finished playing. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="gab82c251dfdd381fa28fc0d8bb168dd71" name="gab82c251dfdd381fa28fc0d8bb168dd71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab82c251dfdd381fa28fc0d8bb168dd71">&#9670;&#160;</a></span>watch_buzzer_play_raw_source_with_volume()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void watch_buzzer_play_raw_source_with_volume </td>
+          <td>(</td>
+          <td class="paramtype">watch_buzzer_raw_source_t</td>          <td class="paramname"><span class="paramname"><em>raw_source</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *</td>          <td class="paramname"><span class="paramname"><em>userdata</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="watch_8h.html#a50201253488c2d8732f3287f2a917383">watch_cb_t</a></td>          <td class="paramname"><span class="paramname"><em>callback_on_end</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">watch_buzzer_volume_t</td>          <td class="paramname"><span class="paramname"><em>volume</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Plays the given raw buzzer source function in a non-blocking way. </p>
+<p>This function plays audio data generated by a raw source callback function, allowing for precise control over buzzer timing and frequency. The raw source function is called repeatedly to generate audio samples, each containing a period and duration for the buzzer tone. Useful for applications such as chirpy, so that they won't need to allocate a long note sequence, and we will also take care of all the timing logic.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">raw_source</td><td>Pointer to the callback function that generates raw buzzer data. The function should take a position parameter and return true if more data is available, false if end of sequence is reached. Parameters:<ul>
+<li>position: Current position in the audio sequence (0-based)</li>
+<li>userdata: User-provided data passed through to the callback</li>
+<li>period: Pointer to store the period (in microseconds) for the tone</li>
+<li>duration: Pointer to store the duration (in microseconds) for the tone </li>
+</ul>
+</td></tr>
+    <tr><td class="paramname">userdata</td><td>Pointer to user data that will be passed to the raw_source callback </td></tr>
+    <tr><td class="paramname">callback_on_end</td><td>A pointer to a callback function to be invoked when the sequence has finished playing. </td></tr>
+    <tr><td class="paramname">volume</td><td>either WATCH_BUZZER_VOLUME_SOFT or WATCH_BUZZER_VOLUME_LOUD </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -248,23 +351,39 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
 
 </div>
 </div>
-<a id="ga24cef76bc304371e7914c7c5bb579f93" name="ga24cef76bc304371e7914c7c5bb579f93"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga24cef76bc304371e7914c7c5bb579f93">&#9670;&#160;</a></span>watch_disable_buzzer()</h2>
+<a id="ga42267037590f11e5411887778a2af661" name="ga42267037590f11e5411887778a2af661"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga42267037590f11e5411887778a2af661">&#9670;&#160;</a></span>watch_buzzer_play_sequence_with_volume()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void watch_disable_buzzer </td>
+          <td class="memname">void watch_buzzer_play_sequence_with_volume </td>
           <td>(</td>
-          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype">int8_t *</td>          <td class="paramname"><span class="paramname"><em>note_sequence</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">void(*</td>          <td class="paramname"><span class="paramname"><em>callback_on_end&#160;</em></span>)(void), </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">watch_buzzer_volume_t</td>          <td class="paramname"><span class="paramname"><em>volume</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Disables the TCC peripheral that drives the buzzer. </p>
-<dl class="section note"><dt>Note</dt><dd>If you are using PWM to set custom LED colors, this method will also disable the LED PWM driver, since the buzzer and LED both make use of the same peripheral to drive their PWM behavior. </dd></dl>
+<p>Plays the given sequence of notes in a non-blocking way. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">note_sequence</td><td>A pointer to the sequence of buzzer note &amp; duration tuples, ending with a zero. A simple RLE logic is implemented: a negative number instead of a buzzer note means that the sequence is rewound by the given number of notes. The byte following a negative number determines the number of loops. I.e. if you want to repeat the last three notes of the sequence one time, you should provide the tuple -3, 1. The repeated notes must not contain any other repeat markers, or you will end up with an eternal loop. </td></tr>
+    <tr><td class="paramname">callback_on_end</td><td>A pointer to a callback function to be invoked when the sequence has finished playing. </td></tr>
+    <tr><td class="paramname">volume</td><td>either WATCH_BUZZER_VOLUME_SOFT or WATCH_BUZZER_VOLUME_LOUD </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -284,7 +403,7 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
 </div><div class="memdoc">
 
 <p>Turns the buzzer output on. It will emit a continuous sound at the given frequency. </p>
-<dl class="section note"><dt>Note</dt><dd>The TCC peripheral that drives the buzzer does not run in standby mode; if you wish for buzzer output to continue, you should prevent your app from going to sleep. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>The TCC peripheral that drives the buzzer does run in standby mode; if you wish for buzzer output to continue, you don't need to prevent your app from going to sleep. </dd></dl>
 
 </div>
 </div>

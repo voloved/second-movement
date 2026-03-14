@@ -97,11 +97,13 @@ $(function(){ initResizable(false); });
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga86ce31dc95137ed41983fb7c6af5502a" id="r_ga86ce31dc95137ed41983fb7c6af5502a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga86ce31dc95137ed41983fb7c6af5502a">watch_enable_leds</a> (void)</td></tr>
-<tr class="memdesc:ga86ce31dc95137ed41983fb7c6af5502a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables the bi-color LED.  <br /></td></tr>
+<tr class="memitem:ga86ce31dc95137ed41983fb7c6af5502a" id="r_ga86ce31dc95137ed41983fb7c6af5502a"><td class="memItemLeft" align="right" valign="top"><a id="ga86ce31dc95137ed41983fb7c6af5502a" name="ga86ce31dc95137ed41983fb7c6af5502a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_enable_leds</b> (void)</td></tr>
+<tr class="memdesc:ga86ce31dc95137ed41983fb7c6af5502a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enables the TCC peripheral, which drives the LEDs. <br /></td></tr>
 <tr class="separator:ga86ce31dc95137ed41983fb7c6af5502a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga883bf171196fb5a7a57ef727dca6e04a" id="r_ga883bf171196fb5a7a57ef727dca6e04a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga883bf171196fb5a7a57ef727dca6e04a">watch_disable_leds</a> (void)</td></tr>
-<tr class="memdesc:ga883bf171196fb5a7a57ef727dca6e04a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the LEDs.  <br /></td></tr>
+<tr class="memitem:ga883bf171196fb5a7a57ef727dca6e04a" id="r_ga883bf171196fb5a7a57ef727dca6e04a"><td class="memItemLeft" align="right" valign="top"><a id="ga883bf171196fb5a7a57ef727dca6e04a" name="ga883bf171196fb5a7a57ef727dca6e04a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_disable_leds</b> (void)</td></tr>
+<tr class="memdesc:ga883bf171196fb5a7a57ef727dca6e04a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the TCC peripheral that drives the LEDs (if buzzer not active). <br /></td></tr>
 <tr class="separator:ga883bf171196fb5a7a57ef727dca6e04a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga042bcc9220ab05d1de8389cf0067511b" id="r_ga042bcc9220ab05d1de8389cf0067511b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga042bcc9220ab05d1de8389cf0067511b">watch_set_led_color</a> (uint8_t red, uint8_t green)</td></tr>
 <tr class="memdesc:ga042bcc9220ab05d1de8389cf0067511b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the LED to a custom color by modulating each output's duty cycle.  <br /></td></tr>
@@ -122,10 +124,6 @@ Functions</h2></td></tr>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>watch_set_led_off</b> (void)</td></tr>
 <tr class="memdesc:ga8619f040ff7364285398412a4c420cae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Turns both the red and the green LEDs off. <br /></td></tr>
 <tr class="separator:ga8619f040ff7364285398412a4c420cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3db3f45f6e9b0ec67355772e790e9fc0" id="r_ga3db3f45f6e9b0ec67355772e790e9fc0"><td class="memItemLeft" align="right" valign="top"><a id="ga3db3f45f6e9b0ec67355772e790e9fc0" name="ga3db3f45f6e9b0ec67355772e790e9fc0"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>_watch_disable_tcc</b> (void)</td></tr>
-<tr class="memdesc:ga3db3f45f6e9b0ec67355772e790e9fc0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Disables the TCC peripheral. Should only be called internally. <br /></td></tr>
-<tr class="separator:ga3db3f45f6e9b0ec67355772e790e9fc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
@@ -138,46 +136,6 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
 <p>This section covers functions related to the bi-color red/green LED mounted behind the LCD. </p>
 <p>The SAM L22 is an exceedingly power efficient chip, whereas the LED's are relatively power- hungry. The green LED, at full power, consumes more power than the whole chip in active mode, and the red LED consumes about twelve times as much power! The LED's should thus be used only sparingly in order to preserve battery life. </p><dl class="section note"><dt>Note</dt><dd>Some watches use a red/blue LED instead of a red/green LED. You will be able to determine this easily when you double tap the reset button: if the pulsing bootloader LED is red, you have a red/green edition; if it is blue, you have a red/blue edition. For red/blue watches, build your project with the command <code>make COLOR=BLUE</code>, and the watch library will automatically swap the pins so that watch_set_led_red sets the red LED, and watch_set_led_green sets the blue one. </dd></dl>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ga883bf171196fb5a7a57ef727dca6e04a" name="ga883bf171196fb5a7a57ef727dca6e04a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga883bf171196fb5a7a57ef727dca6e04a">&#9670;&#160;</a></span>watch_disable_leds()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void watch_disable_leds </td>
-          <td>(</td>
-          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Disables the LEDs. </p>
-<dl class="section note"><dt>Note</dt><dd>This method will also disable the buzzer, since the buzzer and LED both make use of the same peripheral to drive their PWM behavior. </dd></dl>
-
-</div>
-</div>
-<a id="ga86ce31dc95137ed41983fb7c6af5502a" name="ga86ce31dc95137ed41983fb7c6af5502a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga86ce31dc95137ed41983fb7c6af5502a">&#9670;&#160;</a></span>watch_enable_leds()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void watch_enable_leds </td>
-          <td>(</td>
-          <td class="paramtype">void</td>          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Enables the bi-color LED. </p>
-<dl class="section note"><dt>Note</dt><dd>The TCC peripheral that drives the LEDs does not run in STANDBY mode — but the outputs do! This means that if you set either red, green or both LEDs to full power, they will shine even when your app is asleep. If, however, you set a custom color using watch_set_led_color, the color will not display correctly in STANDBY mode. You will need to keep your app running while the LED is on. </dd></dl>
-
-</div>
-</div>
 <a id="ga042bcc9220ab05d1de8389cf0067511b" name="ga042bcc9220ab05d1de8389cf0067511b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga042bcc9220ab05d1de8389cf0067511b">&#9670;&#160;</a></span>watch_set_led_color()</h2>
 
@@ -205,7 +163,6 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>If you are displaying a custom color, you will need to prevent your app from going to sleep while the LED is on; otherwise, the color will not display correctly. You can do this by returning false in your app_loop method. </dd></dl>
 
 </div>
 </div>
@@ -242,7 +199,6 @@ const uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>NotePeriods
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>If you are displaying a custom color, you will need to prevent your app from going to sleep while the LED is on; otherwise, the color will not display correctly. You can do this by returning false in your app_loop method. </dd></dl>
 
 </div>
 </div>

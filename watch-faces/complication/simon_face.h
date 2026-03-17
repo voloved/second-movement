@@ -59,6 +59,7 @@
 
 typedef enum SimonNote {
     SIMON_LED_NOTE = 1,
+    SIMON_START_NOTE,  // For G-Shock Only
     SIMON_MODE_NOTE,
     SIMON_ALARM_NOTE,
     SIMON_WRONG_NOTE

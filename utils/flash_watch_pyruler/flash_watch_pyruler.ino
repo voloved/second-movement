@@ -32,9 +32,9 @@ void error(const char *text) {
 void setup(void) {
   pinMode(13, OUTPUT);
   Serial.begin(115200);
-//  while(!Serial) {
-//    delay(1);         // will pause the chip until it opens serial console
-//  }
+  while(!Serial) {
+    delay(1);         // will pause the chip until it opens serial console
+  }
 
   dap.begin(SWCLK, SWDIO, SWRST, &error);
   
@@ -91,7 +91,7 @@ void setup(void) {
   Serial.print("Fuses... ");
   dap.fuseRead(); //MUST READ FUSES BEFORE SETTING OR WRITING ANY
   Serial.println("read.");
-  dap._USER_ROW.bit.BOOTPROT = 0x2;
+  dap._USER_ROW.bit.BOOTPROT = 0x7;  // 0x2 = 8192 bytes in bootloader protected; 0x7 = No protection
   Serial.println("Setting BOOTPROT to 0x2 for 8192 byte bootloader");
   dap.fuseWrite();
   Serial.println("\nDone!!");

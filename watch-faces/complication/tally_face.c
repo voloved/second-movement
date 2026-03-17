@@ -133,7 +133,11 @@ static bool tally_face_should_move_back(tally_state_t *state) {
 
 bool tally_face_loop(movement_event_t event, void *context) {
     tally_state_t *state = (tally_state_t *)context;
-    bool is_gshock = watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK;
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    const bool is_gshock = true;
+#else
+    const bool is_gshock = false;
+#endif
     static bool using_led = false;
     static int8_t beep_sequence[] = {
         0, 2,
@@ -207,15 +211,13 @@ bool tally_face_loop(movement_event_t event, void *context) {
             start_quick_cyc();
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (is_gshock) {
+            if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
+                cycle_presets(state, movement_button_should_sound(), beep_sequence);
+            } else if (is_gshock) {
                 reset_tally(state, movement_button_should_sound(), beep_sequence);
             } else {
-                if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
-                    cycle_presets(state, movement_button_should_sound(), beep_sequence);
-                } else {
-                    tally_face_increment(state, movement_button_should_sound());
-                    start_quick_cyc();
-                }
+                tally_face_increment(state, movement_button_should_sound());
+                start_quick_cyc();
             }
             break;
         case EVENT_ACTIVATE:

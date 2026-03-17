@@ -104,12 +104,36 @@ static void tally_face_decrement(tally_state_t *state, bool sound_on) {
         }
 }
 
+static void reset_tally(tally_state_t *state, bool sound_on, int8_t *seq) {
+    state->tally_idx = _tally_default[state->tally_default_idx]; // reset tally index
+    _init_val = true;
+    //play a reset tune
+    if (sound_on) {
+        seq[0] = BUZZER_NOTE_G6;
+        seq[4] = BUZZER_NOTE_E6;
+        movement_play_sequence(seq, 0);
+    }
+    print_tally(state, sound_on);
+}
+
+static void cycle_presets(tally_state_t *state, bool sound_on, int8_t *seq) {
+    state->tally_default_idx = (state->tally_default_idx + 1) % TALLY_FACE_PRESETS_SIZE();
+    state->tally_idx = _tally_default[state->tally_default_idx];
+    if (movement_button_should_sound()) {
+        seq[0] = BUZZER_NOTE_E6;
+        seq[4] = BUZZER_NOTE_G6;
+        movement_play_sequence(seq, 0);
+    }
+    print_tally(state, movement_button_should_sound());
+}
+
 static bool tally_face_should_move_back(tally_state_t *state) {
     return state->tally_idx == _tally_default[state->tally_default_idx];
 }
 
 bool tally_face_loop(movement_event_t event, void *context) {
     tally_state_t *state = (tally_state_t *)context;
+    bool is_gshock = watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK;
     static bool using_led = false;
     static int8_t beep_sequence[] = {
         0, 2,
@@ -131,11 +155,16 @@ bool tally_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_TICK:
             if (_quick_ticks_running) {
-                bool light_pressed = HAL_GPIO_BTN_LIGHT_read();
-                bool alarm_pressed = HAL_GPIO_BTN_ALARM_read();
-                if (light_pressed && alarm_pressed) stop_quick_cyc();
-                else if (light_pressed) tally_face_increment(state, movement_button_should_sound());
-                else if (alarm_pressed) tally_face_decrement(state, movement_button_should_sound());
+                bool increment_pressed;
+                if (is_gshock) {
+                    increment_pressed = HAL_GPIO_BTN_START_read();
+                } else {
+                    increment_pressed = HAL_GPIO_BTN_LIGHT_read();
+                }
+                bool decrement_pressed = HAL_GPIO_BTN_ALARM_read();
+                if (increment_pressed && decrement_pressed) stop_quick_cyc();
+                else if (increment_pressed) tally_face_increment(state, movement_button_should_sound());
+                else if (decrement_pressed) tally_face_decrement(state, movement_button_should_sound());
                 else stop_quick_cyc();
             }
             break;
@@ -147,46 +176,46 @@ bool tally_face_loop(movement_event_t event, void *context) {
             start_quick_cyc();
             break;
         case EVENT_MODE_LONG_PRESS:
-            if (tally_face_should_move_back(state)) {
+            if (is_gshock || tally_face_should_move_back(state)) {
                 _init_val = true;
                 movement_move_to_face(0);
             }
             else {
-                state->tally_idx = _tally_default[state->tally_default_idx]; // reset tally index
-                _init_val = true;
-                //play a reset tune
-                if (movement_button_should_sound()) {
-                    beep_sequence[0] = BUZZER_NOTE_G6;
-                    beep_sequence[4] = BUZZER_NOTE_E6;
-                    movement_play_sequence(beep_sequence, 0);
-                }
-                print_tally(state, movement_button_should_sound());
+                reset_tally(state, movement_button_should_sound(), beep_sequence);
             }
             break;
         case EVENT_LIGHT_BUTTON_UP:
-            tally_face_increment(state, movement_button_should_sound());
+            if (!is_gshock) {
+                tally_face_increment(state, movement_button_should_sound());
+            } else if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
+                cycle_presets(state, movement_button_should_sound(), beep_sequence);
+            }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
         case EVENT_ALARM_BUTTON_DOWN:
+        case EVENT_START_BUTTON_DOWN:
             if (HAL_GPIO_BTN_MODE_read()) {
                 movement_illuminate_led();
                 using_led = true;
             }
             break;
+        case EVENT_START_BUTTON_UP:
+            tally_face_increment(state, movement_button_should_sound());
+            break;
+        case EVENT_START_LONG_PRESS:
+            tally_face_increment(state, movement_button_should_sound());
+            start_quick_cyc();
+            break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val){
-                state->tally_default_idx = (state->tally_default_idx + 1) % TALLY_FACE_PRESETS_SIZE();
-                state->tally_idx = _tally_default[state->tally_default_idx];
-                if (movement_button_should_sound()) {
-                    beep_sequence[0] = BUZZER_NOTE_E6;
-                    beep_sequence[4] = BUZZER_NOTE_G6;
-                    movement_play_sequence(beep_sequence, 0);
+            if (is_gshock) {
+                reset_tally(state, movement_button_should_sound(), beep_sequence);
+            } else {
+                if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
+                    cycle_presets(state, movement_button_should_sound(), beep_sequence);
+                } else {
+                    tally_face_increment(state, movement_button_should_sound());
+                    start_quick_cyc();
                 }
-                print_tally(state, movement_button_should_sound());
-            }
-            else{
-                tally_face_increment(state, movement_button_should_sound());
-                start_quick_cyc();
             }
             break;
         case EVENT_ACTIVATE:

@@ -119,12 +119,12 @@ static void reset_tally(tally_state_t *state, bool sound_on, int8_t *seq) {
 static void cycle_presets(tally_state_t *state, bool sound_on, int8_t *seq) {
     state->tally_default_idx = (state->tally_default_idx + 1) % TALLY_FACE_PRESETS_SIZE();
     state->tally_idx = _tally_default[state->tally_default_idx];
-    if (movement_button_should_sound()) {
+    if (sound_on) {
         seq[0] = BUZZER_NOTE_E6;
         seq[4] = BUZZER_NOTE_G6;
         movement_play_sequence(seq, 0);
     }
-    print_tally(state, movement_button_should_sound());
+    print_tally(state, sound_on);
 }
 
 static bool tally_face_should_move_back(tally_state_t *state) {
@@ -160,11 +160,11 @@ bool tally_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             if (_quick_ticks_running) {
                 bool increment_pressed;
-                if (is_gshock) {
-                    increment_pressed = HAL_GPIO_BTN_START_read();
-                } else {
-                    increment_pressed = HAL_GPIO_BTN_LIGHT_read();
-                }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+                increment_pressed = HAL_GPIO_BTN_START_read();
+#else
+                increment_pressed = HAL_GPIO_BTN_LIGHT_read();
+#endif
                 bool decrement_pressed = HAL_GPIO_BTN_ALARM_read();
                 if (increment_pressed && decrement_pressed) stop_quick_cyc();
                 else if (increment_pressed) tally_face_increment(state, movement_button_should_sound());

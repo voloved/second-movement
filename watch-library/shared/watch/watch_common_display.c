@@ -51,11 +51,19 @@ uint8_t IndicatorSegments[13] = {
 };
 
 void watch_display_character(uint8_t character, uint8_t position) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
         else if (character == 'T' && position > 1 && position < 8) character = 't'; // lowercase t is the only option for these positions
         else if (character == 'B' && position > 1 && position < 8) character = '8';
         else if (character == 'I' && position > 1 && position < 8) character = '1';
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        if (character == '.') character = '-';
+        else if (character == 'T' && position == 1) character = '.';
+        else if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
+        else if (character == 'T' && position > 1) character = 't'; // lowercase t is the only option for these positions
+        else if (character == 'B' && position > 1) character = '8';
+        else if (character == 'I' && position > 0) character = '1';
     } else {
         // special cases for positions 4 and 6
         if (position == 4 || position == 6) {
@@ -100,8 +108,6 @@ void watch_display_character(uint8_t character, uint8_t position) {
     uint8_t segdata;
 
     /// TODO: This could be optimized by doing this check once and setting a pointer in watch_discover_lcd_type.
-
-    watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         segmap = Custom_LCD_Display_Mapping[position];
         segdata = Custom_LCD_Character_Set[character - 0x20];
@@ -132,9 +138,14 @@ void watch_display_character(uint8_t character, uint8_t position) {
         segdata = segdata >> 1;
     }
 
-    if (character == 'T' && position == 1) watch_set_pixel(1, 12); // add descender
-    else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 15); // add funky ninth segment
-    else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 12); // add funky ninth segment
+    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        // T is . at this point on the G-Shock, which is actually Г
+        if (position == 1 && (character == 'B' || character == 'D' || character == '@' || character == '.')) watch_set_pixel(3, 6); // add funky ninth segment
+    } else {
+        if (character == 'T' && position == 1) watch_set_pixel(1, 12); // add descender
+        else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 15); // add funky ninth segment
+        else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 12); // add funky ninth segment
+    }
 }
 
 void watch_display_character_lp_seconds(uint8_t character, uint8_t position) {

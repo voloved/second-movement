@@ -523,7 +523,7 @@ static const uint8_t GShock_LCD_Character_Set[] =
     0b01110000, // + (segments E, F and G; looks like ┣╸)
     0b00000100, // ,
     0b01000000, // -
-    0b01000000, // . (same as -, semantically most useful)
+    0b10110001, // Г (. is unused, so this is taking over)
     0b00010010, // /
     0b00111111, // 0
     0b00000110, // 1

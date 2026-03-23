@@ -577,11 +577,16 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 movement_illuminate_led(); // Will allow led for see acts' genre and times
             else start_quick_cyc();
             break;
+#ifndef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MODE_LONG_PRESS:
-
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE){
                 movement_move_to_face(0);
             }
+#else
+        case EVENT_START_LONG_PRESS:
+            if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE){
+            }
+#endif
             if (state->curr_screen != FESTIVAL_SCHEDULE_SCREEN_ACT){
                 state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
                 _display_screen(state);
@@ -592,8 +597,13 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 _display_title(state);
             }
             break;
+#ifndef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MODE_BUTTON_UP:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) movement_move_to_next_face();
+#else
+        case EVENT_START_BUTTON_UP:
+            if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) ;
+#endif
             else if (state->curr_act == FESTIVAL_SCHEDULE_NUM_ACTS) _display_title(state);
             else if (!_is_text_looping && MAX_LENGTH < _text_looping_len) _is_text_looping = true;
             else {

@@ -114,20 +114,37 @@ void setup(void) {
 
   if (READ_FLASH) {
     uint32_t addr = dap.program_start();
+    uint32_t addr_bak = addr;
     Serial.println("Reading flash...");
-
+    Serial.println();
+    Serial.println("HEX:");
     while(addr < sizeof(binfile)){
       dap.readBlock(addr, buf);
 
       // Print as hex
-    for (int i = 0; i < BUFSIZE; i++) {
-      if (buf[i] < 16) Serial.print("0");
-      Serial.print(buf[i], HEX);
+      for (int i = 0; i < BUFSIZE; i++) {
+        if (buf[i] < 16) Serial.print("0");
+        Serial.print(buf[i], HEX);
 
-      if (i < BUFSIZE - 1) {
-        Serial.print(" ");
+        if (i < BUFSIZE - 1) Serial.print(" ");
       }
+      Serial.println();
+      addr += BUFSIZE;
     }
+    addr = addr_bak;
+    Serial.println();
+    Serial.println("ASCII:");
+    while(addr < sizeof(binfile)){
+      dap.readBlock(addr, buf);
+      // Print as ascii
+      for (int i = 0; i < BUFSIZE; i++) {
+        uint8_t b = buf[i];
+        if (b >= 32 && b <= 126) {
+          Serial.print((char)b);
+        } else {
+          Serial.print(".");
+        }
+      }
     Serial.println();
       addr += BUFSIZE;
     }

@@ -602,7 +602,10 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) movement_move_to_next_face();
 #else
         case EVENT_START_BUTTON_UP:
-            if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) ;
+            if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) {
+                _cyc_all_acts(state, false);
+                set_ticks_purpose(FESTIVAL_SCHEDULE_TICK_CYCLE);
+            }
 #endif
             else if (state->curr_act == FESTIVAL_SCHEDULE_NUM_ACTS) _display_title(state);
             else if (!_is_text_looping && MAX_LENGTH < _text_looping_len) _is_text_looping = true;

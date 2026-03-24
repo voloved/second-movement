@@ -16,8 +16,11 @@
 #define SWCLK 1
 #define SWRST 3
 
+#define READ_FLASH 1
+#define WRITE_FLASH 1
+
 #define BUFSIZE 256       //don't change!
-//uint8_t buf[BUFSIZE];
+uint8_t buf[BUFSIZE];
 
 //create a DAP for programming Atmel SAM devices
 Adafruit_DAP_SAM dap;
@@ -56,7 +59,18 @@ void setup(void) {
   uint32_t dsu_did;
   if (! dap.select(&dsu_did)) {
     Serial.print("Unknown device found 0x"); Serial.print(dsu_did, HEX);
-    error("Unknown device found");
+    // Manually handle known-but-unsupported chips
+    uint32_t flash_size = 0;
+
+    switch (dsu_did) {
+      case 0x10820105: // DSU_DID of the SAML22J18
+        Serial.println("Detected SAMD21 variant (manual config)");
+        flash_size = 256 * 1024; // adjust if needed
+        break;
+
+      default:
+        error("Unknown device found");
+    }
   }
   for (device_t *device = dap.devices; device->dsu_did > 0; device++) {
     if (device->dsu_did == dsu_did) {
@@ -72,29 +86,52 @@ void setup(void) {
         
   Serial.println(" done.");
 
-  Serial.print("Erasing... ");
-  dap.erase();
-  Serial.println(" done.");
-  
-  Serial.print("Programming... ");
-  unsigned long t = millis();
-  uint32_t addr = dap.program_start();
+  if (WRITE_FLASH) {
+    Serial.print("Erasing... ");
+    dap.erase();
+    Serial.println(" done.");
+    
+    Serial.print("Programming... ");
+    unsigned long t = millis();
+    uint32_t addr = dap.program_start();
 
-  while(addr < sizeof(binfile)){
-    dap.programBlock(addr, binfile + addr);
-    addr += BUFSIZE;
+    while(addr < sizeof(binfile)){
+      dap.programBlock(addr, binfile + addr);
+      addr += BUFSIZE;
+    }
+    
+    Serial.println(millis() - t);
+    Serial.println("\nDone!");
+
+    Serial.print("Fuses... ");
+    dap.fuseRead(); //MUST READ FUSES BEFORE SETTING OR WRITING ANY
+    Serial.println("read.");
+    dap._USER_ROW.bit.BOOTPROT = 0x7;  // 0x2 = 8192 bytes in bootloader protected; 0x7 = No protection
+    Serial.println("Setting BOOTPROT to 0x2 for 8192 byte bootloader");
+    dap.fuseWrite();
+    Serial.println("\nDone!!");
   }
-  
-  Serial.println(millis() - t);
-  Serial.println("\nDone!");
 
-  Serial.print("Fuses... ");
-  dap.fuseRead(); //MUST READ FUSES BEFORE SETTING OR WRITING ANY
-  Serial.println("read.");
-  dap._USER_ROW.bit.BOOTPROT = 0x7;  // 0x2 = 8192 bytes in bootloader protected; 0x7 = No protection
-  Serial.println("Setting BOOTPROT to 0x2 for 8192 byte bootloader");
-  dap.fuseWrite();
-  Serial.println("\nDone!!");
+  if (READ_FLASH) {
+    uint32_t addr = dap.program_start();
+    Serial.println("Reading flash...");
+
+    while(addr < sizeof(binfile)){
+      dap.readBlock(addr, buf);
+
+      // Print as hex
+    for (int i = 0; i < BUFSIZE; i++) {
+      if (buf[i] < 16) Serial.print("0");
+      Serial.print(buf[i], HEX);
+
+      if (i < BUFSIZE - 1) {
+        Serial.print(" ");
+      }
+    }
+    Serial.println();
+      addr += BUFSIZE;
+    }
+  }
 
   dap.dap_set_clock(50);
 

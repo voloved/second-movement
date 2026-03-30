@@ -463,8 +463,8 @@ def print_md_lst(sorted_listing, day_info):
     displayMonLis = 'monthly_listeners' in sorted_listing[0]
     numTitle = "Num"
     actTitle = "Act"
-    popTitle = "Popularity"
-    folTitle = "Followers"
+    popTitle = "Play Count" if POPULARITY_SOURCE == "last.fm" else "Popularity"
+    folTitle = "Listeners" if POPULARITY_SOURCE == "last.fm" else "Followers"
     monLisTitle = "Monthly Listeners"
     genreTitle = "Genre"
     topSongTitle = "Popular Song"
@@ -491,7 +491,7 @@ def print_md_lst(sorted_listing, day_info):
         if displayMonLis:
             longestMonLis = max(longestMonLis, len(str(item['monthly_listeners'])))
         if displayGenre:
-            artist_genre[item['name']] = "-" if not item['genre_disp'] else item['genre_disp']
+            artist_genre[item['name']] = "-" if not item['genre_disp'] else item['genre_disp'].capitalize()
             longestGen = max(longestGen, len(str(artist_genre[item['name']])))
         if displayTopSong:
             top_song = str(item['top_song'])

@@ -233,6 +233,11 @@ void watch_set_indicator(watch_indicator_t indicator);
   */
 void watch_clear_indicator(watch_indicator_t indicator);
 
+/** @brief Sets all indicator segments.
+  * @see watch_indicator_t
+  */
+void watch_set_all_indicators(void);
+
 /** @brief Clears all indicator segments.
   * @see watch_indicator_t
   */

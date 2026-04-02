@@ -142,9 +142,9 @@ void watch_display_character(uint8_t character, uint8_t position) {
         // T is . at this point on the G-Shock, which is actually Г
         if (position == 1 && (character == 'B' || character == 'D' || character == '@' || character == '.')) watch_set_pixel(3, 6); // add funky ninth segment
     } else {
-        if (character == 'T' && position == 1) watch_set_pixel(1, 12); // add descender
-        else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 15); // add funky ninth segment
-        else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 12); // add funky ninth segment
+        if (character == 'T' && position == 1) watch_set_pixel(3, 10); // add descender
+        else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(2, 20); // add funky ninth segment
+        else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(3, 10); // add funky ninth segment
     }
 }
 
@@ -430,7 +430,7 @@ void watch_set_colon(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 0);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_set_pixel(2, 23);
+        watch_set_pixel(2, 26);
     } else {
         watch_set_pixel(1, 16);
     }
@@ -441,7 +441,7 @@ void watch_clear_colon(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 0);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_clear_pixel(2, 23);
+        watch_clear_pixel(2, 26);
     } else {
         watch_clear_pixel(1, 16);
     }
@@ -452,7 +452,7 @@ void watch_set_decimal_if_available(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 14);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_set_pixel(0, 15);
+        watch_set_pixel(0, 26);
     }
 }
 
@@ -461,7 +461,7 @@ void watch_clear_decimal_if_available(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 14);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_clear_pixel(0, 15);
+        watch_clear_pixel(0, 26);
     }
 }
 
@@ -477,6 +477,23 @@ void watch_clear_indicator(watch_indicator_t indicator) {
     uint8_t com = SLCD_COMNUM(value);
     uint8_t seg = SLCD_SEGNUM(value);
     watch_clear_pixel(com, seg);
+}
+
+void watch_set_all_indicators(void) {
+    /// TODO: Optimize this? Can be 3-4 writes to SDATAL registers
+    watch_set_indicator(WATCH_INDICATOR_SIGNAL);
+    watch_set_indicator(WATCH_INDICATOR_BELL);
+    watch_set_indicator(WATCH_INDICATOR_PM);
+    watch_set_indicator(WATCH_INDICATOR_24H);
+    watch_set_indicator(WATCH_INDICATOR_LAP);
+    watch_set_indicator(WATCH_INDICATOR_ARROWS);
+    watch_set_indicator(WATCH_INDICATOR_SLEEP);
+    watch_set_indicator(WATCH_INDICATOR_COLON);
+    watch_set_indicator(WATCH_INDICATOR_SINGLE_QUOTE);
+    watch_set_indicator(WATCH_INDICATOR_DOUBLE_QUOTE);
+    watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+    watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+    watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
 }
 
 void watch_clear_all_indicators(void) {
@@ -511,18 +528,18 @@ void _watch_update_indicator_segments(void) {
 
 void _watch_update_indicator_segments_gshock(void) {
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
-        IndicatorSegments[ 0] = SLCD_SEGID(3, 17); // WATCH_INDICATOR_SIGNAL
-        IndicatorSegments[ 1] = SLCD_SEGID(0, 22); // WATCH_INDICATOR_BELL
-        IndicatorSegments[ 2] = SLCD_SEGID(1, 18); // WATCH_INDICATOR_PM
-        IndicatorSegments[ 3] = SLCD_SEGID(0, 20); // WATCH_INDICATOR_24H
-        IndicatorSegments[ 4] = SLCD_SEGID(0, 23); // WATCH_INDICATOR_LAP
-        IndicatorSegments[ 5] = SLCD_SEGID(0,  0); // WATCH_INDICATOR_ARROWS
-        IndicatorSegments[ 6] = SLCD_SEGID(0, 14); // WATCH_INDICATOR_SLEEP
-        IndicatorSegments[ 7] = SLCD_SEGID(2, 23); // WATCH_INDICATOR_COLON
-        IndicatorSegments[ 8] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_SINGLE_QUOTE
-        IndicatorSegments[ 9] = SLCD_SEGID(0,  1); // WATCH_INDICATOR_DOUBLE_QUOTE
-        IndicatorSegments[10] = SLCD_SEGID(2,  4); // WATCH_INDICATOR_BOX_DASH
-        IndicatorSegments[11] = SLCD_SEGID(3,  4); // WATCH_INDICATOR_BOX_COLON_TOP
-        IndicatorSegments[12] = SLCD_SEGID(1,  5); // WATCH_INDICATOR_BOX_COLON_BOTTOM
+        IndicatorSegments[ 0] = SLCD_SEGID(3, 21); // WATCH_INDICATOR_SIGNAL
+        IndicatorSegments[ 1] = SLCD_SEGID(0, 24); // WATCH_INDICATOR_BELL
+        IndicatorSegments[ 2] = SLCD_SEGID(1, 22); // WATCH_INDICATOR_PM
+        IndicatorSegments[ 3] = SLCD_SEGID(0, 22); // WATCH_INDICATOR_24H
+        IndicatorSegments[ 4] = SLCD_SEGID(0, 25); // WATCH_INDICATOR_LAP
+        IndicatorSegments[ 5] = SLCD_SEGID(0, 12); // WATCH_INDICATOR_ARROWS
+        IndicatorSegments[ 6] = SLCD_SEGID(0, 17); // WATCH_INDICATOR_SLEEP
+        IndicatorSegments[ 7] = SLCD_SEGID(2, 26); // WATCH_INDICATOR_COLON
+        IndicatorSegments[ 8] = SLCD_SEGID(0, 26); // WATCH_INDICATOR_SINGLE_QUOTE
+        IndicatorSegments[ 9] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_DOUBLE_QUOTE
+        IndicatorSegments[10] = SLCD_SEGID(2,  5); // WATCH_INDICATOR_BOX_DASH
+        IndicatorSegments[11] = SLCD_SEGID(3,  5); // WATCH_INDICATOR_BOX_COLON_TOP
+        IndicatorSegments[12] = SLCD_SEGID(1,  4); // WATCH_INDICATOR_BOX_COLON_BOTTOM
     }
 }

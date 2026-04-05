@@ -434,7 +434,7 @@ static void _movement_handle_button_presses(uint64_t pending_events) {
         _movement_start_button_events_mask
     };
 
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef FORCE_GSHOCK_LCD_TYPE
     for (uint8_t i = 0; i < 4; i++) {  // START button logic only runs on the G-Shock
 #else
     for (uint8_t i = 0; i < 3; i++) {
@@ -1760,7 +1760,7 @@ void app_init(void) {
     movement_volatile_state.alarm_button.timeout_index = ALARM_BUTTON_TIMEOUT;
     movement_volatile_state.alarm_button.cb_longpress = cb_alarm_btn_timeout_interrupt;
 
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef FORCE_GSHOCK_LCD_TYPE
     movement_volatile_state.start_button.down_event = EVENT_START_BUTTON_DOWN;
     movement_volatile_state.start_button.is_down = false;
     movement_volatile_state.start_button.down_timestamp = 0;
@@ -1898,7 +1898,7 @@ void app_setup(void) {
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef FORCE_GSHOCK_LCD_TYPE
         watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_BOTH);
 #endif
 
@@ -2216,20 +2216,20 @@ bool app_loop(void) {
         // No need to fire resign and sleep interrupts while in sleep mode
         _movement_disable_inactivity_countdown();
 
-#if defined(FORCE_GSHOCK_LCD_TYPE)
-        // The case of the G-Shock is GND. It's 3V for the F91W.
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_NONE);
-        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
+        
+#ifdef WATCH_CASE_IS_GROUND
+        // The case of the G-Shock is GND. It's 3V for the F91W.
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_extwake, INTERRUPT_TRIGGER_FALLING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_FALLING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_FALLING);
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_START_pin(), cb_start_btn_extwake, INTERRUPT_TRIGGER_FALLING);
+#endif
 #else
-        watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_interrupt, INTERRUPT_TRIGGER_NONE);
-        watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_interrupt, INTERRUPT_TRIGGER_NONE);
-        watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_interrupt, INTERRUPT_TRIGGER_NONE);
         watch_register_interrupt_callback(HAL_GPIO_BTN_MODE_pin(), cb_mode_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_LIGHT_pin(), cb_light_btn_extwake, INTERRUPT_TRIGGER_RISING);
         watch_register_interrupt_callback(HAL_GPIO_BTN_ALARM_pin(), cb_alarm_btn_extwake, INTERRUPT_TRIGGER_RISING);
@@ -2337,7 +2337,7 @@ static movement_event_type_t _process_button_event(bool pin_level, movement_butt
 
 void cb_light_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_LIGHT_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
 
@@ -2346,7 +2346,7 @@ void cb_light_btn_interrupt(void) {
 
 void cb_mode_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_MODE_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
 
@@ -2355,7 +2355,7 @@ void cb_mode_btn_interrupt(void) {
 
 void cb_alarm_btn_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_ALARM_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
 
@@ -2363,8 +2363,11 @@ void cb_alarm_btn_interrupt(void) {
 }
 
 void cb_start_btn_interrupt(void) {
-#if defined(FORCE_GSHOCK_LCD_TYPE)
-    bool pin_level = !HAL_GPIO_BTN_START_read();
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    bool pin_level = HAL_GPIO_BTN_START_read();
+#ifdef WATCH_CASE_IS_GROUND
+    pin_level = !pin_level;
+#endif
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_event(pin_level, &movement_volatile_state.start_button);
 #endif
@@ -2406,7 +2409,7 @@ static movement_event_type_t _process_button_longpress_timeout(bool pin_level, m
 
 void cb_light_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_LIGHT_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
     movement_button_t* button = &movement_volatile_state.light_button;
@@ -2416,7 +2419,7 @@ void cb_light_btn_timeout_interrupt(void) {
 
 void cb_mode_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_MODE_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
     movement_button_t* button = &movement_volatile_state.mode_button;
@@ -2426,7 +2429,7 @@ void cb_mode_btn_timeout_interrupt(void) {
 
 void cb_alarm_btn_timeout_interrupt(void) {
     bool pin_level = HAL_GPIO_BTN_ALARM_read();
-#if defined(FORCE_GSHOCK_LCD_TYPE)
+#ifdef WATCH_CASE_IS_GROUND
     pin_level = !pin_level;
 #endif
     movement_button_t* button = &movement_volatile_state.alarm_button;
@@ -2435,8 +2438,11 @@ void cb_alarm_btn_timeout_interrupt(void) {
 }
 
 void cb_start_btn_timeout_interrupt(void) {
-#if defined(FORCE_GSHOCK_LCD_TYPE)
-    bool pin_level = !HAL_GPIO_BTN_START_read();
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    bool pin_level = HAL_GPIO_BTN_START_read();
+#ifdef WATCH_CASE_IS_GROUND
+    pin_level = !pin_level;
+#endif
     movement_button_t* button = &movement_volatile_state.start_button;
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);

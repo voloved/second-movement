@@ -42,9 +42,14 @@ static eic_interrupt_trigger_t external_interrupt_alarm_trigger = INTERRUPT_TRIG
 static watch_cb_t external_interrupt_start_callback = NULL;
 static eic_interrupt_trigger_t external_interrupt_start_trigger = INTERRUPT_TRIGGER_NONE;
 
+#if defined(FORCE_GSHOCK_LCD_TYPE)
+#define BTN_ID_START 1
+#define BTN_ID_LIGHT 4
+#else
 #define BTN_ID_START 4
-#define BTN_ID_ALARM 3
 #define BTN_ID_LIGHT 1
+#endif
+#define BTN_ID_ALARM 3
 #define BTN_ID_MODE 2
 static const uint8_t BTN_IDS[] = { BTN_ID_ALARM, BTN_ID_LIGHT, BTN_ID_MODE, BTN_ID_START };
 static EM_BOOL watch_invoke_interrupt_callback(const uint8_t button_id, eic_interrupt_trigger_t trigger);

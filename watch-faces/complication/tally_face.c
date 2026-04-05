@@ -159,12 +159,7 @@ bool tally_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_TICK:
             if (_quick_ticks_running) {
-                bool increment_pressed;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-                increment_pressed = HAL_GPIO_BTN_START_read();
-#else
-                increment_pressed = HAL_GPIO_BTN_LIGHT_read();
-#endif
+                bool increment_pressed = HAL_GPIO_BTN_LIGHT_read();
                 bool decrement_pressed = HAL_GPIO_BTN_ALARM_read();
                 if (increment_pressed && decrement_pressed) stop_quick_cyc();
                 else if (increment_pressed) tally_face_increment(state, movement_button_should_sound());
@@ -189,11 +184,7 @@ bool tally_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LIGHT_BUTTON_UP:
-            if (!is_gshock) {
-                tally_face_increment(state, movement_button_should_sound());
-            } else if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
-                cycle_presets(state, movement_button_should_sound(), beep_sequence);
-            }
+            tally_face_increment(state, movement_button_should_sound());
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
         case EVENT_ALARM_BUTTON_DOWN:
@@ -204,17 +195,18 @@ bool tally_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_START_BUTTON_UP:
-            tally_face_increment(state, movement_button_should_sound());
+            if (!_init_val) {
+                reset_tally(state, movement_button_should_sound(), beep_sequence);
+            }
             break;
         case EVENT_START_LONG_PRESS:
-            tally_face_increment(state, movement_button_should_sound());
-            start_quick_cyc();
-            break;
-        case EVENT_LIGHT_LONG_PRESS:
             if (TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
                 cycle_presets(state, movement_button_should_sound(), beep_sequence);
-            } else if (is_gshock) {
-                reset_tally(state, movement_button_should_sound(), beep_sequence);
+            }
+            break;
+        case EVENT_LIGHT_LONG_PRESS:
+            if (!is_gshock && TALLY_FACE_PRESETS_SIZE() > 1 && _init_val) {
+                cycle_presets(state, movement_button_should_sound(), beep_sequence);
             } else {
                 tally_face_increment(state, movement_button_should_sound());
                 start_quick_cyc();

@@ -46,14 +46,22 @@ void watch_register_interrupt_callback(const uint8_t pin, watch_cb_t callback, e
     bool filten = false;
 
     // check if this is a button pin
-#if defined(FORCE_GSHOCK_LCD_TYPE)
-    if (pin == HAL_GPIO_BTN_LIGHT_pin() || pin == HAL_GPIO_BTN_MODE_pin() || pin == HAL_GPIO_BTN_ALARM_pin() || pin == HAL_GPIO_BTN_START_pin()) {
+#ifdef WATCH_CASE_IS_GROUND
+    if (pin == HAL_GPIO_BTN_LIGHT_pin() || pin == HAL_GPIO_BTN_MODE_pin() || pin == HAL_GPIO_BTN_ALARM_pin()
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        || pin == HAL_GPIO_BTN_START_pin()
+#endif
+    ) {
         // if so, enable the pull-up resistor
         watch_enable_pull_up(pin);
         filten = true;
     }
 #else
-    if (pin == HAL_GPIO_BTN_LIGHT_pin() || pin == HAL_GPIO_BTN_MODE_pin() || pin == HAL_GPIO_BTN_ALARM_pin()) {
+    if (pin == HAL_GPIO_BTN_LIGHT_pin() || pin == HAL_GPIO_BTN_MODE_pin() || pin == HAL_GPIO_BTN_ALARM_pin()
+#ifdef FORCE_GSHOCK_LCD_TYPE
+         || pin == HAL_GPIO_BTN_START_pin()
+#endif
+    ) {
         // if so, enable the pull-down resistor
         watch_enable_pull_down(pin);
         filten = true;

@@ -741,6 +741,7 @@ static const digit_mapping_t GShock_LCD_Display_Mapping[] = {
             { .address = { .com = 2, .seg = 8 } },  // 10E
             { .value = segment_does_not_exist },    // 10F
             { .address = { .com = 2, .seg = 8 } },  // 10G
+            { .value = segment_does_not_exist },    // 10H
         },
     },
     {

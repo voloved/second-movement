@@ -59,7 +59,7 @@ void watch_display_character(uint8_t character, uint8_t position) {
         else if (character == 'I' && position > 1 && position < 8) character = '1';
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         if (character == '.') character = '-';
-        else if (character == 'T' && position == 1) character = '.';
+        else if (character == 'T' && position == 1) character = '.'; // '.' holds Г and this is a hack to make T work in the 1 postion
         else if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
         else if (character == 'T' && position > 1) character = 't'; // lowercase t is the only option for these positions
         else if (character == 'B' && position > 1) character = '8';
@@ -130,21 +130,22 @@ void watch_display_character(uint8_t character, uint8_t position) {
 
         if (segdata & 1) {
             watch_set_pixel(com, seg);
-        }
-        else {
+            if (com == 0 && seg == 20) watch_set_pixel(2, 20);
+        } else {
             watch_clear_pixel(com, seg);
+            if (com == 0 && seg == 20) watch_clear_pixel(2, 20);
         }
 
         segdata = segdata >> 1;
     }
 
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        // T is . at this point on the G-Shock, which is actually Г
-        if (position == 1 && (character == 'B' || character == 'D' || character == '@' || character == '.')) watch_set_pixel(3, 6); // add funky ninth segment
+        // T is . at this point on the G-Shock in position 1, which is actually Г
+        if (position == 1 && (character == 'B' || character == 'D' || character == '@'|| character == '.')) watch_set_pixel(3, 10); // add funky ninth segment
     } else {
-        if (character == 'T' && position == 1) watch_set_pixel(3, 10); // add descender
-        else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(2, 20); // add funky ninth segment
-        else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(3, 10); // add funky ninth segment
+        if (character == 'T' && position == 1) watch_set_pixel(1, 12); // add descender
+        else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 15); // add funky ninth segment
+        else if (position == 1 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 12); // add funky ninth segment
     }
 }
 

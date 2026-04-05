@@ -68,8 +68,8 @@ bool irda_upload_face_loop(movement_event_t event, void *context) {
             size_t bytes_read = uart_read_instance(0, data, 256);
             watch_clear_display();
             watch_set_indicator(WATCH_INDICATOR_ARROWS);
-            if (watch_rtc_get_date_time().unit.second % 4 < 2) watch_display_text_with_fallback(WATCH_POSITION_TOP, "IrDA", "IR");
-            else watch_display_text_with_fallback(WATCH_POSITION_TOP, "FREE ", "DF");
+            if (watch_rtc_get_date_time().unit.second % 4 < 2) watch_display_text_with_fallback(WATCH_POSITION_TOP, "IrDA", "IR", "IR");
+            else watch_display_text_with_fallback(WATCH_POSITION_TOP, "FREE ", "DF", "DF");
 
             if (bytes_read) {
                 // data is in the following format, where S is Size, F is Filename and C is checksum:
@@ -85,7 +85,7 @@ bool irda_upload_face_loop(movement_event_t event, void *context) {
                 if (checksum != expected_checksum) {
                     // failed
                     movement_force_led_on(48, 0, 0);
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAD  ", "BA");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAD  ", "BAd  ", "BA");
                     watch_display_text(WATCH_POSITION_BOTTOM, "HEAdER");
                     break;
                 }
@@ -98,8 +98,8 @@ bool irda_upload_face_loop(movement_event_t event, void *context) {
                     // Success! All we need is a header to delete a file.
                     movement_force_led_on(0, 48, 0);
                     filesystem_rm(filename);
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "FILE ", "FI");
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "dELETE", " deLet");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "FILE ", "FI1E ", "FI");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "dELETE", "dE1ETE", " deLet");
                     break;
                 }
 
@@ -111,14 +111,14 @@ bool irda_upload_face_loop(movement_event_t event, void *context) {
                 if (checksum != expected_checksum) {
                     // failed
                     movement_force_led_on(48, 0, 0);
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAD  ", "BA");
-                    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "data  ", " data ");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAD  ", "BAd  ", "BA");
+                    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "data  ", "data  ", " data ");
                     break;
                 }
 
                 // Valid data! Write it to the file system.
                 filesystem_write_file(filename, data + 16, expected_size);
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, "RECVd", "RC");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, "RECVd", "REcVd", "RC");
                 movement_force_led_on(0, 48, 0);
 
                 char buf[8];

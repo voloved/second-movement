@@ -54,7 +54,7 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
     if (!sensor_seen) {
         watch_display_text(WATCH_POSITION_BOTTOM, "NO SNS");
     } else if (in_low_batt) {
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LoBatt", "1oBatt");
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LoBatt", "LoBatt", "1oBatt");
     } else {
         step_count = get_step_count();
         sprintf(buf, "%6lu", step_count);
@@ -76,14 +76,14 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
     if (logger_state->display_index == logger_state->data_points) {
         logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "SC");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "STEP ", "SC");
         return;
     }
     char buf[9];
     int8_t pos = logger_state->data_points - logger_state->display_index - 1;
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
     // we are displaying the step_counter
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "STP", "SC");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "STP", "SC", "SC");
     sprintf(buf, "%2d", logger_state->data[pos].day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     sprintf(buf, "%6lu", logger_state->data[pos].step_count);

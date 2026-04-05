@@ -66,7 +66,7 @@ static void draw_wareki_splash(wareki_state_t *state) {
     
     watch_clear_colon();
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WA ", "wa");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WA ", "WA ", "wa");
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     watch_display_text(WATCH_POSITION_BOTTOM, "      ");
 }
@@ -81,7 +81,7 @@ static void draw_year_and_wareki(wareki_state_t *state) {
     if(state->disp_year == REIWA_GANNEN){
         //The first year of Reiwa (2019) began on May 1. The period before May 1 is Heisei 31.
         //In other words, 2019 is Heisei Year 31 and it is possible that it is Reiwa Year 1.
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "H31", " r");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "H31", " r", " r");
 
         if (is_custom_lcd)
         {
@@ -94,7 +94,7 @@ static void draw_year_and_wareki(wareki_state_t *state) {
     }
     else if(state->disp_year == HEISEI_GANNEN){
         //The year 1989 could be Showa 64 or it could be Heisei 1.
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "S64", " h");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "S64", " h", " h");
 
         if (is_custom_lcd)
         {
@@ -109,7 +109,7 @@ static void draw_year_and_wareki(wareki_state_t *state) {
         //Showa
         //sprintf(buf, " h%2d%4d  ", (int)state->disp_year - HEISEI_GANNEN + 1, (int)state->disp_year);
 
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Sho", "s ");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Sho", "s ", "s ");
 
         sprintf(buf, "%2d", (int)state->disp_year - SHOWA_GANNEN + 1);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -118,7 +118,7 @@ static void draw_year_and_wareki(wareki_state_t *state) {
         //Heisei
         //sprintf(buf, " h%2d%4d  ", (int)state->disp_year - HEISEI_GANNEN + 1, (int)state->disp_year);
 
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HEI", "h ");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HEI", "h ", "h ");
 
         sprintf(buf, "%2d", (int)state->disp_year - HEISEI_GANNEN + 1);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -127,7 +127,7 @@ static void draw_year_and_wareki(wareki_state_t *state) {
         //Reiwa
         //sprintf(buf, " r%2d%4d  ", (int)state->disp_year - REIWA_GANNEN + 1 , (int)state->disp_year);
     
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "REI", "r ");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "REI", "r ", "r ");
 
         sprintf(buf, "%2d", (int)state->disp_year - REIWA_GANNEN + 1);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);

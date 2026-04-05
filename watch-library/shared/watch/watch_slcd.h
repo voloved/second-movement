@@ -157,6 +157,7 @@ void watch_display_text(watch_position_t location, const char *string);
  *          Anchorage, you could title the screen in the top left position: pass "ANC" as the string,
  *          and "AN" as the fallback.
  * @param string A null-terminated string to display on the custom LCD.
+ * @param fallback A null-terminated string to display on the G-Shock DW5600 LCD.
  * @param fallback A null-terminated string to display on the original F-91W LCD.
  * @note Both the custom LCD and the original F-91W LCD have some limitations on what characters can be
  *       displayed:
@@ -189,7 +190,7 @@ void watch_display_text(watch_position_t location, const char *string);
  *
  *       Needless to say, some fine-tuning may be necessary to get the best results on both displays.
  */
-void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback);
+void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback_gshock, const char *fallback);
 
 /**
  * @brief Displays a floating point number as best we can on whatever LCD is available.

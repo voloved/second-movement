@@ -117,8 +117,8 @@ static void _draw(timer_state_t *state, uint8_t subsecond) {
         else if (state->settings_state == 1 || state->settings_state == 5) bottom_time[5] = ' ';
         else bottom_time[(state->settings_state - 1) * 2 - 2] = bottom_time[(state->settings_state - 1) * 2 - 1] = ' ';
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, bottom_time, bottom_time);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, timer_id, timer_id);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, bottom_time, bottom_time, bottom_time);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, timer_id, timer_id, timer_id);
 
     // set lap indicator when we have a looping timer
     if (state->timers[state->current_timer].unit.repeat) watch_set_indicator(WATCH_INDICATOR_LAP);
@@ -205,7 +205,7 @@ void timer_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void timer_face_activate(void *context) {
     timer_state_t *state = (timer_state_t *)context;
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "TMR", "TR");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "TMR", "TR", "TR");
     watch_set_colon();
     if(state->mode == running) {
         watch_date_time_t now = movement_get_utc_date_time();

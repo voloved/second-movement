@@ -49,9 +49,9 @@ bool character_set_face_loop(movement_event_t event, void *context) {
             // fall through
         case EVENT_ACTIVATE:
             sprintf(buf, "%c%c%c%c%c%c", *c, *c, *c, *c, *c, *c);
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf);
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
-            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf, buf);
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf, buf);
+            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
             break;
         case EVENT_TIMEOUT:
             movement_move_to_face(0);

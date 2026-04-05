@@ -85,7 +85,7 @@ bool alarm_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "ALM", "AL");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "ALM", "AL", "AL");
             if (state->alarm_is_on) watch_set_indicator(WATCH_INDICATOR_SIGNAL);
             watch_set_colon();
             _alarm_face_display_alarm_time(state);

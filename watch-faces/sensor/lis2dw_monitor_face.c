@@ -38,17 +38,17 @@
 static void _settings_title_display(lis2dw_monitor_state_t *state, char *buf1, char *buf2)
 {
     char buf[10];
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf1, buf2);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, buf1, buf2, buf2);
     if (watch_get_lcd_type() != WATCH_LCD_TYPE_CUSTOM) {
         snprintf(buf, sizeof(buf), "%2d", state->settings_page + 1);
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf, buf);
     }
 }
 
 static bool _settings_blink(uint8_t subsecond)
 {
     if (subsecond % 2 == 0) {
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "      ", "      ");
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "      ", "      ", "      ");
         return true;
     }
     return false;
@@ -74,7 +74,7 @@ static void _settings_mode_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), "  OD  ");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_mode_advance(void *context)
@@ -120,7 +120,7 @@ static void _settings_data_rate_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), "  HI  ");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_data_rate_advance(void *context)
@@ -169,7 +169,7 @@ static void _settings_low_power_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), " L4 14");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_low_power_advance(void *context)
@@ -215,7 +215,7 @@ static void _settings_bwf_mode_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), "  20  ");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_bwf_mode_advance(void *context)
@@ -261,7 +261,7 @@ static void _settings_range_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), "  16g ");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_range_advance(void *context)
@@ -301,7 +301,7 @@ static void _settings_filter_display(void *context, uint8_t subsecond)
             snprintf(buf, sizeof(buf), "  HP  ");
             break;
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_filter_advance(void *context)
@@ -328,7 +328,7 @@ static void _settings_low_noise_display(void *context, uint8_t subsecond)
         return;
 
     snprintf(buf, sizeof(buf), " %3s  ", state->ds.low_noise ? "ON" : "OFF");
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _settings_low_noise_advance(void *context)
@@ -389,14 +389,14 @@ static void _monitor_display(lis2dw_monitor_state_t *state)
     char buf[10];
 
     snprintf(buf, sizeof(buf), " %c ", "XYZA"[state->axis]);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf, buf);
 
     snprintf(buf, sizeof(buf), "%2d", state->axis + 1);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf, buf);
 
     if (state->show_title) {
         snprintf(buf, sizeof(buf), "LIS2DW");
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
         return;
     }
 
@@ -415,7 +415,7 @@ static void _monitor_display(lis2dw_monitor_state_t *state)
     } else {
         snprintf(buf, sizeof(buf), "%.6lu",  count_steps_approx_l2_norm(state->reading));
     }
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 }
 
 static void _monitor_update(lis2dw_monitor_state_t *state)

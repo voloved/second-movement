@@ -239,7 +239,7 @@ void print_tally(tally_state_t *state, bool sound_on) {
         watch_set_indicator(WATCH_INDICATOR_BELL);
     else
         watch_clear_indicator(WATCH_INDICATOR_BELL);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "TALLY", "TA");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "TALLY", "TA11Y", "TA");
     sprintf(buf, "%4d", display_val);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

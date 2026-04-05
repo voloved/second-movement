@@ -62,7 +62,7 @@ static void finetune_update_display(void) {
     char buf[25];
 
     if (finetune_page == 0) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "FTU", "FT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "FTU", "FT", "FT");
         watch_date_time_t date_time = movement_get_utc_date_time();
         sprintf(buf, "%04d%02d", abs(total_adjustment), date_time.unit.second);
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -75,12 +75,12 @@ static void finetune_update_display(void) {
     } else if (finetune_page == 1) {
         float hours = finetune_get_hours_passed();
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "DELtA", "DT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "DELtA", "DT", "DT");
         sprintf(buf, "%4d%02d", (int)hours, (int)(fmodf(hours, 1.) * 100));
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else if (finetune_page == 2) {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Frq", " F");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Frq", " F", " F");
         if (finetune_get_hours_passed() < 6) {
             watch_display_text(WATCH_POSITION_BOTTOM, "6HR   ");
         } else {

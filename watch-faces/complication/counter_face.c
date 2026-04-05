@@ -142,9 +142,9 @@ void beep_counter(counter_state_t *state) {
 // print counter index at the center of display.
 void print_counter(counter_state_t *state) {
     char buf[14];
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "COUNT", "CO");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "COUNT", "CO", "CO");
     sprintf(buf, "  %02d", state->counter_idx); // center of LCD display
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
 
 }
 

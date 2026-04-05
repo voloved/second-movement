@@ -225,7 +225,7 @@ static void render_board_count(void) {
 }
 
 static void render_final_score(void) {
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "SCORE", "SC  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "SCORE", "SCORE", "SC  ");
     char buf[7] = {0};
     const uint8_t complete_boards = score / GUESSES_PER_SCREEN;
     snprintf(buf, sizeof(buf), "%2hu %03hu", complete_boards, score);
@@ -278,7 +278,7 @@ static void do_game_loop(guess_t user_guess) {
                 score++;
             } else {
                 // Incorrect guess, game over
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "End", "GO");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "End", "End", "GO");
                 game_board[guess_position].revealed = true;
                 watch_display_text(WATCH_POSITION_BOTTOM, "------");
                 render_board_position(guess_position - 1);
@@ -291,9 +291,9 @@ static void do_game_loop(guess_t user_guess) {
 
             if (score >= WIN_SCORE) {
                 // Win, perhaps some kind of animation sequence?
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WIN", "WI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WIN", "WI", "WI");
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WINNER", "winnEr");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WINNER", "WINNER", "winnEr");
                 game_state = HL_GS_WIN;
                 return;
             }

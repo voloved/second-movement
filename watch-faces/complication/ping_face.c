@@ -383,7 +383,7 @@ static void display_title(ping_state_t *state) {
     movement_request_tick_frequency(1);
     game_state.curr_screen = SCREEN_TITLE;
     watch_clear_colon();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Ping", "PI  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Ping", "PI  ", "PI  ");
     watch_display_text(WATCH_POSITION_BOTTOM, " Ping ");
     display_sound_indicator(state -> soundOn);
     _ticks_show_title = 1;
@@ -397,7 +397,7 @@ static void display_score_screen(ping_state_t *state) {
     memset(&game_state, 0, sizeof(game_state));
     game_state.curr_screen = SCREEN_SCORE;
     watch_set_colon();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "PI  ", "PI  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "PI  ", "PI  ", "PI  ");
     if (hi_score > MAX_HI_SCORE) {
         watch_display_text(WATCH_POSITION_BOTTOM, "HS  --");
     }

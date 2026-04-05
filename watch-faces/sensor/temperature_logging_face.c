@@ -75,14 +75,14 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
     if (logger_state->display_index == TEMPERATURE_LOGGING_NUM_DATA_POINTS){
         _temperature_logging_face_blink_display(in_fahrenheit, from_btn);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP ", "TE");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP ", "TE", "TE");
         return;
     }
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
 
     if (pos < 0) {
         // no data at this index
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL", "TL");
         watch_clear_decimal_if_available();
         watch_display_text(WATCH_POSITION_BOTTOM, "no dat");
         sprintf(buf, "%2d", logger_state->display_index);
@@ -98,8 +98,7 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
             date_time.unit.hour %= 12;
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT", "AT");
         sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
                 ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -108,7 +107,7 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else {
         // we are displaying the temperature
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOG", "TL", "TL");
         sprintf(buf, "%2d", logger_state->display_index);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         if (in_fahrenheit) {

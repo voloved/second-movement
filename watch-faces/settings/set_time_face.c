@@ -143,7 +143,9 @@ bool set_time_face_loop(movement_event_t event, void *context) {
 
     char buf[11];
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, (char *) set_time_face_titles[current_page], (char *) set_time_face_fallback_titles[current_page]);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, (char *) set_time_face_titles[current_page],
+                                                (char *) set_time_face_fallback_titles[current_page],
+                                                (char *) set_time_face_fallback_titles[current_page]);
     if (current_page == SET_TIME_TZ) {
         uint8_t curr_idx = movement_get_timezone_index();
         sprintf(buf, "%2d", curr_idx % 100);

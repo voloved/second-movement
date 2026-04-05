@@ -33,14 +33,14 @@ static void _accelerometer_status_face_update_display(accel_interrupt_count_stat
     (void) state;
 
     // Accelerometer title
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ACCEL", "AC");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ACCEL", "ACCEL", "AC");
 
     // sensing is live!
     watch_set_indicator(WATCH_INDICATOR_SIGNAL);
 
     // Sleep/active state
     if (HAL_GPIO_A4_read()) watch_display_text(WATCH_POSITION_BOTTOM, "Still ");
-    else watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Active", " ACtiv");
+    else watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Active", "Active", " ACtiv");
 }
 
 void accelerometer_status_face_setup(uint8_t watch_face_index, void ** context_ptr) {
@@ -72,7 +72,7 @@ bool accelerometer_status_face_loop(movement_event_t event, void *context) {
                         watch_clear_decimal_if_available();
                     } else {
                         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "WAKth", "TH");
+                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "WAKth", "TH", "TH");
                         watch_display_float_with_best_effort(state->new_threshold * 0.03125, " G");
                         printf("%s\n", buf);
                     }

@@ -70,7 +70,7 @@ bool beats_face_loop(movement_event_t event, void *context) {
             }
             sprintf(buf, "%6u", (unsigned int)centibeats); // Cast to unsigned int to avoid compiler warnings, as centibeats is 0-100000
 
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "beat", "bt");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "beat", "bt", "bt");
             watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
@@ -80,7 +80,7 @@ bool beats_face_loop(movement_event_t event, void *context) {
             centibeats = clock2beats(bmt_hour, date_time.unit.minute, date_time.unit.second, event.subsecond);
             sprintf(buf, "%4u  ", (unsigned int)(centibeats / 100));
 
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "beat", "bt");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "beat", "bt", "bt");
             watch_display_text(WATCH_POSITION_BOTTOM, buf);
             break;
         default:

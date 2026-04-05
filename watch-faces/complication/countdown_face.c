@@ -229,7 +229,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIMER", "CD");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIMER", "TI MER", "CD");
             draw(state, event.subsecond);
             break;
         case EVENT_TICK:

@@ -47,8 +47,8 @@ const watch_face_t watch_faces[] = {
     set_time_face,
     voltage_face,
     temperature_logging_face,
-#ifdef I2C_SERCOM
-    accelerometer_status_face,
+#ifdef HAS_IR_SENSOR
+    light_sensor_face,
 #endif
 // Start of Teriary Faces
     blackjack_face,

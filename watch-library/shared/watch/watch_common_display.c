@@ -136,10 +136,10 @@ void watch_display_character(uint8_t character, uint8_t position) {
 
         if (segdata & 1) {
             watch_set_pixel(com, seg);
-            if (com == 0 && seg == 20) watch_set_pixel(2, 20);
+            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 0 && seg == 20) watch_set_pixel(2, 20);
         } else {
             watch_clear_pixel(com, seg);
-            if (com == 0 && seg == 20) watch_clear_pixel(2, 20);
+            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 0 && seg == 20) watch_clear_pixel(2, 20);
         }
 
         segdata = segdata >> 1;

@@ -72,7 +72,9 @@
 #include "movement.h"
 
 typedef struct {
+#ifdef FORCE_GSHOCK_LCD_TYPE
     uint8_t month;
+#endif
     uint8_t day;
     uint32_t step_count;
 } step_counter_face_data_point_t;

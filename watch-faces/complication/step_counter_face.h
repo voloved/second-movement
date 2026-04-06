@@ -72,6 +72,7 @@
 #include "movement.h"
 
 typedef struct {
+    uint8_t month;
     uint8_t day;
     uint32_t step_count;
 } step_counter_face_data_point_t;

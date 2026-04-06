@@ -67,6 +67,7 @@ static void _step_counter_face_log_data(step_counter_state_t *logger_state, uint
     watch_date_time_t date_time = movement_get_local_date_time();
     size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
 
+    logger_state->data[pos].month = date_time.unit.month;
     logger_state->data[pos].day = date_time.unit.day;
     logger_state->data[pos].step_count = step_count;
     logger_state->data_points++;
@@ -76,6 +77,7 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
     if (logger_state->display_index == logger_state->data_points) {
         logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
+        watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
         watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "STEP ", "SC");
         return;
     }
@@ -88,6 +90,11 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     sprintf(buf, "%6lu", logger_state->data[pos].step_count);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        sprintf(buf, "%2d", logger_state->data[pos].month);
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+    }
 }
 
 // The idea is that we can sleep only if we're not looking at the current step count or see enough time of inactivity

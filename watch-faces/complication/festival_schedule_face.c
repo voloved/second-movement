@@ -33,11 +33,12 @@ const char festival_name[2] = "BO";
 const char festival_stage[FESTIVAL_SCHEDULE_STAGE_COUNT + 1][2] =
 {
     [FESTIVAL_SCHEDULE_NO_STAGE]    = "  ",
-    [FESTIVAL_SCHEDULE_THAT_TENT]   = "TT",
-    [FESTIVAL_SCHEDULE_THE_OTHER]   = "OT",
-    [FESTIVAL_SCHEDULE_THIS_TENT]   = "TS",
-    [FESTIVAL_SCHEDULE_WHAT_STAGE]  = "WT",
-    [FESTIVAL_SCHEDULE_WHICH_STAGE] = "WC",
+    [FESTIVAL_SCHEDULE_THAT]        = "TT",
+    [FESTIVAL_SCHEDULE_OTHER]       = "OT",
+    [FESTIVAL_SCHEDULE_THIS]        = "TS",
+    [FESTIVAL_SCHEDULE_WHAT]        = "WT",
+    [FESTIVAL_SCHEDULE_WHICH]       = "WC",
+    [FESTIVAL_SCHEDULE_WHERE]       = "WH",
     [FESTIVAL_SCHEDULE_STAGE_COUNT] = "  "
 };
 

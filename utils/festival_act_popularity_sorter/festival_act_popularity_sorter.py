@@ -24,14 +24,14 @@ SORT_POP_BY_FOLLOWERS = False
 GENRE_DEFAULT = "NO_GENRE"
 POPULARITY_SOURCE = 'last.fm'
 STAGE_DEFAULT = "NO_STAGE"
-URL = 'https://clashfinder.com/data/event/bonnaroo2k26.json'
+URL = 'https://clashfinder.com/data/event/b2026.json'
 
-duoActs = {"Freddy Gibbs & the Alechemist" : ["Freddie Gibbs", "The Alchemist"],
-           "LSZEE" : ["LSDREAM", "Clozee"]}
+duoActs = {"Freddie Gibbs & The Alchemist" : ["Freddie Gibbs", "The Alchemist"],
+           "Lszee" : ["LSDREAM", "Clozee"]}
 replaceActName = {"Weird Al Yankovich: Bigger & Weirder Ruvue" : "Weird Al Yankovic",
                   "Rachel Chinchouri" : "Rachel Chinouriri",
                   "Waylon Wyett" : "Waylon Wyatt",
-                  "Kesha Presents Superjam Esoterica: The Alchemy of Pop" : "Kesha",
+                  "Kesha Presents: SuperJam Esoterica" : "Kesha",
                   "Gouldie Boutlier " : "Goldie Boutilier",
                   "A Hundred Dtums" : "A Hundred Drums",
                   "DJ Trixie Mattell" : "Trixie Mattel",
@@ -51,8 +51,10 @@ replaceGenres = {   "HIPHOP"           : "RAP",
                     "GARAGE_ROCK"      : "ROCK",
                     "HARDCORE"         : "PUNK",
                     "POSTPUNK"         : "PUNK",
+                    "EMO"              : "PUNK",
                     "RIOT_GRRRL"       : "PUNK",
                     "POP_PUNK"         : "PUNK",
+                    "DISCO"            : "DANCE",
                     "INDIE_POP"        : "POP",
                     "SINGERSONGWRITER" : "POP",
                     "PSYTRANCE"        : "EDM",
@@ -64,6 +66,7 @@ replaceGenres = {   "HIPHOP"           : "RAP",
                     "WITCH_HOUSE"      : "EDM",
                     "DRUM_AND_BASS"    : "DnB",
                     "RNB"              : "SOUL",
+                    "JAZZ"             : "SOUL",
                     "BLUES"            : "SOUL",
                     "SOUL"             : "SOUL",
                     "FUNK"             : "SOUL",

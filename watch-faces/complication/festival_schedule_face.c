@@ -145,7 +145,13 @@ static uint8_t _find_first_available_act(uint8_t first_stage_to_check, watch_dat
 
 static void _display_act(festival_schedule_state_t *state){
     char buf[MAX_LENGTH + 1];
-    uint8_t max_pop_display = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? 99 : 39;
+    uint8_t max_pop_display = 39;
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
+        max_pop_display = 99;
+    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        max_pop_display = 255;
+    }
     uint8_t popularity = festival_acts[state->curr_act].popularity;
     state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
     _text_looping = festival_acts[state->curr_act].artist;
@@ -157,7 +163,15 @@ static void _display_act(festival_schedule_state_t *state){
     sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (popularity <= max_pop_display && popularity > 0) {
-        sprintf(buf, "%2d", popularity);
+        if (lcd_type == WATCH_LCD_TYPE_GSHOCK && popularity > 100) {
+            uint8_t hundreds_place = popularity / 100;
+            popularity %= 100;
+            sprintf(buf, "%2d", hundreds_place);
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+            sprintf(buf, (popularity < 10) ? "%02d" : "%2d", popularity);
+        } else {
+                sprintf(buf, "%2d", popularity);
+        }
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     } else {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
@@ -582,16 +596,10 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 movement_illuminate_led(); // Will allow led for see acts' genre and times
             else start_quick_cyc();
             break;
-#ifndef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MODE_LONG_PRESS:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE){
                 movement_move_to_face(0);
             }
-#else
-        case EVENT_START_LONG_PRESS:
-            if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE){
-            }
-#endif
             if (state->curr_screen != FESTIVAL_SCHEDULE_SCREEN_ACT){
                 state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
                 _display_screen(state);
@@ -602,16 +610,14 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 _display_title(state);
             }
             break;
-#ifndef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MODE_BUTTON_UP:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) movement_move_to_next_face();
-#else
+            // fall through
         case EVENT_START_BUTTON_UP:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) {
                 _cyc_all_acts(state, false);
                 set_ticks_purpose(FESTIVAL_SCHEDULE_TICK_CYCLE);
             }
-#endif
             else if (state->curr_act == FESTIVAL_SCHEDULE_NUM_ACTS) _display_title(state);
             else if (!_is_text_looping && MAX_LENGTH < _text_looping_len) _is_text_looping = true;
             else {

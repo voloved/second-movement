@@ -33,33 +33,34 @@ const char festival_name[2] = "BO";
 const char festival_stage[FESTIVAL_SCHEDULE_STAGE_COUNT + 1][2] =
 {
     [FESTIVAL_SCHEDULE_NO_STAGE]    = "  ",
-    [FESTIVAL_SCHEDULE_THAT_TENT]   = "TT",
-    [FESTIVAL_SCHEDULE_THE_OTHER]   = "OT",
-    [FESTIVAL_SCHEDULE_THIS_TENT]   = "TS",
-    [FESTIVAL_SCHEDULE_WHAT_STAGE]  = "WT",
-    [FESTIVAL_SCHEDULE_WHICH_STAGE] = "WC",
+    [FESTIVAL_SCHEDULE_STAGE_THAT]  = "TT",
+    [FESTIVAL_SCHEDULE_STAGE_OTHER] = "OT",
+    [FESTIVAL_SCHEDULE_STAGE_THIS]  = "TS",
+    [FESTIVAL_SCHEDULE_STAGE_WHAT]  = "WT",
+    [FESTIVAL_SCHEDULE_STAGE_WHICH] = "WC",
+    [FESTIVAL_SCHEDULE_STAGE_WHERE] = "WH",
     [FESTIVAL_SCHEDULE_STAGE_COUNT] = "  "
 };
 
 const char festival_genre[FESTIVAL_SCHEDULE_GENRE_COUNT + 1][6] =
 {
-    [FESTIVAL_SCHEDULE_NO_GENRE]    = " NONE ",
-    [FESTIVAL_SCHEDULE_ALT]         = "   ALT",
-    [FESTIVAL_SCHEDULE_COUNTRY]     = "Cuntry",
-    [FESTIVAL_SCHEDULE_DANCE]       = " DaNCE",
-    [FESTIVAL_SCHEDULE_DnB]         = " dnB  ",
-    [FESTIVAL_SCHEDULE_DUBSTEP]     = "DUBStP",
-    [FESTIVAL_SCHEDULE_EDM]         = "Edm&  ",
-    [FESTIVAL_SCHEDULE_FOLK]        = " FOLK ",
-    [FESTIVAL_SCHEDULE_HOUSE]       = " HOUSE",
-    [FESTIVAL_SCHEDULE_OTHER]       = "OTHEr ",
-    [FESTIVAL_SCHEDULE_POP]         = " POP  ",
-    [FESTIVAL_SCHEDULE_PUNK]        = "PUNK  ",
-    [FESTIVAL_SCHEDULE_RAP]         = "  rAP ",
-    [FESTIVAL_SCHEDULE_ROCK]        = " ROCK ",
-    [FESTIVAL_SCHEDULE_SOUL]        = " SOUL ",
-    [FESTIVAL_SCHEDULE_WORLD]       = " World",
-    [FESTIVAL_SCHEDULE_GENRE_COUNT] = "      "
+    [FESTIVAL_SCHEDULE_NO_GENRE]      = " NONE ",
+    [FESTIVAL_SCHEDULE_GENRE_ALT]     = "   ALT",
+    [FESTIVAL_SCHEDULE_GENRE_COUNTRY] = "Cuntry",
+    [FESTIVAL_SCHEDULE_GENRE_DANCE]   = " DaNCE",
+    [FESTIVAL_SCHEDULE_GENRE_DnB]     = " dnB  ",
+    [FESTIVAL_SCHEDULE_GENRE_DUBSTEP] = "DUBStP",
+    [FESTIVAL_SCHEDULE_GENRE_EDM]     = "Edm&  ",
+    [FESTIVAL_SCHEDULE_GENRE_FOLK]    = " FOLK ",
+    [FESTIVAL_SCHEDULE_GENRE_HOUSE]   = " HOUSE",
+    [FESTIVAL_SCHEDULE_GENRE_OTHER]   = "OTHEr ",
+    [FESTIVAL_SCHEDULE_GENRE_POP]     = " POP  ",
+    [FESTIVAL_SCHEDULE_GENRE_PUNK]    = "PUNK  ",
+    [FESTIVAL_SCHEDULE_GENRE_RAP]     = "  rAP ",
+    [FESTIVAL_SCHEDULE_GENRE_ROCK]    = " ROCK ",
+    [FESTIVAL_SCHEDULE_GENRE_SOUL]    = " SOUL ",
+    [FESTIVAL_SCHEDULE_GENRE_WORLD]   = " World",
+    [FESTIVAL_SCHEDULE_GENRE_COUNT]   = "      "
 };
 
 #define FREQ_FAST 8
@@ -485,8 +486,8 @@ static bool handle_tick(festival_schedule_state_t *state){
     handle_ts_ticks(state);
 
     if (state->cyc_through_all_acts) return false;
+    if (watch_rtc_get_unix_time() % (FESTIVAL_SCHEDULE_GCF_MINUTE * 60) != 0) return false;  // We check with unix time because it's a cheaper operation than movement_get_local_date_time
     curr_time = movement_get_local_date_time();
-    if (curr_time.unit.second != 0) return false;
     bool newDay = ((curr_time.reg >> 17) != (state -> prev_day));
     state -> prev_day = (curr_time.reg >> 17);
     state -> festival_occurring = _festival_occurring(curr_time, (newDay && !state->cyc_through_all_acts));

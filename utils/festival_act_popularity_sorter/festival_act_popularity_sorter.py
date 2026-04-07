@@ -10,6 +10,8 @@ import time
 import pandas as pd
 import shutil
 import os
+import math
+from functools import reduce
 sp = None
 
 MAKE_ARR_FILE = 1 # 0 = Don't make the file; 1= Make the file; 2 = Make the file and print it to the console
@@ -22,14 +24,14 @@ SORT_POP_BY_FOLLOWERS = False
 GENRE_DEFAULT = "NO_GENRE"
 POPULARITY_SOURCE = 'last.fm'
 STAGE_DEFAULT = "NO_STAGE"
-URL = 'https://clashfinder.com/data/event/bonnaroo2k26.json'
+URL = 'https://clashfinder.com/data/event/b2026.json'
 
-duoActs = {"Freddy Gibbs & the Alechemist" : ["Freddie Gibbs", "The Alchemist"],
-           "LSZEE" : ["LSDREAM", "Clozee"]}
+duoActs = {"Freddie Gibbs & The Alchemist" : ["Freddie Gibbs", "The Alchemist"],
+           "Lszee" : ["LSDREAM", "Clozee"]}
 replaceActName = {"Weird Al Yankovich: Bigger & Weirder Ruvue" : "Weird Al Yankovic",
                   "Rachel Chinchouri" : "Rachel Chinouriri",
                   "Waylon Wyett" : "Waylon Wyatt",
-                  "Kesha Presents Superjam Esoterica: The Alchemy of Pop" : "Kesha",
+                  "Kesha Presents: SuperJam Esoterica" : "Kesha",
                   "Gouldie Boutlier " : "Goldie Boutilier",
                   "A Hundred Dtums" : "A Hundred Drums",
                   "DJ Trixie Mattell" : "Trixie Mattel",
@@ -49,8 +51,10 @@ replaceGenres = {   "HIPHOP"           : "RAP",
                     "GARAGE_ROCK"      : "ROCK",
                     "HARDCORE"         : "PUNK",
                     "POSTPUNK"         : "PUNK",
+                    "EMO"              : "PUNK",
                     "RIOT_GRRRL"       : "PUNK",
                     "POP_PUNK"         : "PUNK",
+                    "DISCO"            : "DANCE",
                     "INDIE_POP"        : "POP",
                     "SINGERSONGWRITER" : "POP",
                     "PSYTRANCE"        : "EDM",
@@ -62,6 +66,7 @@ replaceGenres = {   "HIPHOP"           : "RAP",
                     "WITCH_HOUSE"      : "EDM",
                     "DRUM_AND_BASS"    : "DnB",
                     "RNB"              : "SOUL",
+                    "JAZZ"             : "SOUL",
                     "BLUES"            : "SOUL",
                     "SOUL"             : "SOUL",
                     "FUNK"             : "SOUL",
@@ -386,6 +391,23 @@ def popularity_sort(popList):
     return popList
 
 
+def gcf_minute_of_acts(day_info):
+    minutes_list = sorted({
+        val.minute
+        for info in day_info.values()
+        for val in (
+            [info["start_time"], info["end_time"]]
+            if not isinstance(info, list)
+            else [item[k] for item in info for k in ("start_time", "end_time")]
+        )
+        if val is not None
+    })
+    gcf = reduce(math.gcd, minutes_list)
+    if gcf == 0:
+        gcf = 60
+    return gcf
+
+
 def getFullArray(listActs):
     # Spits out the array of acts in alphabetically order
     duo_mult = 1.2  # Since duos are more hype, add a multiplier to their popularity and follower averages
@@ -444,8 +466,8 @@ def print_md_lst(sorted_listing, day_info):
     displayMonLis = 'monthly_listeners' in sorted_listing[0]
     numTitle = "Num"
     actTitle = "Act"
-    popTitle = "Popularity"
-    folTitle = "Followers"
+    popTitle = "Play Count" if POPULARITY_SOURCE == "last.fm" else "Popularity"
+    folTitle = "Listeners" if POPULARITY_SOURCE == "last.fm" else "Followers"
     monLisTitle = "Monthly Listeners"
     genreTitle = "Genre"
     topSongTitle = "Popular Song"
@@ -472,7 +494,7 @@ def print_md_lst(sorted_listing, day_info):
         if displayMonLis:
             longestMonLis = max(longestMonLis, len(str(item['monthly_listeners'])))
         if displayGenre:
-            artist_genre[item['name']] = "-" if not item['genre_disp'] else item['genre_disp']
+            artist_genre[item['name']] = "-" if not item['genre_disp'] else item['genre_disp'].capitalize()
             longestGen = max(longestGen, len(str(artist_genre[item['name']])))
         if displayTopSong:
             top_song = str(item['top_song'])
@@ -514,7 +536,7 @@ def print_md_lst(sorted_listing, day_info):
             genre = artist_genre[item['name']]
             printText += f" {genre : ^{longestGen}} |"
         if displayTopSong:
-            top_song = item['top_song']
+            top_song = str(item['top_song'])
             printText += f" {top_song : ^{longestSng}} |"
         if displayStage:
             stage = stageDict[item['name']]
@@ -566,19 +588,17 @@ def print_array_for_watch(listActs, sorted_listing, day_info, filename):
         writeAndPrint(f, "typedef enum {")
         writeAndPrint(f, f"    {enum_txt_start}NO_STAGE = 0,")
         for stage in list_stages:
-            writeAndPrint(f, f"    {enum_txt_start}{stage},")
+            writeAndPrint(f, f"    {enum_txt_start}STAGE_{stage},")
         writeAndPrint(f, f"    {enum_txt_start}STAGE_COUNT")
         writeAndPrint(f, "} festival_schedule_stage;")
         writeAndPrint(f, "")
         writeAndPrint(f, "typedef enum {")
         writeAndPrint(f, f"    {enum_txt_start}NO_GENRE = 0,")
         for genre in list_genres:
-            writeAndPrint(f, f"    {enum_txt_start}{genre},")
+            writeAndPrint(f, f"    {enum_txt_start}GENRE_{genre},")
         writeAndPrint(f, f"    {enum_txt_start}GENRE_COUNT")
         writeAndPrint(f, "} festival_schedule_genre;")
         writeAndPrint(f, "###########################################################################")
-
-
 
         artistDateNotFound = []
         writeAndPrint(f, f"// Line-up - {URL}")
@@ -606,16 +626,17 @@ def print_array_for_watch(listActs, sorted_listing, day_info, filename):
             print(f"Set festival_schedule_t.artist's length to {arrLenSchedule} due to {arrActLongestSchedule}")
         listActsPrint = sorted(listActsPrint, key=lambda d: d['dispAct'].lstrip().lower())
         writeAndPrint(f, f"#define {enum_txt_start}NUM_ACTS {totalActs}")
+        writeAndPrint(f, f"#define {enum_txt_start}GCF_MINUTE {gcf_minute_of_acts(day_info)}")
         writeAndPrint(f, "")
         writeAndPrint(f, f"const festival_schedule_t festival_acts[{enum_txt_start}NUM_ACTS + 1]=")
         writeAndPrint(f, "{")
         for actData in listActsPrint:     
             writeAndPrint(f, "    {")
             writeAndPrint(f, f'        .artist = "{actData["dispAct"]}",')
-            writeAndPrint(f, f'        .stage = {enum_txt_start}{actData["stage"].upper()},')
+            writeAndPrint(f, f'        .stage = {enum_txt_start}STAGE_{actData["stage"].upper()},')
             writeAndPrint(f, f'        .start_time = {{.unit.year = {actData["start"].year - 2020}, .unit.month = {actData["start"].month}, .unit.day = {actData["start"].day}, .unit.hour = {actData["start"].hour}, .unit.minute = {actData["start"].minute}}},')
             writeAndPrint(f, f'        .end_time = {{.unit.year = {actData["end"].year - 2020}, .unit.month = {actData["end"].month}, .unit.day = {actData["end"].day}, .unit.hour = {actData["end"].hour}, .unit.minute = {actData["end"].minute}}},')
-            writeAndPrint(f, f'        .genre = {enum_txt_start}{dict_genres[actData["act"]]},')
+            writeAndPrint(f, f'        .genre = {enum_txt_start}GENRE_{dict_genres[actData["act"]]},')
             writeAndPrint(f, f'        .popularity = {get_ranking(sorted_listing, actData["act"])}')
             writeAndPrint(f, "    },")
         writeAndPrint(f, f'    [{enum_txt_start}NUM_ACTS]  = {{ //Fall back')
@@ -639,18 +660,23 @@ def show_correlation(sorted_listing):
 
 
 if __name__ == "__main__":
+    today_date = (datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"))
     if IGNORE_STAGES:
         day_info = {}
     else:
         if USE_DAYINFO_FILE:
             with open("day_info.json", "r") as f:
-                html_str = json.load(f)
+                html_str = json.load(f)['data']
         else:
             username, public_key = get_clashfinder_credentials()
             clashfinder_url = f"{URL}?authUsername={username}&authPublicKey={public_key}"
             html_str = get_url_content(clashfinder_url)
+            if os.path.exists("day_info.json"):
+                shutil.copy2("day_info.json", "day_info_bak.json")
+                print(f"Saved copy of previous day_info file")
             with open("day_info.json", "w") as f:
-                json.dump(html_str, f, indent=2)
+                html_str_dump = {'date' : today_date, 'data' : html_str}
+                json.dump(html_str_dump, f, indent=2)
         day_info = get_html_data(html_str)
         day_info = {key.split(" (")[0]: value for key, value in day_info.items()}
 
@@ -658,7 +684,7 @@ if __name__ == "__main__":
     listActsWatch = sorted(listActs, key=lambda x: x.lower().replace("the ", "") if x[0].startswith("the ") else x[0].lower())
     if USE_LISTACTPOP_FILE:
         with open("listActsPop.json", "r") as f:
-            listActsPop = json.load(f)
+            listActsPop = json.load(f)['data']
     else:
         start_time = time.perf_counter()
         listActsPop = getFullArray(listActs)
@@ -669,7 +695,8 @@ if __name__ == "__main__":
             shutil.copy2("listActsPop.json", "listActsPop_bak.json")
             print(f"Saved copy of previous listActsPop file")
         with open("listActsPop.json", "w") as f:
-            json.dump(listActsPop, f, indent=2)
+            listActsPopDump = {'date' : today_date, 'data' : listActsPop}
+            json.dump(listActsPopDump, f, indent=2)
         #  We store the individual acts that make up the duo in the JSON for review, so remove them.
     for i in reversed(range(len(listActsPop))):
         act_name = listActsPop[i]['name']

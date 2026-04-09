@@ -70,7 +70,7 @@ Second Movement - Devolov Fork
 
 ===============
 
-This is a work-in-progress refactor of the Movement firmware for [Sensor Watch](https://www.sensorwatch.net).
+This is the successor refactor of the Movement firmware for [Sensor Watch](https://www.sensorwatch.net).
 
 
 Getting dependencies

@@ -883,7 +883,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .stage = FESTIVAL_SCHEDULE_STAGE_WHICH,
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 0, .unit.minute = 40},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 2, .unit.minute = 10},
-        .genre = FESTIVAL_SCHEDULE_GENRE_OTHER,
+        .genre = FESTIVAL_SCHEDULE_HUMOR,
         .popularity = 28
     },
     {

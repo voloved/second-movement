@@ -64,7 +64,7 @@ void watch_display_character(uint8_t character, uint8_t position) {
             else if (character == 'D') character = 'd';
             else if (character == 'O') character = 'o';
         }
-        else if (character == '.') character = '-';
+        else if (character == '.') character = '_';
         else if (character == 'T' && position == 1) character = '.'; // '.' holds Г and this is a hack to make T work in the 1 postion
         else if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
         else if (character == 'T' && position > 1) character = 't'; // lowercase t is the only option for these positions
@@ -147,7 +147,9 @@ void watch_display_character(uint8_t character, uint8_t position) {
 
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         // T is . at this point on the G-Shock in position 1, which is actually Г
-        if (position == 1 && (character == 'B' || character == 'D' || character == '@'|| character == '.')) watch_set_pixel(3, 10); // add funky ninth segment
+        if (position == 0 && (character == 'm' || character == 'n' || character == 'R')) watch_set_pixel(2, 20); // add descender
+        else if (position == 1 && (character == 'B' || character == 'D' || character == '@' || character == '.' || character == 'R')) watch_set_pixel(3, 10); // add funky ninth segment
+        if (position == 1 && character == 'R') watch_set_pixel(1, 9);
     } else {
         if (character == 'T' && position == 1) watch_set_pixel(1, 12); // add descender
         else if (position == 0 && (character == 'B' || character == 'D' || character == '@')) watch_set_pixel(0, 15); // add funky ninth segment

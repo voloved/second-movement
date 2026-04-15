@@ -559,7 +559,7 @@ static const uint8_t GShock_LCD_Character_Set[] =
     0b00111111, // O
     0b01110011, // P
     0b01100111, // Q
-    0b11110111, // R (only works in position 1)
+    0b01110011, // R (same as P, only works in position 0 and 1)
     0b01101101, // S
     0b10000001, // T (only works in position 0; set (1, 12) to make it work in position 1)
     0b00111110, // U
@@ -583,10 +583,10 @@ static const uint8_t GShock_LCD_Character_Set[] =
     0b01101111, // g
     0b01110100, // h
     0b00010000, // i
-    0b01000010, // j (appears as superscript to work in more positions)
+    0b00001110, // j
     0b01110101, // k
     0b00110000, // l
-    0b10110111, // m (only works in position 0)
+    0b01010100, // m (only works in position 0)
     0b01010100, // n
     0b01011100, // o
     0b01110011, // p
@@ -594,9 +594,9 @@ static const uint8_t GShock_LCD_Character_Set[] =
     0b01010000, // r
     0b01101101, // s
     0b01111000, // t
-    0b01100010, // u (appears in (u)pper half to work in more positions)
-    0b00011100, // v (looks like u but in the lower half)
-    0b10111110, // w (only works in position 0)
+    0b00011100, // u
+    0b00011100, // v
+    0b00011100, // w (only works in position 0)
     0b01111110, // x
     0b01101110, // y
     0b00011011, // z

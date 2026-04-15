@@ -328,7 +328,7 @@ static inline void _movement_reset_inactivity_countdown(void) {
 
     movement_volatile_state.enter_sleep_mode = false;
 
-    if (movement_state.settings.bit.le_interval == 0) {
+    if (movement_state.settings.le_interval == 0) {
         watch_rtc_disable_comp_callback_no_schedule(SLEEP_TIMEOUT);
     } else {
         watch_rtc_register_comp_callback_no_schedule(

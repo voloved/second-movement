@@ -81,6 +81,7 @@ typedef struct {
 } tide_state_t;
 
 void tide_face_setup(uint8_t watch_face_index, void** state_ptr) {
+    (void) watch_face_index;
     if (*state_ptr == NULL) {
         // Boot time initialization.
         *state_ptr = malloc(sizeof(tide_state_t));
@@ -89,11 +90,11 @@ void tide_face_setup(uint8_t watch_face_index, void** state_ptr) {
     }
 }
 
-uint32_t _get_current_unix_time() {
+static uint32_t _get_current_unix_time() {
     return watch_utility_date_time_to_unix_time(movement_get_utc_date_time(), 0);
 }
 
-void _move_next_high_tide(tide_state_t* state, uint32_t now) {
+static void _move_next_high_tide(tide_state_t* state, uint32_t now) {
     while (state->next_high_tide > now + SEMI_DIURNAL_TIDAL_PERIOD) {
         state->next_high_tide -= SEMI_DIURNAL_TIDAL_PERIOD;
     }
@@ -129,8 +130,10 @@ static void _draw_tide_amplitude(uint32_t time) {
     switch (_get_tide_amplitude(time)) {
         case spring_tide:
             _set_pixel(digit_mapping[9].segment[0]);  // top horizontal bar on the bottom-right character.
+            break;
         case medium_tide:
             _set_pixel(digit_mapping[9].segment[6]);  // mid horizontal bar on the bottom-right character.
+            break;
         case neap_tide:
             _set_pixel(digit_mapping[9].segment[3]);  // bottom horizontal bar on the bottom-right character.
             break;
@@ -173,7 +176,7 @@ static void _draw(tide_state_t *state, uint32_t now, uint8_t subsecond) {
     watch_clear_display();
     switch (state->mode) {
         case empty:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIDE", "TI");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIDE", "TI", "TI");
             watch_display_text(WATCH_POSITION_BOTTOM, "----");
             break;
         case current: {
@@ -181,14 +184,14 @@ static void _draw(tide_state_t *state, uint32_t now, uint8_t subsecond) {
             _draw_tide_amplitude(now);
             double tide_percent = (cos(tide_age / SEMI_DIURNAL_TIDAL_PERIOD * M_PI * 2) + 1) * 50;
             if (tide_percent < 5) {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, "LOW", "LO");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, "LOW", "LO", "LO");
             } else if (tide_percent > 95) {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, "HIGH", "HI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, "HIGH", "HI", "HI");
             } else {
                 if (state->next_high_tide - now < SEMI_DIURNAL_TIDAL_PERIOD / 2) {
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "FLOOd", "FL");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "FLOOd", "FL", "FL");
                 } else {
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "EBB", "EB");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "EBB", "EB", "EB");
                 }
                 if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                     uint8_t tide_upercent = tide_percent;
@@ -213,9 +216,9 @@ static void _draw(tide_state_t *state, uint32_t now, uint8_t subsecond) {
         }
         case future:
             if (state->future_tide_type == low_tide) {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOW", "LO");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LOW", "LO", "LO");
             } else {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HIG", "HI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HIG", "HI", "HI");
             }
             _draw_day_and_time(state->future_tide_time, true, true, true);
             _draw_tide_amplitude(state->future_tide_time);
@@ -223,9 +226,9 @@ static void _draw(tide_state_t *state, uint32_t now, uint8_t subsecond) {
         case setting_hour:
         case setting_min:
             if (state->start_setting) {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, "HIGH", "HI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, "HIGH", "HI", "HI");
             } else {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HIG", "HI");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "HIG", "HI", "HI");
             }
             _draw_day_and_time(state->next_high_tide, !state->start_setting,
                                (state->mode != setting_hour || subsecond % 2), (state->mode != setting_min || subsecond % 2));
@@ -341,7 +344,7 @@ bool tide_face_loop(movement_event_t event, void* context) {
             switch(state->mode) {
                 case empty:
                   state->next_high_tide = _get_current_unix_time();
-                  // fallthrough intended.
+                  // fall-through
                 case current:
                 case future:
                     state->mode = setting_hour;
@@ -382,7 +385,7 @@ bool tide_face_loop(movement_event_t event, void* context) {
                 state->mode = current;
                 _draw(state, now, event.subsecond);
             }
-            // Passthrough intended:
+            // fall-through
             // Delegate the resign behavior to the default loop handler.
         default:
             return movement_default_loop_handler(event);

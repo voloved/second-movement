@@ -201,7 +201,7 @@ static void _display_act_time(uint8_t act_num, bool display_end){
     watch_date_time_t disp_time = display_end ? festival_acts[act_num].end_time : festival_acts[act_num].start_time;
     watch_clear_display();
     watch_set_colon();
-    if (movement_clock_is_24h()){
+    if (!movement_clock_is_24h()){
         watch_clear_indicator(WATCH_INDICATOR_24H);
         // if we are in 12 hour mode, do some cleanup.
         if (disp_time.unit.hour < 12) {

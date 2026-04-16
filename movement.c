@@ -972,6 +972,16 @@ uint32_t movement_get_utc_timestamp(void) {
     return watch_rtc_get_unix_time();
 }
 
+uint8_t movement_get_current_face_section(void) {  // Returns 1 if we're on the primary faces, 2 on secondary, 3 on teriary
+    if (movement_state.current_face_idx >= MOVEMENT_TERIARY_FACE_INDEX) {
+        return 3;
+    } else if (movement_state.current_face_idx >= MOVEMENT_SECONDARY_FACE_INDEX) {
+        return 2;
+    } else {
+        return 1;
+    }
+}
+
 void movement_set_utc_date_time(watch_date_time_t date_time) {
     movement_set_utc_timestamp(watch_utility_date_time_to_unix_time(date_time, 0));
 }

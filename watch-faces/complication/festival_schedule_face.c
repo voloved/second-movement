@@ -542,6 +542,17 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
     bool changed_from_handle_ticks;
     switch (event.event_type) {
         case EVENT_ACTIVATE:
+            {
+                // If it's not on the teriary menu, then hide it unless the festival is happening or will happen in the next 30 days.
+                if (movement_get_current_face_section() != 3) {
+                    watch_date_time_t curr_time = movement_get_local_date_time();
+                    int16_t days_until = _get_days_until(_starting_time, curr_time);
+                    if (days_until >= 0 && days_until <= 30) {
+                        movement_move_to_next_face();
+                        return false;
+                    }
+                }
+            }
             if (!in_le && state->curr_act == FESTIVAL_SCHEDULE_NUM_ACTS) {
                 _display_title(state);
             }

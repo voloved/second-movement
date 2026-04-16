@@ -100,19 +100,19 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     double rise, set, minutes, seconds;
     bool show_next_match = false;
     movement_location_t movement_location;
-    int32_t tz;
+    uint8_t tz;
     if (state->longLatToUse == 0 || _location_count <= 1) {
         movement_location = load_location_from_filesystem();
         if (state->city_idx < _long_lat_preset_count) {
-            tz = movement_get_current_timezone_offset_for_zone(sunriseSunsetLongLatPresets[state->city_idx].timezone);
+            tz = sunriseSunsetLongLatPresets[state->city_idx].timezone;
         } else {
-            tz = movement_get_current_timezone_offset();
+            tz = movement_get_timezone_index();
         }
     }
     else{
         movement_location.bit.latitude = sunriseSunsetAltLocationPresets[state->longLatToUse].latitude;
         movement_location.bit.longitude = sunriseSunsetAltLocationPresets[state->longLatToUse].longitude;
-        tz = movement_get_current_timezone_offset_for_zone(sunriseSunsetAltLocationPresets[state->longLatToUse].timezone);
+        tz = sunriseSunsetAltLocationPresets[state->longLatToUse].timezone;
     }
 
     if (movement_location.reg == 0) {
@@ -135,7 +135,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
 
     // we loop twice because if it's after sunset today, we need to recalculate to display values for tomorrow.
     for(int i = 0; i < 2; i++) {
-        double hours_from_utc = ((double)movement_get_timezone_offset_for_date(scratch_time)) / 3600.0;
+        double hours_from_utc = ((double)movement_get_timezone_offset_for_date_in_zone(scratch_time, tz)) / 3600.0;
         uint8_t result = sun_rise_set(scratch_time.unit.year + WATCH_RTC_REFERENCE_YEAR, scratch_time.unit.month, scratch_time.unit.day, lon, lat, &rise, &set);
 
         if (result != 0) {

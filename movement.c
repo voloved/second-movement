@@ -931,7 +931,7 @@ int32_t movement_get_timezone_offset_for_date_in_zone(watch_date_time_t date_tim
 }
 
 int32_t movement_get_timezone_offset_for_date(watch_date_time_t date_time) {
-    return movement_get_timezone_offset_for_date_in_zone(date_time, movement_state.settings.bit.time_zone);
+    return movement_get_timezone_offset_for_date_in_zone(date_time, movement_state.settings.time_zone);
 }
 
 int32_t movement_get_timezone_index(void) {

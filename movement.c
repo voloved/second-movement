@@ -973,9 +973,9 @@ uint32_t movement_get_utc_timestamp(void) {
 }
 
 uint8_t movement_get_current_face_section(void) {  // Returns 1 if we're on the primary faces, 2 on secondary, 3 on teriary
-    if (movement_state.current_face_idx >= MOVEMENT_TERIARY_FACE_INDEX) {
+    if (movement_state.current_face_idx >= (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
         return 3;
-    } else if (movement_state.current_face_idx >= MOVEMENT_SECONDARY_FACE_INDEX) {
+    } else if (movement_state.current_face_idx >= (int16_t)MOVEMENT_SECONDARY_FACE_INDEX) {
         return 2;
     } else {
         return 1;

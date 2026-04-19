@@ -212,6 +212,10 @@ const watch_face_t watch_faces[] = {
  * A value of 4 is a good starting point if you have issues
  * with multiple button presses firing.
 */
+#ifdef FORCE_GSHOCK_LCD_TYPE
+#define MOVEMENT_DEBOUNCE_TICKS 16
+#else
 #define MOVEMENT_DEBOUNCE_TICKS 4
+#endif
 
 #endif // MOVEMENT_CONFIG_H_

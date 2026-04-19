@@ -66,7 +66,7 @@ void watch_display_character(uint8_t character, uint8_t position) {
         }
         else if (character == '.') character = '_';
         else if (character == 'T' && position == 1) character = '.'; // '.' holds Г and this is a hack to make T work in the 1 postion
-        else if (character == 'R' && position > 1 && position < 8) character = 'r'; // We can't display uppercase R in these positions
+        else if (character == 'R' && position > 1) character = 'r'; // We can't display uppercase R in these positions
         else if (character == 'T' && position > 1) character = 't'; // lowercase t is the only option for these positions
         else if (character == 'B' && position > 1) character = '8';
         else if (character == 'I' && position > 0) character = '1';
@@ -396,12 +396,12 @@ void watch_display_text_with_fallback(watch_position_t location, const char *str
     }
 }
 
-void watch_display_text_with_fallback_and_gshock(watch_position_t location, const char *string, const char *fallback_gshock, const char *fallback) {
+void watch_display_text_with_fallback_and_gshock(watch_position_t location, const char *string, const char *string_gshock, const char *fallback) {
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_display_text_with_fallback_custom(location, string);
     }else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_display_text_with_fallback_gshock(location, fallback_gshock);
+        watch_display_text_with_fallback_gshock(location, string_gshock);
     } else {
         watch_display_text(location, fallback);
     }

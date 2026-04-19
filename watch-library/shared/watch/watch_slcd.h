@@ -192,10 +192,10 @@ void watch_display_text(watch_position_t location, const char *string);
 void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback);
 
 /**
- * @brief Same as watch_display_text_with_fallback, but also accepts a fallback for the G-Shock
- * @param fallback_gshock A null-terminated string to display on the G-Shock DW5600 LCD.
+ * @brief Same as watch_display_text_with_fallback, but also accepts a string for the G-Shock.
+ * @param string_gshock A null-terminated string to display on the G-Shock DW5600 LCD.
  */
-void watch_display_text_with_fallback_and_gshock(watch_position_t location, const char *string, const char *fallback_gshock, const char *fallback);
+void watch_display_text_with_fallback_and_gshock(watch_position_t location, const char *string, const char *string_gshock, const char *fallback);
 
 /**
  * @brief Displays a floating point number as best we can on whatever LCD is available.

@@ -2,8 +2,8 @@
 GOSSAMER_PATH=gossamer
 
 
-DEFAULT_BOARD = sensorwatch_pro
-DEFAULT_DISPLAY = classic
+DEFAULT_BOARD = sensorwatch_jolt
+DEFAULT_DISPLAY = jolt
 # Which board are we building for? Commented out to force a choice when building.
 # Options are:
 # - sensorwatch_pro

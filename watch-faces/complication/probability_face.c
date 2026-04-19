@@ -37,8 +37,8 @@
 #define TAP_DETECTION_SECONDS 5
 #define ANIMATION_FRAMES 4
 #define SEGMENTS_PER_FRAME 2
-const uint16_t NUM_DICE_TYPES = 8; // Keep this consistent with # of dice types below
-const uint16_t DICE_TYPES[] = {2, 4, 6, 8, 10, 12, 20, 100};
+const uint16_t NUM_DICE_TYPES = 9; // Keep this consistent with # of dice types below
+const uint16_t DICE_TYPES[] = {2, 4, 6, 8, 10, 12, 20, 60, 100};
 
 // Animation frame data: each frame defines which pixels to set
 // Each frame can have up to SEGMENTS_PER_FRAME pixels
@@ -66,6 +66,17 @@ static const com_seg_t custom_lcd_animation_frames[ANIMATION_FRAMES][SEGMENTS_PE
     {{3, 6}, {0, 7}},
     // Frame 2: Second #1 B and E
     {{3, 7}, {0, 6}},
+    // Frame 3: No pixels set (end animation)
+    {{255, 255}, {255, 255}}
+};
+
+static const com_seg_t gshock_lcd_animation_frames[ANIMATION_FRAMES][SEGMENTS_PER_FRAME] = {
+    // Frame 0: Second #1 F and C
+    {{1, 12}, {2, 11}},
+    // Frame 1: Second #1 A and D
+    {{0, 11}, {3, 11}},
+    // Frame 2: Second #1 B and E
+    {{1, 11}, {3, 12}},
     // Frame 3: No pixels set (end animation)
     {{255, 255}, {255, 255}}
 };
@@ -106,8 +117,11 @@ static void display_dice_roll(probability_state_t *state)
     // Display die type in top right position
     if (state->dice_sides == 100) {
         // Show "00" for d100
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "00", " C");
+        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_RIGHT, "00", "100", " C");
+    } else if (state->dice_sides == 2) {
+        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_RIGHT, " 2", "coin", " 2");
     } else {
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
         sprintf(buf, "%2d", state->dice_sides);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     }
@@ -161,8 +175,11 @@ static void display_dice_roll_animation(probability_state_t *state)
     if (state->is_rolling)
     {
         const com_seg_t (*animation_frames)[SEGMENTS_PER_FRAME] = classic_lcd_animation_frames;
-        if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
+        watch_lcd_type_t lcd_type = watch_get_lcd_type();
+        if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
             animation_frames = custom_lcd_animation_frames;
+        } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+            animation_frames = gshock_lcd_animation_frames;
         }
 
         // Clear main display areas on first frame
@@ -231,7 +248,7 @@ void probability_face_activate(void *context)
     state->rolled_value = 0;
 
     // Display face identifier
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Prb", "PR");
+    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "Prb", "PR", "PR");
 
     // Set tick frequency to 1 for proper tap detection timing
     movement_request_tick_frequency(1);

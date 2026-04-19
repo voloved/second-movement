@@ -77,7 +77,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 1:
             watch_display_text(WATCH_POSITION_BOTTOM, "CresNt");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
@@ -86,7 +86,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 2:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "1stQtr", " 1st q");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
@@ -96,7 +96,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 3:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "GbboUs", " Gibb ");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
@@ -121,7 +121,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 5:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "GbboUs", " Gibb ");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(1, 14);
                 watch_set_pixel(2, 14);
@@ -132,7 +132,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 6:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "3rdQtr", " 3rd q");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN","  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(1, 14);
                 watch_set_pixel(2, 14);
@@ -142,7 +142,7 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 7:
             watch_display_text(WATCH_POSITION_BOTTOM, "CresNt");
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
+            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(0, 14);
                 watch_set_pixel(0, 13);

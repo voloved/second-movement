@@ -85,7 +85,7 @@ typedef struct {
 
 static game_state_t game_state;
 static int8_t _ticks_show_title = 0;
-static bool _is_custom_lcd;
+static bool _is_classic_lcd;
 
 static int8_t start_tune[] = {
     BUZZER_NOTE_C5, 15,
@@ -208,7 +208,7 @@ static void display_ball(void) {
             char_display = '#';
         }
     } else {
-        if (!_is_custom_lcd && (char_pos == 4 || char_pos == 6)) {
+        if (_is_classic_lcd && (char_pos == 4 || char_pos == 6)) {
             char_display = 'n'; // No need to check for overlap on these segments
         } else {
             if (overlap) {
@@ -484,7 +484,7 @@ void ping_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void ping_face_activate(void *context) {
     (void) context;
-    _is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
+    _is_classic_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC;
     if (watch_sleep_animation_is_running()) {
         watch_stop_blink();
     }

@@ -312,7 +312,6 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     }
     char buf[6 + 1];
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {

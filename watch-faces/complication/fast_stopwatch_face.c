@@ -326,11 +326,7 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
-            } else {
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "ST", "ST");
-            }
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
             break;

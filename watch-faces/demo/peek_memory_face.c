@@ -78,7 +78,7 @@ bool peek_memory_face_loop(movement_event_t event, void *context) {
                 case PEEK_MEMORY_FORMAT_DATE:
                     datetime = (rtc_date_time_t *)&value;
                     sprintf(buf, "M%d", datetime->unit.month);
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf + 1, buf + 1);
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf + 1);
                     sprintf(buf, "%2d", datetime->unit.day);
                     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
                     sprintf(buf, "%02d%02d%02d", datetime->unit.hour, datetime->unit.minute, datetime->unit.second);

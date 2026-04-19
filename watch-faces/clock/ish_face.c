@@ -102,7 +102,7 @@ static void ish_face_update_display(ish_face_state_t *state, watch_date_time_t d
     while (len < 5) buf[len++] = ' ';
     buf[len] = '\0';
     
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ISH", "SH", "SH");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ISH", "SH");
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     watch_set_colon();
     watch_display_text(WATCH_POSITION_SECONDS, "  ");

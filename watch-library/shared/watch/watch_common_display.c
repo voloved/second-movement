@@ -376,7 +376,22 @@ static void watch_display_text_with_fallback_gshock(watch_position_t location, c
     }
 }
 
-void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback_gshock, const char *fallback) {
+void watch_display_text_with_fallback(watch_position_t location, const char *string, const char *fallback) {
+    watch_lcd_type_t lcd_type = watch_get_lcd_type();
+    if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
+        watch_display_text_with_fallback_custom(location, string);
+    }else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+        if (location == WATCH_POSITION_TOP || location == WATCH_POSITION_TOP_LEFT) {
+            watch_display_text_with_fallback_gshock(location, fallback);
+        } else {
+            watch_display_text_with_fallback_gshock(location, string);
+        }
+    } else {
+        watch_display_text(location, fallback);
+    }
+}
+
+void watch_display_text_with_fallback_and_gshock(watch_position_t location, const char *string, const char *fallback_gshock, const char *fallback) {
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_display_text_with_fallback_custom(location, string);
@@ -394,7 +409,7 @@ void watch_display_float_with_best_effort(float value, const char *units) {
 
     if (value < -99.9) {
         watch_clear_decimal_if_available();
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Undflo", "Undflo", " Unflo");
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Undflo", " Unflo");
         return;
     } else if (value > 199.99) {
         watch_clear_decimal_if_available();
@@ -426,7 +441,7 @@ void watch_display_float_with_best_effort(float value, const char *units) {
         snprintf(buf_fallback, sizeof(buf_fallback), "%4.2f%s", value, units ? units : blank_units);
     }
 
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf_fallback);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf_fallback);
     if (set_decimal) {
         watch_set_decimal_if_available();
     } else {

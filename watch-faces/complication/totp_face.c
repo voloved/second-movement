@@ -126,7 +126,7 @@ static void totp_generate(totp_state_t *totp_state) {
 static void totp_display_error(totp_state_t *totp_state) {
     totp_t *totp = totp_current(totp_state);
     watch_clear_display();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp->labels, totp->labels, totp->labels);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp->labels, totp->labels);
     watch_display_text(WATCH_POSITION_BOTTOM, "ERROR");
 }
 
@@ -144,7 +144,7 @@ static void totp_display_code(totp_state_t *totp_state) {
     valid_for = totp->period - result.rem;
 
     watch_clear_display();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp->labels, totp->labels, totp->labels);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp->labels, totp->labels);
 
     sprintf(buf, "%2d", valid_for);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);

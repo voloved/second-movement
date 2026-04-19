@@ -212,7 +212,7 @@ bool close_enough_face_loop(movement_event_t event, void *context) {
 
             watch_display_text_with_fallback(
                 WATCH_POSITION_TOP_LEFT,
-                watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time), watch_utility_get_weekday(date_time)
+                watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time)
             );
 
             char day_buf[2 + 1];

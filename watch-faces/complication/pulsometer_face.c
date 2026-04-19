@@ -61,7 +61,7 @@ static inline bool lcd_is_custom(void) {
 
 static void pulsometer_display_title(pulsometer_state_t *pulsometer) {
     (void) pulsometer;
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "PULSE", "PL", "PL");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "PULSE", "PL");
 }
 
 static void pulsometer_display_calibration(pulsometer_state_t *pulsometer) {

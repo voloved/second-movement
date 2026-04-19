@@ -272,11 +272,11 @@ static void totp_face_display(totp_lfs_state_t *totp_state) {
     }
     uint8_t valid_for = totp_records[index].period - result.rem;
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp_records[index].label, totp_records[index].label, totp_records[index].label);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, totp_records[index].label, totp_records[index].label);
     sprintf(buf, "%2d", valid_for);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
     sprintf(buf, "%06lu", totp_state->current_code);
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
 }
 
 bool totp_lfs_face_loop(movement_event_t event, void *context) {

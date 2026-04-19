@@ -123,9 +123,9 @@ static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
     sprintf(buf, "%2d", (state->alarm_idx + 1));
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     if (state->setting_state == alarm_setting_idx_day && blinking) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "   ", "  ", "  ");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "   ", "  ");
     } else {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, _dow_strings_custom[i], _dow_strings_classic[i], _dow_strings_classic[i]);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, _dow_strings_custom[i], _dow_strings_classic[i]);
     }
     if (state->setting_state == alarm_setting_idx_hour && blinking) {
         watch_display_text(WATCH_POSITION_HOURS, "  ");

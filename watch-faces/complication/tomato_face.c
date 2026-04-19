@@ -130,7 +130,7 @@ bool tomato_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TOMATO", "TO", "TO");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "TOMATO", "TO");
             tomato_draw(state);
             break;
         case EVENT_TICK:

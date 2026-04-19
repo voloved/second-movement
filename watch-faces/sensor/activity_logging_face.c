@@ -33,7 +33,7 @@ static void _activity_logging_face_update_display(activity_logging_state_t *stat
     char buf[8];
     watch_date_time_t timestamp = movement_get_local_date_time();
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "ACT", "AC", "AC");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "ACT", "AC");
 
     if (state->display_index == 0) {
         // if we are at today, just show the count so far

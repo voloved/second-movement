@@ -175,31 +175,31 @@ static void nanosec_update_display() {
 
     switch (nanosec_screen) {
         case 0:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "FCorr", "FC", "FC");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "FCorr", "FC");
             sprintf(buf, "%6d", nanosec_state.freq_correction);
             break;
         case 1:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "CTMP ", "T0", "T0");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "CTMP ", "T0");
             sprintf(buf, "%6d", nanosec_state.center_temperature);
             break;
         case 2:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "2Coef", "2C", "2C");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "2Coef", "2C");
             sprintf(buf, "%6d", nanosec_state.quadratic_tempco);
             break;
         case 3:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "3Coef", "3C", "3C");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "3Coef", "3C");
             sprintf(buf, "%6d", nanosec_state.cubic_tempco);
             break;
         case 4: // Profile
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "PROFL", "PR", "PR");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "PROFL", "PR");
             sprintf(buf, "    P%1d", nanosec_state.correction_profile);
             break;
         case 5: // Cadence
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "Cadnc", "CD", "CD");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "Cadnc", "CD");
             sprintf(buf, "    %2d", nanosec_state.correction_cadence);
             break;
         case 6: // Aging
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "AgeCo", "CD", "CD");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "AgeCo", "CD");
             sprintf(buf, "%6d", nanosec_state.aging_ppm_pa);
             break;
     }

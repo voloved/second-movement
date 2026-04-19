@@ -270,9 +270,9 @@ static void _deadline_running_display(movement_event_t event, deadline_state_t *
     char buf[16];
 
     /* Top row with face name and deadline index */
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, running_title, running_fallback_title, running_fallback_title);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, running_title, running_fallback_title);
     sprintf(buf, "%2d", state->current_index + 1);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
 
     /* Display indicators */
     if (state->alarm_enabled)
@@ -290,7 +290,7 @@ static void _deadline_running_display(movement_event_t event, deadline_state_t *
         else
             sprintf(buf, "----  ");
 
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
         return;
     }
 
@@ -302,7 +302,7 @@ static void _deadline_running_display(movement_event_t event, deadline_state_t *
     _calculate_time_remaining(deadline, now, units);
     _correct_time_difference(units, deadline);
     _format_time_remaining(units, buf, sizeof(buf));
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
 }
 
 /* Init running mode */
@@ -369,7 +369,6 @@ static void _deadline_settings_display(movement_event_t event,
     char buf[7];
 
     watch_display_text_with_fallback(WATCH_POSITION_TOP, settings_titles[state->current_page],
-                                     settings_fallback_titles[state->current_page],
                                      settings_fallback_titles[state->current_page]);
 
     if (state->current_page > 2) {
@@ -414,7 +413,7 @@ static void _deadline_settings_display(movement_event_t event,
         }
     }
 
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf, buf);
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf);
 }
 
 /* Init setting mode */

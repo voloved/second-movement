@@ -190,9 +190,7 @@ static void _display_act_genre(uint8_t act_num, bool show_weekday){
         watch_date_time_t start_time = festival_acts[act_num].start_time;
         if (start_time.unit.hour < 5)
             start_time.reg = start_time.reg - (1<<17); // Subtract a day if the act starts before 5am.
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(start_time),
-                                                                watch_utility_get_weekday(start_time),
-                                                                watch_utility_get_weekday(start_time));
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(start_time), watch_utility_get_weekday(start_time));
     }
 }
 
@@ -215,9 +213,7 @@ static void _display_act_time(uint8_t act_num, bool display_end){
     else{
         watch_set_indicator(WATCH_INDICATOR_24H);
     }
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time),
-                                                            watch_utility_get_weekday(disp_time),
-                                                            watch_utility_get_weekday(disp_time));
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time), watch_utility_get_weekday(disp_time));
     sprintf(buf, "%2d", disp_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%s" : "%2d%02d%s",
@@ -291,7 +287,7 @@ static void _display_curr_day(watch_date_time_t curr_time){  // Assumes festival
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     }
     else {
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Long ", " Long ", " LONg ");
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Long ", " LONg ");
     }
     return;
 }

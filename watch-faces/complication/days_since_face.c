@@ -59,7 +59,7 @@ static void _days_since_face_update(days_since_state_t *state) {
     watch_date_time_t date_time = watch_rtc_get_date_time();
     uint32_t julian_now_date = _days_since_face_juliandaynum(date_time.unit.year + WATCH_RTC_REFERENCE_YEAR, date_time.unit.month, date_time.unit.day);
     uint32_t julian_since_date = _days_since_face_juliandaynum(state->working_year, state->working_month, state->working_day);
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DAY", "DA", "DA");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DAY", "DA");
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     if (julian_now_date < julian_since_date) {
         sprintf(buf, "%6lu", julian_since_date - julian_now_date);
@@ -151,7 +151,7 @@ bool days_since_face_loop(movement_event_t event, void *context) {
             switch (state->current_page) {
                 // if in settings mode, update whatever the current page is
                 case PAGE_YEAR:
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Year ", "YR", "YR");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Year ", "YR");
                     if (event.subsecond % 2) {
                         sprintf(buf, "%4d  ", state->working_year);
                         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -160,7 +160,7 @@ bool days_since_face_loop(movement_event_t event, void *context) {
                     }
                     break;
                 case PAGE_MONTH:
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Month", "MO", "MO");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Month", "MO");
                     if (event.subsecond % 2) {
                         sprintf(buf, "%2d    ", state->working_month);
                         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -169,7 +169,7 @@ bool days_since_face_loop(movement_event_t event, void *context) {
                     }
                     break;
                 case PAGE_DAY:
-                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Day  ", "DA", "DA");
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Day  ", "DA");
                     if (event.subsecond % 2) {
                         sprintf(buf, "  %2d  ", state->working_day);
                         watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -248,9 +248,9 @@ bool days_since_face_loop(movement_event_t event, void *context) {
                     uint32_t julian_now_date = _days_since_face_juliandaynum(date_time.unit.year + WATCH_RTC_REFERENCE_YEAR, date_time.unit.month, date_time.unit.day);
                     uint32_t julian_since_date = _days_since_face_juliandaynum(state->working_year, state->working_month, state->working_day);
                     if (julian_now_date < julian_since_date) {
-                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Until", "DA", "DA");
+                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Until", "DA");
                     } else {
-                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "SINCE", "DA", "DA");
+                        watch_display_text_with_fallback(WATCH_POSITION_TOP, "SINCE", "DA");
                     }
                     state->current_page = PAGE_DATE;
                     sprintf(buf, "%02d%02d%02d", state->working_year % 100, state->working_month % 100, state->working_day % 100);

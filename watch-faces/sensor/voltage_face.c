@@ -32,7 +32,7 @@
 static void _voltage_face_update_display(void) {
     float voltage = (float)movement_watch_get_vcc_voltage() / 1000.0;
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA", "BA");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
     watch_display_float_with_best_effort(voltage, " V");
 }
 
@@ -69,14 +69,14 @@ static void _voltage_face_logging_update_display(voltage_face_state_t *logger_st
     if (logger_state->display_index == VOLTAGE_NUM_DATA_POINTS){
         _voltage_face_blink_display(from_btn);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAT  ", "BA", "BA");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "BAT  ", "BA");
         return;
     }
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
 
     if (pos < 0) {
         // no data at this index
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA", "BA");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
         watch_clear_decimal_if_available();
         watch_display_text(WATCH_POSITION_BOTTOM, "no dat");
         sprintf(buf, "%2d", logger_state->display_index);
@@ -92,7 +92,7 @@ static void _voltage_face_logging_update_display(voltage_face_state_t *logger_st
             date_time.unit.hour %= 12;
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT", "AT");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
         sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
                 ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -101,7 +101,7 @@ static void _voltage_face_logging_update_display(voltage_face_state_t *logger_st
         watch_display_text(WATCH_POSITION_BOTTOM, buf);
     } else {
         // we are displaying the voltage
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA", "BA");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "BAT", "BA");
         sprintf(buf, "%2d", logger_state->display_index);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         watch_display_float_with_best_effort(logger_state->data[pos].voltage, " V");

@@ -96,7 +96,7 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             watch_set_colon();
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST", "ST");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
             // fall through
         case EVENT_TICK:
             if (stopwatch_state->start_time.reg == 0) {

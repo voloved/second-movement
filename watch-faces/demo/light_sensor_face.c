@@ -58,7 +58,7 @@ bool light_sensor_face_loop(movement_event_t event, void *context) {
             char buf[7];
             uint16_t light_level = adc_get_analog_value(HAL_GPIO_IRSENSE_pin());
             snprintf(buf, 7, "%-6d", light_level);
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "LIGHT", "LL", "LL");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "LIGHT", "LL");
             watch_display_text(WATCH_POSITION_BOTTOM, buf);
         }
             break;

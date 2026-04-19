@@ -242,7 +242,7 @@ static void add_to_game_scores(bool add_to_wins) {
 static void display_win(void) {
     game_state = BJ_RESULT;
     add_to_game_scores(true);
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WlN ", " WIN", " WIN");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "WlN ", " WIN");
     display_score(player.score, WATCH_POSITION_SECONDS);
     display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
 }
@@ -250,7 +250,7 @@ static void display_win(void) {
 static void display_lose(void) {
     game_state = BJ_RESULT;
     add_to_game_scores(false);
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LOSE", "LOSE", "lOSE");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "LOSE", "lOSE");
     display_score(player.score, WATCH_POSITION_SECONDS);
     display_score(dealer.score, WATCH_POSITION_TOP_RIGHT);
 }
@@ -258,21 +258,21 @@ static void display_lose(void) {
 static void display_tie(void) {
     game_state = BJ_RESULT;
     // Don't record ties to the win ratio
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "TlE ", " TIE", " TIE");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "TlE ", " TIE");
     display_score(player.score, WATCH_POSITION_SECONDS);
 }
 
 static void display_bust(void) {
     game_state = BJ_RESULT;
     add_to_game_scores(false);
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8UST", "BUST", "BUST");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "8UST", "BUST");
 }
 
 static void display_title(void) {
     game_state = BJ_TITLE_SCREEN;
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BLACK ", "BLaCK ", "21");
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " JACK ", " JACK ", "BLaKJK");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "BLACK ", "21");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " JACK ", "BLaKJK");
 }
 
 static void display_win_ratio(blackjack_face_state_t *state) {
@@ -283,7 +283,7 @@ static void display_win_ratio(blackjack_face_state_t *state) {
         win_ratio = (uint8_t)((100 * state->games_won) / state->games_played);
     }
     watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "WINS  ", "WR", "WR");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "WINS  ", "WR");
     sprintf(buf, "%3dPct", win_ratio);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

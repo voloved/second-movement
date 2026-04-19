@@ -34,7 +34,6 @@
 
 typedef enum {
     ALL_SEGMENTS_SHOW_FULL = 0,
-    ALL_SEGMENTS_SHOW_NONSENSE,
     ALL_SEGMENTS_SHOW_FULL_SLOWLY,
     ALL_SEGMENTS_SHOW_FULL_COM,
     ALL_SEGMENTS_SHOW_INDIVIDUAL,
@@ -122,9 +121,6 @@ bool all_segments_face_loop(movement_event_t event, void *context) {
                 watch_set_pixel(_curr_com, _curr_seg);
                 printf("COM: %d SEG: %d\r\n", _curr_com, _curr_seg);
                 _curr_seg += 1;
-                break;
-            case ALL_SEGMENTS_SHOW_NONSENSE:
-                watch_display_text(WATCH_POSITION_SECONDS, "01");
                 break;
             case ALL_SEGMENTS_SHOW_FULL_COM:
                 if (_curr_seg >= _num_seg) {

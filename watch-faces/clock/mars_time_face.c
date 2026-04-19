@@ -88,7 +88,7 @@ static void _update(mars_time_state_t *state, bool low_energy_mode) {
         lmt = fmod(lmst + 24, 24);
     }
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, site_names_custom[state->current_site], site_names_classic[state->current_site], site_names_classic[state->current_site]);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, site_names_custom[state->current_site], site_names_classic[state->current_site]);
 
     if (state->displaying_sol && !low_energy_mode) {
         // TODO: this is not right, mission sol should turn over at midnight local time?

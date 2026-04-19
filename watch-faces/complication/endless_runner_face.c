@@ -84,16 +84,12 @@ int8_t classic_ball_arr_com[] = {1, 0, 1, 0, 2, 1, 2};
 int8_t classic_ball_arr_seg[] = {20, 20, 21, 21, 20, 17, 21};
 int8_t custom_ball_arr_com[] = {2, 1, 1, 0, 3, 3, 2};
 int8_t custom_ball_arr_seg[] = {15, 15, 14, 15, 14, 15, 14};
-int8_t gshock_ball_arr_com[] = {2, 3, 3, 3, 1, 2, 1};
-int8_t gshock_ball_arr_seg[] = {25, 24, 26, 25, 25, 24, 26};
 
 // obstacle 0-11
 int8_t classic_obstacle_arr_com[] = {0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1};
 int8_t classic_obstacle_arr_seg[] = {18, 19, 20, 21, 22, 23, 0, 1, 2, 4, 5, 6};
 int8_t custom_obstacle_arr_com[] = {1, 1, 1, 1, 1, 0, 1, 0, 3, 0, 0, 2};
 int8_t custom_obstacle_arr_seg[] = {22, 16, 15, 14, 1, 2, 3, 4, 4, 5, 6, 7};
-int8_t gshock_obstacle_arr_com[] = { 2, 3, 3, 3, 3, 2, 3, 3, 2, 2, 3, 2};
-int8_t gshock_obstacle_arr_seg[] = {22, 23, 24, 26, 18, 17, 16, 14, 14, 13, 12, 11};
 
 int8_t *ball_arr_com;
 int8_t *ball_arr_seg;
@@ -348,7 +344,7 @@ static void display_title(endless_runner_state_t *state) {
     movement_request_tick_frequency(1);
     game_state.curr_screen = SCREEN_TITLE;
     watch_clear_colon();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ENdLS", "ENdLS", "ER  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "ENdLS", "ER  ");
     watch_display_text(WATCH_POSITION_BOTTOM, "RUNNER");
     display_sound_indicator(state -> soundOn);
     _ticks_show_title = 1;
@@ -364,7 +360,7 @@ static void display_score_screen(endless_runner_state_t *state) {
     game_state.sec_before_moves = 1; // The first obstacles will all be 0s, which is about an extra second of delay.
     if (sound_on) game_state.sec_before_moves--; // Start chime is about 1 second
     watch_set_colon();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "RUN  ", "ER  ", "ER  ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "RUN  ", "ER  ");
     if (hi_score > MAX_HI_SCORE) {
         watch_display_text(WATCH_POSITION_BOTTOM, "HS  --");
     }
@@ -573,28 +569,11 @@ void endless_runner_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 
 void endless_runner_face_activate(void *context) {
     (void) context;
-    switch (watch_get_lcd_type())
-    {
-    case WATCH_LCD_TYPE_CUSTOM:
-        ball_arr_com = custom_ball_arr_com;
-        ball_arr_seg = custom_ball_arr_seg;
-        obstacle_arr_com = custom_obstacle_arr_com;
-        obstacle_arr_seg = custom_obstacle_arr_seg;
-        break;
-    case WATCH_LCD_TYPE_GSHOCK:
-        ball_arr_com = gshock_ball_arr_com;
-        ball_arr_seg = gshock_ball_arr_seg;
-        obstacle_arr_com = gshock_obstacle_arr_com;
-        obstacle_arr_seg = gshock_obstacle_arr_seg;
-        break;
-    case WATCH_LCD_TYPE_CLASSIC:
-    default:
-        ball_arr_com = classic_ball_arr_com;
-        ball_arr_seg = classic_ball_arr_seg;
-        obstacle_arr_com = classic_obstacle_arr_com;
-        obstacle_arr_seg = classic_obstacle_arr_seg;
-        break;
-    }
+    bool is_custom_lcd = watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM;
+    ball_arr_com = is_custom_lcd ? custom_ball_arr_com : classic_ball_arr_com;
+    ball_arr_seg = is_custom_lcd ? custom_ball_arr_seg : classic_ball_arr_seg;
+    obstacle_arr_com = is_custom_lcd ? custom_obstacle_arr_com : classic_obstacle_arr_com;
+    obstacle_arr_seg = is_custom_lcd ? custom_obstacle_arr_seg : classic_obstacle_arr_seg;
     if (watch_sleep_animation_is_running()) {
         watch_stop_blink();
     }
@@ -681,7 +660,7 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
         case EVENT_LOW_ENERGY_UPDATE:
             if (game_state.curr_screen != SCREEN_TIME) {
                 movement_request_tick_frequency(1);
-                watch_display_text_with_fallback(WATCH_POSITION_TOP, "RUN  ", "ER  ", "ER  ");
+                watch_display_text_with_fallback(WATCH_POSITION_TOP, "RUN  ", "ER  ");
                 display_sound_indicator(state -> soundOn);
                 display_difficulty(state->difficulty);
             }

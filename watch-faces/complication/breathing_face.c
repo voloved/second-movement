@@ -106,67 +106,67 @@ bool breathing_face_loop(movement_event_t event, void *context) {
 
             switch (state->current_stage) {
               case 0: {
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Breath", "Breath", "Breath");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Breath", "Breath");
                 if (state->indication_mode != 2)
                   breathe_notify(state, IN_NOTES, IN_DUR, 3, false);
                 break;
               }
               case 1:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   3", "In   3", "In   3");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   3", "In   3");
                 break;
               case 2:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   2", "In   2", "In   2");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   2", "In   2");
                 break;
               case 3:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   1", "In   1", "In   1");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "ln   1", "In   1");
                 break;
 
               case 4: {
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 4", "Hold 4", "Hold 4");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 4", "Hold 4");
                 if (state->indication_mode != 2)
                   breathe_notify(state, IN_HOLD_NOTES, IN_HOLD_DUR, 3, true);
                 break;
               }
               case 5:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 3", "Hold 3", "Hold 3");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 3", "Hold 3");
                 break;
               case 6:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 2", "Hold 2", "Hold 2");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 2", "Hold 2");
                 break;
               case 7:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 1", "Hold 1", "Hold 1");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 1", "Hold 1");
                 break;
 
               case 8: {
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  4", "Ou t 4", "Ou t 4");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  4", "Ou t 4");
                 if (state->indication_mode != 2)
                   breathe_notify(state, OUT_NOTES, OUT_DUR, 3, false);
                 break;
               }
               case 9:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  3", "Ou t 3", "Ou t 3");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  3", "Ou t 3");
                 break;
               case 10:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  2", "Ou t 2", "Ou t 2");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  2", "Ou t 2");
                 break;
               case 11:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  1", "Ou t 1", "Ou t 1");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Out  1", "Ou t 1");
                 break;
 
               case 12: {
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 4", "Hold 4", "Hold 4");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 4", "Hold 4");
                 if (state->indication_mode != 2)
                   breathe_notify(state, OUT_HOLD_NOTES, OUT_HOLD_DUR, 3, true);
                 break;
               }
               case 13:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 3", "Hold 3", "Hold 3");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 3", "Hold 3");
                 break;
               case 14:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 2", "Hold 2", "Hold 2");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 2", "Hold 2");
                 break;
               case 15:
-                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 1", "Hold 1", "Hold 1");
+                watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "Hold 1", "Hold 1");
                 break;
               default:
                 break;

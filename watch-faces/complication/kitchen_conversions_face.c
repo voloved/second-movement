@@ -187,7 +187,7 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
     {
     case measurement:
     {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Unit", "Un", "Un");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Unit", "Un");
         char* measurement_name = (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? measures_custom : measures)[state->measurement_i];
         watch_display_text(WATCH_POSITION_BOTTOM, measurement_name);
     }
@@ -203,11 +203,11 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
 
             char *locale_custom = state->from_is_us ? "USA" : "IMP";
             char *locale = state->from_is_us ? "A " : "GB";
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, locale_custom, locale, locale);
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, locale_custom, locale);
         }
         else
         {
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "Frm", "Fr", "Fr");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "Frm", "Fr");
         }
 
         break;
@@ -221,11 +221,11 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
 
             char *locale_custom = state->to_is_us ? "USA" : "IMP";
             char *locale = state->to_is_us ? "A " : "GB";
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, locale_custom, locale, locale);
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, locale_custom, locale);
         }
         else
         {
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, " to", "to", "to");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, " to", "to");
         }
 
         break;
@@ -249,7 +249,7 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
             watch_display_character(' ', 4 + state->selection_index);
         }
 
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Input", "In", "In");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Input", "In");
     }
     break;
 
@@ -269,7 +269,7 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
         if (conversion >= 1000000 || conversion < lower_bound)
         {
             watch_set_indicator(WATCH_INDICATOR_BELL);
-            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Error", " Error", " Err");
+            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Error", " Err");
 
             if (movement_button_should_sound())
                 watch_buzzer_play_sequence(calc_fail_seq, NULL);
@@ -295,7 +295,7 @@ static void display(kitchen_conversions_state_t *state, uint8_t subsec)
             if (movement_button_should_sound())
                 watch_buzzer_play_sequence(calc_success_seq, NULL);
         }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Res =", " =", " =");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Res =", " =");
     }
 
     break;

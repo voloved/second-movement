@@ -30,7 +30,7 @@
 static void _display_date(watch_date_time_t date_time) {
     char buf[3];
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time), watch_utility_get_weekday(date_time));
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
     snprintf(buf, sizeof(buf), "%2d", date_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
 }

@@ -124,12 +124,12 @@ static void tarot_display(tarot_state_t *state) {
         } else {
             watch_clear_indicator(WATCH_INDICATOR_ARROWS);
         }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Tar", "TA", "TA");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Tar", "TA");
         sprintf(smallbuf, "%2d", state->num_cards_to_draw);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, smallbuf);
 
         if (state->major_arcana_only) {
-            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Major", " Major", "n&ajor");
+            watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, " Major", "n&ajor");
         } else {
             watch_display_text(WATCH_POSITION_BOTTOM, "   All");
         }
@@ -152,13 +152,13 @@ static void tarot_display(tarot_state_t *state) {
     card = state->drawn_cards[state->current_card];
     flipped = (card & FLIPPED_MASK) ? true : false; // check flipped bit
     card &= ~FLIPPED_MASK; // remove the flipped bit
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, start_end_string, fallback_start_end_string, fallback_start_end_string);
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, start_end_string, fallback_start_end_string);
     if (card < NUM_MAJOR_ARCANA) {
         // major arcana
 
         // show no rank, card name
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, custom_major_arcana[card], custom_major_arcana[card], fallback_major_arcana[card]);
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, custom_major_arcana[card], fallback_major_arcana[card]);
     } else {
         // minor arcana
         uint8_t suit = (card - NUM_MAJOR_ARCANA) / NUM_CARDS_PER_SUIT;
@@ -293,7 +293,7 @@ void tarot_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 void tarot_face_activate(void *context) {
     tarot_state_t *state = (tarot_state_t *)context;
 
-    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Tarot", "TA", "TA");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP, "Tarot", "TA");
     init_deck(state);
 }
 

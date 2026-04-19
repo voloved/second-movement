@@ -268,8 +268,8 @@ static void _face_draw(interval_face_state_t *state, uint8_t subsecond) {
     }
     // write out to lcd
     if (int_state_str[0][0]) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, int_state_str[1], int_state_str[0], int_state_str[0]);
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, int_index_str, int_index_str, int_index_str);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, int_state_str[1], int_state_str[0]);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, int_index_str, int_index_str);
         // set the bar for the i-like symbol on position 2
         if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
             watch_set_pixel(2, 9);
@@ -277,7 +277,7 @@ static void _face_draw(interval_face_state_t *state, uint8_t subsecond) {
             watch_set_pixel(2, 10);
         }
         // display the rest of the string
-        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, bottom_row, bottom_row, bottom_row);
+        watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, bottom_row, bottom_row);
     }
 }
 
@@ -504,7 +504,7 @@ bool interval_face_loop(movement_event_t event, void *context) {
         }
         break;
     case EVENT_ACTIVATE:
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, INTERVAL_FACE_STATE_DEFAULT_CD, INTERVAL_FACE_STATE_DEFAULT, INTERVAL_FACE_STATE_DEFAULT);
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, INTERVAL_FACE_STATE_DEFAULT_CD, INTERVAL_FACE_STATE_DEFAULT);
         if (state->face_state) _face_draw(state, event.subsecond);
         break;
     case EVENT_LIGHT_BUTTON_UP:

@@ -132,7 +132,7 @@ void chirpy_demo_face_activate(void *context) {
 // cat activity.ini
 
 static void _cdf_update_lcd(chirpy_demo_state_t *state) {
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "CH", "CH1rp", "Chirp");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "CH", "Chirp");
     if (state->program == CDP_CLEAR) {
         movement_force_led_on(255, 0, 0);
         watch_display_text(WATCH_POSITION_BOTTOM, "CLEAR?");

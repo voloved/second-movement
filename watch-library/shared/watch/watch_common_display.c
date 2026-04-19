@@ -381,10 +381,15 @@ void watch_display_text_with_fallback(watch_position_t location, const char *str
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_display_text_with_fallback_custom(location, string);
     }else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        if (location == WATCH_POSITION_TOP || location == WATCH_POSITION_TOP_LEFT) {
+        switch (location)
+        {
+        case WATCH_POSITION_TOP:
+        case WATCH_POSITION_TOP_LEFT:
             watch_display_text_with_fallback_gshock(location, fallback);
-        } else {
+            break;
+        default:
             watch_display_text_with_fallback_gshock(location, string);
+            break;
         }
     } else {
         watch_display_text(location, fallback);

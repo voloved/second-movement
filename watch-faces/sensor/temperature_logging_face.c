@@ -99,7 +99,6 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
             if (date_time.unit.hour == 0) date_time.unit.hour = 12;
         }
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "AT ", "AT");
         sprintf(buf, (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM  && movement_clock_has_leading_zeroes())
                 ? "%02d" : "%2d", date_time.unit.day);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);

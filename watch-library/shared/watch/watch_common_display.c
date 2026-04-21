@@ -409,7 +409,6 @@ void watch_display_text_with_fallback_and_gshock(watch_position_t location, cons
 
 void watch_display_float_with_best_effort(float value, const char *units) {
     char buf[8];
-    char buf_fallback[8];
     const char *blank_units = "  ";
 
     if (value < -99.9) {
@@ -430,23 +429,18 @@ void watch_display_float_with_best_effort(float value, const char *units) {
             // decimal point isn't in the right place for these numbers; use same format as classic.
             set_decimal = false;
             snprintf(buf, sizeof(buf), "-%4.1f%s", -value, units ? units : blank_units);
-            snprintf(buf_fallback, sizeof(buf_fallback), "%s", buf);
         } else {
             snprintf(buf, sizeof(buf), "-%03d%s", value_times_100 % 1000u, units ? units : blank_units);
-            snprintf(buf_fallback, sizeof(buf_fallback), "-%3.1f%s", -value, units ? units : blank_units);
         }
     } else if (value_times_100 > 9999) {
         snprintf(buf, sizeof(buf), "%5u%s", value_times_100, units ? units : blank_units);
-        snprintf(buf_fallback, sizeof(buf_fallback), "%4.1f%s", value, units ? units : blank_units);
     } else if (value_times_100 > 999) {
         snprintf(buf, sizeof(buf), "%4u%s", value_times_100, units ? units : blank_units);
-        snprintf(buf_fallback, sizeof(buf_fallback), "%4.1f%s", value, units ? units : blank_units);
     } else {
         snprintf(buf, sizeof(buf), " %03u%s", value_times_100 % 1000u, units ? units : blank_units);
-        snprintf(buf_fallback, sizeof(buf_fallback), "%4.2f%s", value, units ? units : blank_units);
     }
 
-    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, buf, buf_fallback);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (set_decimal) {
         watch_set_decimal_if_available();
     } else {
@@ -480,8 +474,8 @@ void watch_set_decimal_if_available(void) {
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 14);
-    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_set_pixel(0, 26);
+    } else {
+        watch_set_colon();
     }
 }
 
@@ -489,8 +483,8 @@ void watch_clear_decimal_if_available(void) {
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 14);
-    } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_clear_pixel(0, 26);
+    } else {
+        watch_clear_colon();
     }
 }
 

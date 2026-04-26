@@ -543,7 +543,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 if (movement_get_current_face_section() != 3) {
                     watch_date_time_t curr_time = movement_get_local_date_time();
                     int16_t days_until = _get_days_until(_starting_time, curr_time);
-                    if (days_until >= 0 && days_until <= 30) {
+                    if (days_until < 0 || days_until > 30) {
                         movement_move_to_next_face();
                         return false;
                     }

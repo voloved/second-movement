@@ -144,8 +144,16 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
             watch_clear_indicator(WATCH_INDICATOR_24H);
             if (result == 1) watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
             else watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+#ifdef FORCE_GSHOCK_LCD_TYPE
+            sprintf(buf, "%2d", scratch_time.unit.month);
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+            sprintf(buf, "%2d", scratch_time.unit.day);
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+            watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
             sprintf(buf, "%2d", scratch_time.unit.day);
             watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+#endif
             watch_display_text(WATCH_POSITION_BOTTOM, "None  ");
             return;
         }
@@ -185,8 +193,16 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+#ifdef FORCE_GSHOCK_LCD_TYPE
+                sprintf(buf, "%2d", scratch_time.unit.month);
+                watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+                sprintf(buf, "%2d", scratch_time.unit.day);
+                watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+                watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+#endif
                 sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%2s" : "%2d%02d%2s",
                     scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -225,8 +241,16 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
+#ifdef FORCE_GSHOCK_LCD_TYPE
+                sprintf(buf, "%2d", scratch_time.unit.month);
+                watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+                sprintf(buf, "%2d", scratch_time.unit.day);
+                watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+                watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
                 sprintf(buf, "%2d", scratch_time.unit.day);
                 watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+#endif
                 sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%2s" : "%2d%02d%2s",
                     scratch_time.unit.hour, scratch_time.unit.minute,sunriseSunsetAltLocationPresets[state->longLatToUse].name);
                 watch_display_text(WATCH_POSITION_BOTTOM, buf);

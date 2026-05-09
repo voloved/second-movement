@@ -67,8 +67,16 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
         if (currentday > phase_changes[phase_index] && currentday <= phase_changes[phase_index + 1]) break;
     }
 
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    sprintf(buf, "%2d", date_time.unit.month);
+    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    sprintf(buf, "%2d", date_time.unit.day);
+    watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
     sprintf(buf, "%2d", date_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+#endif
     switch (phase_index) {
         case 0:
         case 8:

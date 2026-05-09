@@ -214,8 +214,16 @@ static void _display_act_time(uint8_t act_num, bool display_end){
         watch_set_indicator(WATCH_INDICATOR_24H);
     }
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(disp_time), watch_utility_get_weekday(disp_time));
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    sprintf(buf, "%2d", disp_time.unit.month);
+    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    sprintf(buf, "%2d", disp_time.unit.day);
+    watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
     sprintf(buf, "%2d", disp_time.unit.day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+#endif
     sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%s" : "%2d%02d%s",
         disp_time.unit.hour, disp_time.unit.minute, display_end ? "Ed" : "St");
     watch_display_text(WATCH_POSITION_BOTTOM, buf);

@@ -80,6 +80,9 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
         logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
         watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "STEP ", "STEP ", "SC");
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
+#endif
         return;
     }
     char buf[9];
@@ -87,14 +90,17 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
     watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
     // we are displaying the step_counter
     watch_display_text_with_fallback(WATCH_POSITION_TOP, "STP", "SC");
-    sprintf(buf, "%2d", logger_state->data[pos].day);
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     sprintf(buf, "%6lu", logger_state->data[pos].step_count);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 #ifdef FORCE_GSHOCK_LCD_TYPE
-        sprintf(buf, "%2d", logger_state->data[pos].month);
-        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
-        watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+    sprintf(buf, "%2d", logger_state->data[pos].month);
+    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    sprintf(buf, "%2d", logger_state->data[pos].day);
+    watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+    watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
+    sprintf(buf, "%2d", logger_state->data[pos].day);
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
 #endif
 }
 

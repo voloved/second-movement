@@ -85,32 +85,49 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
             break;
         case 1:
             watch_display_text(WATCH_POSITION_BOTTOM, "CresNt");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
                 if (currentfrac > 0.125) watch_set_pixel(1, 13);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 19);
+                watch_set_pixel(0, 21);
+                if (currentfrac > 0.125) watch_set_pixel(2, 19);
             }
             break;
         case 2:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "1stQtr", " 1st q");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
                 watch_set_pixel(1, 13);
                 watch_set_pixel(1, 14);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 19);
+                watch_set_pixel(0, 21);
+                watch_set_pixel(2, 19);
+                watch_set_pixel(0, 20);
+                watch_set_pixel(2, 20);
             }
             break;
         case 3:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "GbboUs", " Gibb ");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAX", "WX", "  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAX", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(2, 13);
                 watch_set_pixel(2, 15);
                 watch_set_pixel(1, 14);
                 watch_set_pixel(1, 13);
                 watch_set_pixel(1, 15);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 19);
+                watch_set_pixel(0, 21);
+                watch_set_pixel(0, 20);
+                watch_set_pixel(2, 20);
+                watch_set_pixel(2, 19);
+                watch_set_pixel(1, 20);
             }
             break;
         case 4:
@@ -125,36 +142,63 @@ static void _update(moon_phase_state_t *state, uint32_t offset) {
                 watch_set_pixel(0, 14);
                 watch_set_pixel(0, 13);
                 watch_set_pixel(1, 13);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 19);
+                watch_set_pixel(0, 21);
+                watch_set_pixel(0, 20);
+                watch_set_pixel(2, 20);
+                watch_set_pixel(1, 21);
+                watch_set_pixel(1, 20);
+                watch_set_pixel(2, 21);
+                watch_set_pixel(3, 20);
+                watch_set_pixel(2, 19);
             }
             break;
         case 5:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "GbboUs", " Gibb ");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN", "  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(1, 14);
                 watch_set_pixel(2, 14);
                 watch_set_pixel(1, 15);
                 watch_set_pixel(0, 14);
                 watch_set_pixel(0, 13);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 20);
+                watch_set_pixel(2, 20);
+                watch_set_pixel(1, 21);
+                watch_set_pixel(1, 20);
+                watch_set_pixel(2, 21);
+                watch_set_pixel(3, 20);
             }
             break;
         case 6:
             watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "3rdQtr", " 3rd q");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN","  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(1, 14);
                 watch_set_pixel(2, 14);
                 watch_set_pixel(0, 14);
                 watch_set_pixel(0, 13);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(0, 20);
+                watch_set_pixel(2, 20);
+                watch_set_pixel(1, 21);
+                watch_set_pixel(2, 21);
+                watch_set_pixel(3, 20);
             }
             break;
         case 7:
             watch_display_text(WATCH_POSITION_BOTTOM, "CresNt");
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "WAN", "WN", "  ");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "WAN", "  ");
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
                 watch_set_pixel(0, 14);
                 watch_set_pixel(0, 13);
                 if (currentfrac < 0.875) watch_set_pixel(2, 14);
+            } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                watch_set_pixel(2, 21);
+                watch_set_pixel(3, 20);
+                if (currentfrac < 0.875) watch_set_pixel(1, 21);
             }
             break;
     }

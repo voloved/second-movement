@@ -116,7 +116,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
     }
 
     if (movement_location.reg == 0) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP, "Sunri", "rI");
+        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "Sunri", "RI", "rI");
         watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "No LOC", "No Loc");
         return;
     }
@@ -143,7 +143,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
             watch_clear_indicator(WATCH_INDICATOR_PM);
             watch_clear_indicator(WATCH_INDICATOR_24H);
             if (result == 1) watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "SET", "SE");
-            else watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+            else watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "RIS", "RI", "rI");
 #ifdef FORCE_GSHOCK_LCD_TYPE
             sprintf(buf, "%2d", scratch_time.unit.month);
             watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
@@ -192,7 +192,7 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
                     if (watch_utility_convert_to_12_hour(&scratch_time)) watch_set_indicator(WATCH_INDICATOR_PM);
                     else watch_clear_indicator(WATCH_INDICATOR_PM);
                 }
-                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "RIS", "rI");
+                watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "RIS", "RI", "rI");
 #ifdef FORCE_GSHOCK_LCD_TYPE
                 sprintf(buf, "%2d", scratch_time.unit.month);
                 watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);

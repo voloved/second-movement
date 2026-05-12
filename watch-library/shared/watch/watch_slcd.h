@@ -46,6 +46,10 @@
 #define SLCD_COMNUM(segid) (((segid) >> 5) & 0x07)
 #define SLCD_SEGNUM(segid) ((segid) & 0x1F)
 
+#ifdef FORCE_GSHOCK_LCD_TYPE
+#define MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT true
+#endif
+
 /// An enum listing the icons and indicators available on the watch.
 typedef enum {
     WATCH_INDICATOR_SIGNAL = 0, ///< The hourly signal indicator; also useful for indicating that sensors are on.

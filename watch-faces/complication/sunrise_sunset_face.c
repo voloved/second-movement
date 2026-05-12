@@ -147,7 +147,11 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
             sprintf(buf, "%2d", scratch_time.unit.month);
             watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            sprintf(buf, "%-2d", scratch_time.unit.day);
+#else
             sprintf(buf, "%2d", scratch_time.unit.day);
+#endif
             watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
             watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
 #else
@@ -196,7 +200,11 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
                 sprintf(buf, "%2d", scratch_time.unit.month);
                 watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+                sprintf(buf, "%-2d", scratch_time.unit.day);
+#else
                 sprintf(buf, "%2d", scratch_time.unit.day);
+#endif
                 watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
                 watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
 #else
@@ -244,7 +252,11 @@ static void _sunrise_sunset_face_update(sunrise_sunset_state_t *state) {
 #ifdef FORCE_GSHOCK_LCD_TYPE
                 sprintf(buf, "%2d", scratch_time.unit.month);
                 watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+                sprintf(buf, "%-2d", scratch_time.unit.day);
+#else
                 sprintf(buf, "%2d", scratch_time.unit.day);
+#endif
                 watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
                 watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
 #else

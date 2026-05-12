@@ -95,7 +95,11 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
 #ifdef FORCE_GSHOCK_LCD_TYPE
     sprintf(buf, "%2d", logger_state->data[pos].month);
     watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+    sprintf(buf, "%-2d", logger_state->data[pos].day);
+#else
     sprintf(buf, "%2d", logger_state->data[pos].day);
+#endif
     watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
     watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
 #else

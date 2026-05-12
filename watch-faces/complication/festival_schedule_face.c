@@ -217,7 +217,11 @@ static void _display_act_time(uint8_t act_num, bool display_end){
 #ifdef FORCE_GSHOCK_LCD_TYPE
     sprintf(buf, "%2d", disp_time.unit.month);
     watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+    sprintf(buf, "%-2d", disp_time.unit.day);
+#else
     sprintf(buf, "%2d", disp_time.unit.day);
+#endif
     watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
     watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
 #else

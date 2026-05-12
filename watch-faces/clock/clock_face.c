@@ -237,7 +237,11 @@ static void clock_display_all(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+#else
             (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+#endif
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
@@ -325,7 +329,11 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
         snprintf(
             buf,
             sizeof(buf),
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+#else
             (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+#endif
             date_time.unit.day
         );
         watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
@@ -367,7 +375,11 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
             watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
         }
         if (date_time.unit.day < 10) {
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%-2d", date_time.unit.day);
+#else
             snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
+#endif
             watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
         }
     } else if (lcd_type == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {

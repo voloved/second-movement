@@ -84,8 +84,25 @@ static void _party_face_init_lcd(party_state_t *state) {
         state->curr_day = date_time.unit.day;
         sprintf(text, "%s", watch_utility_get_weekday(date_time));
         watch_display_text(WATCH_POSITION_TOP_LEFT, text);
-        sprintf(text, "%2d", date_time.unit.day);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
+        if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+            // We're using the day bit to contain the minute for the gshock.
+            state->curr_day = date_time.unit.minute;
+            uint8_t hour = date_time.unit.hour;
+            if (!movement_clock_is_24h()) {
+                if (hour >= 12) watch_set_indicator(WATCH_INDICATOR_PM);
+                hour %= 12;
+                if (hour == 0) hour = 12;
+            }
+            sprintf( text, "%2d", hour);
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, text);
+            sprintf( text, "%02d", date_time.unit.minute);
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, text);
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        } else {
+            sprintf(text, "%2d", date_time.unit.day);
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
+        }
     }
     sprintf(text, " %s",textArray[state->party_text]);
     watch_display_text(WATCH_POSITION_BOTTOM, text);

@@ -329,6 +329,7 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
             watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_ALARM_BUTTON_DOWN:
         case EVENT_LIGHT_BUTTON_DOWN:
@@ -338,6 +339,7 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
+            gshock_display_current_time_top_right(false);
             break;
         default:
             movement_default_loop_handler(event);

@@ -63,6 +63,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 return false;
             }
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP", "TE");
+            gshock_display_current_time_top_right(true);
             // force a measurement to be taken immediately.
             date_time.unit.second = 0;
             // fall through
@@ -75,6 +76,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
             } else if (date_time.unit.second % 5 == 0) {
                 _temperature_display_face_update_display(movement_use_imperial_units());
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
+                gshock_display_current_time_top_right(false);
             }
             break;
         case EVENT_LOW_ENERGY_UPDATE:
@@ -83,6 +85,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
                 _temperature_display_face_update_display(movement_use_imperial_units());
             }
+            gshock_display_current_time_top_right(false);
             break;
         default:
             movement_default_loop_handler(event);

@@ -231,6 +231,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIMER", "CD");
             draw(state, event.subsecond);
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_TICK:
             if (quick_ticks_running) {
@@ -250,6 +251,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
 
             draw(state, event.subsecond);
+            gshock_display_current_time_top_right(false);
             break;
         case EVENT_MODE_BUTTON_UP:
             abort_quick_ticks(state);
@@ -367,6 +369,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 // clear out the last two digits and replace them with the sleep mode indicator
                 watch_display_text(WATCH_POSITION_SECONDS, "  ");
             }
+            gshock_display_current_time_top_right(false);
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             // intentionally squelch the light default event; we only show the light when cd is running or reset

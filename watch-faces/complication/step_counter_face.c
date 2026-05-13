@@ -79,7 +79,7 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
     if (logger_state->display_index == logger_state->data_points) {
         logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
-        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "STEP ", "STEP ", "SC");
+        watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "SC");
 #ifdef FORCE_GSHOCK_LCD_TYPE
         watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
 #endif
@@ -201,6 +201,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             if(displaying_curr_step_count) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             }
+            gshock_display_current_time_top_right(false);
             break;
         case EVENT_TICK:
             // This makes it so if the we're just scrolling through faces, we don't immedietly turn

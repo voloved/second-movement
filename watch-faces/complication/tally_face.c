@@ -166,8 +166,9 @@ bool tally_face_loop(movement_event_t event, void *context) {
                 else if (decrement_pressed) tally_face_decrement(state, movement_button_should_sound());
                 else stop_quick_cyc();
             }
+            gshock_display_current_time_top_right(false);
+            case EVENT_ALARM_BUTTON_UP:
             break;
-        case EVENT_ALARM_BUTTON_UP:
             tally_face_decrement(state, movement_button_should_sound());
             break;
         case EVENT_ALARM_LONG_PRESS:
@@ -214,6 +215,7 @@ bool tally_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ACTIVATE:
             print_tally(state, movement_button_should_sound());
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_TIMEOUT:
             // ignore timeout
@@ -239,7 +241,7 @@ void print_tally(tally_state_t *state, bool sound_on) {
         watch_set_indicator(WATCH_INDICATOR_BELL);
     else
         watch_clear_indicator(WATCH_INDICATOR_BELL);
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "TALLY", "TA11Y", "TA");
+    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "TALLY", "TA", "TA");
     sprintf(buf, "%4d", display_val);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

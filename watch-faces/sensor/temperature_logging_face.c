@@ -167,9 +167,13 @@ bool temperature_logging_face_loop(movement_event_t event, void *context) {
                 return false;
             }
             _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_TICK:
-            if(displaying_curr_temp) _temperature_logging_face_blink_display(movement_use_imperial_units(), false);
+            if(displaying_curr_temp) {
+                _temperature_logging_face_blink_display(movement_use_imperial_units(), false);
+                gshock_display_current_time_top_right(false);
+            }
             else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
                 _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), false);
             }

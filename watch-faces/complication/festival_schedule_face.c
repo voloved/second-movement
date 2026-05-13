@@ -554,8 +554,8 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 // If it's not on the teriary menu, then hide it unless the festival is happening or will happen in the next 30 days.
                 if (movement_get_current_face_section() != 3) {
                     watch_date_time_t curr_time = movement_get_local_date_time();
-                    int16_t days_until = _get_days_until(_starting_time, curr_time);
-                    if (days_until < 0 || days_until > 30) {
+                    if (_compare_dates_times(_ending_time, curr_time) <= 0 ||  // Festival is finished
+                    _get_days_until(_starting_time, curr_time) > 30) {  // Festival is more than 30 days away.
                         movement_move_to_next_face();
                         return false;
                     }

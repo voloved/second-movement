@@ -144,8 +144,8 @@ static uint8_t _find_first_available_act(uint8_t first_stage_to_check, watch_dat
     return FESTIVAL_SCHEDULE_NUM_ACTS;
 }
 
-static void _display_act(festival_schedule_state_t *state){
-    char buf[MAX_LENGTH + 1];
+static void display_popularity(uint8_t popularity){
+    char buf[5];
     uint8_t max_pop_display = 39;
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
@@ -153,16 +153,6 @@ static void _display_act(festival_schedule_state_t *state){
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         max_pop_display = 255;
     }
-    uint8_t popularity = festival_acts[state->curr_act].popularity;
-    state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
-    _text_looping = festival_acts[state->curr_act].artist;
-    _text_looping_len = strlen(_text_looping);
-    _is_text_looping = MAX_LENGTH < _text_looping_len;
-    _text_pos = FREQ * -1;
-    watch_clear_display();
-    watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
-    sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
-    watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (popularity <= max_pop_display && popularity > 0) {
         if (lcd_type == WATCH_LCD_TYPE_GSHOCK && popularity > 100) {
             uint8_t hundreds_place = popularity / 100;
@@ -177,13 +167,35 @@ static void _display_act(festival_schedule_state_t *state){
     } else {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
+}
+
+static void _display_act(festival_schedule_state_t *state){
+    char buf[MAX_LENGTH + 1];
+    state->curr_screen = FESTIVAL_SCHEDULE_SCREEN_ACT;
+    _text_looping = festival_acts[state->curr_act].artist;
+    _text_looping_len = strlen(_text_looping);
+    _is_text_looping = MAX_LENGTH < _text_looping_len;
+    _text_pos = FREQ * -1;
+    watch_clear_display();
+    watch_display_text(WATCH_POSITION_TOP_LEFT, festival_stage[state->curr_stage]);
+    sprintf(buf, "%.6s", festival_acts[state->curr_act].artist);
+    watch_display_text(WATCH_POSITION_BOTTOM, buf);
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    gshock_display_current_time_top_right(true);
+#else
+    display_popularity(festival_acts[state->curr_act].popularity);
+#endif
     loops_occurred = 0;
 }
 
 static void _display_act_genre(uint8_t act_num, bool show_weekday){
     char buf[MAX_LENGTH + 1];
     watch_clear_display();
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    display_popularity(festival_acts[act_num].popularity);
+#else
     watch_display_text(WATCH_POSITION_TOP_RIGHT, " G");
+#endif
     sprintf(buf, "%.6s", festival_genre[festival_acts[act_num].genre]);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
     if (show_weekday){
@@ -258,8 +270,16 @@ static void _display_festival_name_and_year() {
     char buf[3];
     sprintf(buf, "%.2s", festival_name);
     watch_display_text(WATCH_POSITION_TOP_LEFT, buf);
-    sprintf(buf, "%02d", _starting_time.unit.year + 20);
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        sprintf(buf, "%2d", _starting_time.unit.month);
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+        sprintf(buf, "%02d", _starting_time.unit.year + 20);
+        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+        watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+    } else {
+        sprintf(buf, "%02d", _starting_time.unit.year + 20);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    }
 }
 
 static bool _festival_occurring(watch_date_time_t curr_time, bool update_display){
@@ -509,6 +529,7 @@ static bool handle_tick(festival_schedule_state_t *state){
     handle_ts_ticks(state);
 
     if (state->cyc_through_all_acts) return false;
+    if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT) gshock_display_current_time_top_right(false);
     if (watch_rtc_get_unix_time() % (FESTIVAL_SCHEDULE_GCF_MINUTE * 60) != 0) return false;  // We check with unix time because it's a cheaper operation than movement_get_local_date_time
     curr_time = movement_get_local_date_time();
     bool newDay = ((curr_time.reg >> 17) != (state -> prev_day));

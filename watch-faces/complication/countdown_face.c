@@ -251,6 +251,8 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             }
 
             draw(state, event.subsecond);
+            break;
+        case EVENT_MINUTE:
             gshock_display_current_time_top_right(false);
             break;
         case EVENT_MODE_BUTTON_UP:
@@ -369,7 +371,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 // clear out the last two digits and replace them with the sleep mode indicator
                 watch_display_text(WATCH_POSITION_SECONDS, "  ");
             }
-            gshock_display_current_time_top_right(false);
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             // intentionally squelch the light default event; we only show the light when cd is running or reset

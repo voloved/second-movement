@@ -339,6 +339,8 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
+            break;
+        case EVENT_MINUTE:
             gshock_display_current_time_top_right(false);
             break;
         default:

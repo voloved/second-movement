@@ -76,8 +76,10 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
             } else if (date_time.unit.second % 5 == 0) {
                 _temperature_display_face_update_display(movement_use_imperial_units());
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
-                gshock_display_current_time_top_right(false);
             }
+            break;
+        case EVENT_MINUTE:
+            gshock_display_current_time_top_right(false);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             // update every 5 minutes
@@ -85,7 +87,6 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
                 _temperature_display_face_update_display(movement_use_imperial_units());
             }
-            gshock_display_current_time_top_right(false);
             break;
         default:
             movement_default_loop_handler(event);

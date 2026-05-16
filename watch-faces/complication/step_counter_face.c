@@ -196,12 +196,12 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     logger_state->sec_before_starting = 0;
                 }
             }
+            gshock_display_current_time_top_right(true);
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             if(displaying_curr_step_count) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             }
-            gshock_display_current_time_top_right(false);
             break;
         case EVENT_TICK:
             // This makes it so if the we're just scrolling through faces, we don't immedietly turn
@@ -229,6 +229,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             } else {
                 allow_sleeping(true, logger_state);
             }
+            break;
+        case EVENT_MINUTE:
+            gshock_display_current_time_top_right(false);
             break;
         case EVENT_BACKGROUND_TASK:
             step_count = get_step_count();

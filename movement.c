@@ -377,7 +377,7 @@ static uint32_t _movement_get_accelerometer_events() {
             printf("Double tap!\r\n");
         }
         if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
-            accelerometer_events |= 1 << EVENT_SINGLE_TAP;
+            accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
             printf("Single tap!\r\n");
         }
     }
@@ -528,7 +528,7 @@ static void _movement_handle_top_of_minute(void) {
     }
 
     enable_disable_step_count_times(date_time);
-
+    movement_volatile_state.pending_events |= 1ULL << EVENT_MINUTE;
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
         // For each face that offers an advisory...
         if (watch_faces[i].advise != NULL) {

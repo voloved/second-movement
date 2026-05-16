@@ -525,8 +525,6 @@ static bool handle_tick(festival_schedule_state_t *state){
     handle_ts_ticks(state);
 
     if (state->cyc_through_all_acts) return false;
-    if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || 
-        state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) gshock_display_current_time_top_right(false);
     if (watch_rtc_get_unix_time() % (FESTIVAL_SCHEDULE_GCF_MINUTE * 60) != 0) return false;  // We check with unix time because it's a cheaper operation than movement_get_local_date_time
     curr_time = movement_get_local_date_time();
     bool newDay = ((curr_time.reg >> 17) != (state -> prev_day));
@@ -664,6 +662,13 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                     state->curr_screen = (state->curr_screen + 1) % FESTIVAL_SCHEDULE_SCREENS_COUNT;
                 } while (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE);
                 _display_screen(state);
+            }
+            break;
+        case EVENT_MINUTE:
+            if (!state->cyc_through_all_acts && 
+                (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || 
+                state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE)) {
+                gshock_display_current_time_top_right(false);
             }
             break;
         case EVENT_TIMEOUT:

@@ -154,10 +154,14 @@ bool voltage_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             if(displaying_curr_volt) {
                 _voltage_face_blink_display(false);
-                gshock_display_current_time_top_right(false);
             }
             else if (logger_state->ts_ticks && --logger_state->ts_ticks == 0) {
                 _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), false);
+            }
+            break;
+        case EVENT_MINUTE:
+            if(displaying_curr_volt) {
+                gshock_display_current_time_top_right(false);
             }
             break;
         case EVENT_BACKGROUND_TASK:

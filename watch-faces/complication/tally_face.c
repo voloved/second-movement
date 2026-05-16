@@ -166,8 +166,11 @@ bool tally_face_loop(movement_event_t event, void *context) {
                 else if (decrement_pressed) tally_face_decrement(state, movement_button_should_sound());
                 else stop_quick_cyc();
             }
+            break;
+        case EVENT_MINUTE:
             gshock_display_current_time_top_right(false);
-            case EVENT_ALARM_BUTTON_UP:
+            break;
+        case EVENT_ALARM_BUTTON_UP:
             break;
             tally_face_decrement(state, movement_button_should_sound());
             break;

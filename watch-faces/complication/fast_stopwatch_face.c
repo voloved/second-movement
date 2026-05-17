@@ -110,11 +110,21 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
 
     state->old_display.hours = hours;
 
-    if (hours) {
-        sprintf(buf, "%2lu", hours);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    } else if (watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK){  // G-Shock displays current time when there's no hours.
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        if (hours) {  // G-Shock displays current time when there's no hours.
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, " H");  // Will show hour as 'H: 4' for 4 hours
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            sprintf(buf, "%2lu", hours);
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+        }
+    } else {
+        if (hours) {
+            sprintf(buf, "%2lu", hours);
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+        } else {
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+        }
     }
 }
 
@@ -329,7 +339,9 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
             watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
-            gshock_display_current_time_top_right();
+            if (!state->old_display.hours) {
+                gshock_display_current_time_top_right();
+            }
             break;
         case EVENT_MINUTE:
             if (!state->old_display.hours) {

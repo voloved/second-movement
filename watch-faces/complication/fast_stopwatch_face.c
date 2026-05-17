@@ -112,11 +112,12 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
 
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
         if (hours) {  // G-Shock displays current time when there's no hours.
-            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, " H");  // Will show hour as 'H: 4' for 4 hours
-            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
-            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-            sprintf(buf, "%2lu", hours);
+            sprintf(buf, "%02lu", hours);
             watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+            // Needs removing in case time was shown previously
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
         }
     } else {
         if (hours) {

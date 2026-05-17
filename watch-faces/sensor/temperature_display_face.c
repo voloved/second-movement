@@ -63,7 +63,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 return false;
             }
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP", "TE");
-            gshock_display_current_time_top_right(true);
+            gshock_display_current_time_top_right();
             // force a measurement to be taken immediately.
             date_time.unit.second = 0;
             // fall through
@@ -79,7 +79,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_MINUTE:
-            gshock_display_current_time_top_right(false);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             // update every 5 minutes

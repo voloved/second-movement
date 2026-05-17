@@ -194,9 +194,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 else {
                     enable_sensor(logger_state);
                     logger_state->sec_before_starting = 0;
-                }
+                } 
             }
-            gshock_display_current_time_top_right(true);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_LOW_ENERGY_UPDATE:
             if(displaying_curr_step_count) {
@@ -231,7 +231,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_MINUTE:
-            gshock_display_current_time_top_right(false);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_BACKGROUND_TASK:
             step_count = get_step_count();

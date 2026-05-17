@@ -231,7 +231,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TIMER", "CD");
             draw(state, event.subsecond);
-            gshock_display_current_time_top_right(true);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_TICK:
             if (quick_ticks_running) {
@@ -253,7 +253,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             draw(state, event.subsecond);
             break;
         case EVENT_MINUTE:
-            gshock_display_current_time_top_right(false);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_MODE_BUTTON_UP:
             abort_quick_ticks(state);

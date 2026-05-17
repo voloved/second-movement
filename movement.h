@@ -547,4 +547,4 @@ uint16_t movement_watch_get_last_read_vcc_voltage(void);
 // If the board has no temperature sensors, it will return 0xFFFFFFFF.
 float movement_get_temperature(void);
 
-void gshock_display_current_time_top_right(bool update_immediately);
+void gshock_display_current_time_top_right(void);

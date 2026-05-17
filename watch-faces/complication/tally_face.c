@@ -168,7 +168,7 @@ bool tally_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_MINUTE:
-            gshock_display_current_time_top_right(false);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_ALARM_BUTTON_UP:
             break;
@@ -218,7 +218,7 @@ bool tally_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ACTIVATE:
             print_tally(state, movement_button_should_sound());
-            gshock_display_current_time_top_right(true);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_TIMEOUT:
             // ignore timeout

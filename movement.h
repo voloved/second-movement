@@ -144,7 +144,7 @@ typedef enum {
     EVENT_LOW_ENERGY_UPDATE,    // If the watch is in low energy mode and you are in the foreground, you will get a chance to update the display once per minute.
     EVENT_BACKGROUND_TASK,      // Your watch face is being invoked to perform a background task. Don't update the display here; you may not be in the foreground.
     EVENT_TIMEOUT,              // Your watch face has been inactive for a while. You may want to resign, depending on your watch face's intended use case.
-    EVENT_MINUTE,               // A minute has passed.
+    EVENT_MINUTE,               // A minute has passed. This event does get triggered even in sleep mode.
 
     EVENT_LIGHT_BUTTON_DOWN,    // The light button has been pressed, but not yet released.
     EVENT_LIGHT_BUTTON_UP,      // The light button was pressed for less than half a second, and released.

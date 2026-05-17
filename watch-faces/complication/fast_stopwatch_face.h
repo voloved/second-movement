@@ -60,7 +60,6 @@ typedef struct {
     rtc_counter_t stop_counter;  // rtc counter when the stopwatch was stopped
     uint8_t status;              // the status the stopwatch is in (idle, running, stopped)
     bool slow_refresh;           // update the display slowly (same 128Hz timekeeping accuracy)
-    bool active;
     struct {
         rtc_counter_t seconds;
         rtc_counter_t minutes;
@@ -71,7 +70,6 @@ typedef struct {
 void fast_stopwatch_face_setup(uint8_t watch_face_index, void ** context_ptr);
 void fast_stopwatch_face_activate(void *context);
 bool fast_stopwatch_face_loop(movement_event_t event, void *context);
-movement_watch_face_advisory_t fast_stopwatch_face_advise(void *context);
 void fast_stopwatch_face_resign(void *context);
 
 #define fast_stopwatch_face ((const watch_face_t){ \
@@ -79,7 +77,7 @@ void fast_stopwatch_face_resign(void *context);
     fast_stopwatch_face_activate, \
     fast_stopwatch_face_loop, \
     fast_stopwatch_face_resign, \
-    fast_stopwatch_face_advise, \
+    NULL, \
 })
 
 #endif // FAST_STOPWATCH_FACE_H_

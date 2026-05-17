@@ -527,7 +527,6 @@ static void _movement_handle_top_of_minute(void) {
     }
 
     enable_disable_step_count_times(date_time);
-    movement_volatile_state.pending_events |= 1ULL << EVENT_MINUTE;
     for(uint8_t i = 0; i < MOVEMENT_NUM_FACES; i++) {
         // For each face that offers an advisory...
         if (watch_faces[i].advise != NULL) {
@@ -2523,6 +2522,7 @@ void cb_start_btn_extwake(void) {
 }
 
 void cb_minute_alarm_fired(void) {
+    movement_volatile_state.pending_events |= 1ULL << EVENT_MINUTE;
     movement_volatile_state.minute_alarm_fired = true;
 
 #if __EMSCRIPTEN__

@@ -313,7 +313,6 @@ void fast_stopwatch_face_activate(void *context) {
     state->old_display.seconds = UINT_MAX;
     state->old_display.minutes = UINT_MAX;
     state->old_display.hours = UINT_MAX;
-    state->active = true;
     movement_request_tick_frequency(get_refresh_rate(state));
 }
 
@@ -331,6 +330,11 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
             _draw_indicators(state, event, elapsed);
             _display_elapsed(state, elapsed);
             gshock_display_current_time_top_right();
+            break;
+        case EVENT_MINUTE:
+            if (!state->old_display.hours) {
+                gshock_display_current_time_top_right();
+            }
             break;
         case EVENT_ALARM_BUTTON_DOWN:
         case EVENT_LIGHT_BUTTON_DOWN:
@@ -352,21 +356,7 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
     return true;
 }
 
-movement_watch_face_advisory_t fast_stopwatch_face_advise(void *context) {
-    movement_watch_face_advisory_t retval = { 0 };
-    fast_stopwatch_state_t *state = (fast_stopwatch_state_t *) context;
-
-    // this function is invoked at the top of the minute for all the faces, active and inactive.
-    // keep track in the face activate/resign whether we are the active face
-    if (state->active && !state->old_display.hours) {
-       retval.wants_background_task = true;
-    }
-
-    return retval;
-}
-
 void fast_stopwatch_face_resign(void *context) {
-    fast_stopwatch_state_t *state = (fast_stopwatch_state_t *) context;
-    state->active = false;
+    (void) context;
     movement_request_tick_frequency(1);
 }

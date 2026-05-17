@@ -394,13 +394,13 @@ bool watch_sleep_animation_is_running(void) {
 }
 
 void watch_clear_sleep_indicator_if_possible(void) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         watch_clear_indicator(WATCH_INDICATOR_SLEEP);
     }
 }
 
 void watch_stop_sleep_animation(void) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         watch_clear_indicator(WATCH_INDICATOR_SLEEP);
     } else {
         slcd_set_circular_shift_animation_enabled(false);

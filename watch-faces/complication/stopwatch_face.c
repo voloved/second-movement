@@ -67,8 +67,21 @@ static void _stopwatch_face_update_display(stopwatch_state_t *stopwatch_state, b
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 
     if (duration.days != 0) {
-        sprintf(buf, "%2d", (uint8_t)duration.days);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+        if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+            sprintf(buf, "%02d", (uint8_t)duration.days);
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+            if (stopwatch_state->seconds_counted == 86400) {
+                // Needs removing in case time was shown previously.
+                // To avoid making more writes to the buffer than needed,
+                // we only need to clear the watch details on the top of the first hour.
+                watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+                watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+                watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            }
+        } else {
+            sprintf(buf, "%2d", (uint8_t)duration.days);
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+        }
     }
 
     if (show_seconds) {
@@ -97,10 +110,15 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             watch_set_colon();
             watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "STW", "ST");
+            if (stopwatch_state->seconds_counted < 86400) {
+                gshock_display_current_time_top_right();
+            }
             // fall through
         case EVENT_TICK:
             if (stopwatch_state->start_time.reg == 0) {
-                watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                if (watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK) {
+                    watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                }
                 watch_display_text(WATCH_POSITION_BOTTOM, "000000");
             } else {
                 _stopwatch_face_update_display(stopwatch_state, true);
@@ -112,7 +130,11 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
                 stopwatch_state->start_time.reg = 0;
                 stopwatch_state->seconds_counted = 0;
                 watch_display_text(WATCH_POSITION_BOTTOM, "000000");
-                watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                if (watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK) {
+                    watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+                } else {
+                    gshock_display_current_time_top_right();
+                }
             }
             break;
         case EVENT_ALARM_BUTTON_DOWN:
@@ -149,6 +171,12 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
                 // this OTOH shouldn't happen anymore; if we're running, we shouldn't enter low energy mode
                 _stopwatch_face_update_display(stopwatch_state, false);
                 watch_set_indicator(WATCH_INDICATOR_BELL);
+            }
+            break;
+        case EVENT_MINUTE:
+            // If we're not supposed to be displaying the day, display the time.
+            if (stopwatch_state->seconds_counted < 86400) {
+                gshock_display_current_time_top_right();
             }
             break;
         default:

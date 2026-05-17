@@ -79,7 +79,7 @@ void fast_stopwatch_face_resign(void *context);
     fast_stopwatch_face_activate, \
     fast_stopwatch_face_loop, \
     fast_stopwatch_face_resign, \
-    NULL, \
+    fast_stopwatch_face_advise, \
 })
 
 #endif // FAST_STOPWATCH_FACE_H_

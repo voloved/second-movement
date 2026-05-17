@@ -113,7 +113,7 @@ static void _display_elapsed(fast_stopwatch_state_t *state, uint32_t ticks) {
     if (hours) {
         sprintf(buf, "%2lu", hours);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    } else {
+    } else if (watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK){  // G-Shock displays current time when there's no hours.
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
@@ -358,7 +358,7 @@ movement_watch_face_advisory_t fast_stopwatch_face_advise(void *context) {
 
     // this function is invoked at the top of the minute for all the faces, active and inactive.
     // keep track in the face activate/resign whether we are the active face
-    if (state->active) {
+    if (state->active && !state->old_display.hours) {
        retval.wants_background_task = true;
     }
 

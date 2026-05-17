@@ -612,7 +612,7 @@ void movement_request_tick_frequency(uint8_t freq) {
 }
 
 uint8_t movement_get_color_val(uint8_t led_color) {
-#ifdef FORCE_GSHOCK_LCD_TYPE
+#if defined(FORCE_GSHOCK_LCD_TYPE) && !__EMSCRIPTEN__
     // Hardcoded from manual brightness testing.
     switch (led_color)
     {

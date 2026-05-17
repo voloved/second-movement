@@ -613,8 +613,32 @@ void movement_request_tick_frequency(uint8_t freq) {
 }
 
 uint8_t movement_get_color_val(uint8_t led_color) {
+#ifdef FORCE_GSHOCK_LCD_TYPE
+    // Hardcoded from manual brightness testing.
+    switch (led_color)
+    {
+    case 1:
+        return 250;
+    case 2:
+        return 240;
+    case 3:
+        return 220;
+    case 4:
+        return 180;
+    case 5:
+        return 150;
+    case 6:
+        return 100;
+    case 7:
+        return 10;
+    case 0:
+    default:
+        return 0;
+    }
+#else
     // this bitwise math turns #0000 into #0000000, #111 into #11111111, etc.
     return (led_color >> 1) | (led_color << 2) | (led_color << 5);
+#endif
 }
 
 void movement_illuminate_led(void) {

@@ -353,13 +353,8 @@ static void watch_display_text_with_fallback_gshock(watch_position_t location, c
                 int display_positions[4] = {10, 11, 2, 3};
                 int len = strlen(string);
                 if (len > 4) len = 4;
-                int offset = 4 - len;
                 for (int i = 0; i < len; i++) {
-                    if (i < offset) {
-                        watch_display_character(' ', display_positions[i]);
-                    } else {
-                        watch_display_character(string[i - offset], display_positions[i]);
-                    }
+                    watch_display_character(string[len - 1 - i], display_positions[3 - i]);
                 }
             }
             break;

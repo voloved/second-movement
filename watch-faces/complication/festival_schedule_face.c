@@ -664,6 +664,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 _display_screen(state);
             }
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             if (!state->cyc_through_all_acts && 
                 (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || 
@@ -671,6 +672,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 gshock_display_current_time_top_right();
             }
             break;
+#endif
         case EVENT_TIMEOUT:
             if (state->cyc_through_all_acts){
                 state->cyc_through_all_acts = false;

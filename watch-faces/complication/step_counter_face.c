@@ -230,9 +230,11 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 allow_sleeping(true, logger_state);
             }
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             gshock_display_current_time_top_right();
             break;
+#endif
         case EVENT_BACKGROUND_TASK:
             step_count = get_step_count();
             if (STEP_COUNTER_DISPLAY_NO_STEP_DAYS || step_count != 0) {

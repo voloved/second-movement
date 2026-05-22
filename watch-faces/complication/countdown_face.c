@@ -252,9 +252,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             gshock_display_current_time_top_right();
             break;
+#endif
         case EVENT_MODE_BUTTON_UP:
             abort_quick_ticks(state);
             movement_move_to_next_face();

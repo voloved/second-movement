@@ -159,11 +159,13 @@ bool voltage_face_loop(movement_event_t event, void *context) {
                 _voltage_face_logging_update_display(logger_state, movement_clock_is_24h(), false);
             }
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             if(displaying_curr_volt) {
                 gshock_display_current_time_top_right();
             }
             break;
+#endif
         case EVENT_BACKGROUND_TASK:
             _voltage_face_log_data(logger_state);
             break;

@@ -344,11 +344,13 @@ bool fast_stopwatch_face_loop(movement_event_t event, void *context) {
                 gshock_display_current_time_top_right();
             }
             break;
+#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
             if (!state->old_display.hours) {
                 gshock_display_current_time_top_right();
             }
             break;
+#endif
         case EVENT_ALARM_BUTTON_DOWN:
         case EVENT_LIGHT_BUTTON_DOWN:
         case EVENT_LIGHT_LONG_PRESS:

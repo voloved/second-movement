@@ -13,20 +13,35 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        board:
-          - "sensorwatch_red"
-          - "sensorwatch_green"
-          - "sensorwatch_blue"
-          - "sensorwatch_pro"
-        display:
-          - "classic"
-          - "custom"
+        include:
+          - board: sensorwatch_red
+            display: classic
+          - board: sensorwatch_red
+            display: custom
+
+          - board: sensorwatch_green
+            display: classic
+          - board: sensorwatch_green
+            display: custom
+
+          - board: sensorwatch_blue
+            display: classic
+          - board: sensorwatch_blue
+            display: custom
+
+          - board: sensorwatch_pro
+            display: classic
+          - board: sensorwatch_pro
+            display: custom
+
+          - board: sensorwatch_jolt
+            display: jolt
     env:
       BOARD: ${{ matrix.board }}
       DISPLAY: ${{ matrix.display }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
       - name: Ensure workspace directory is defined as safe
@@ -35,7 +50,7 @@ jobs:
         run: make
         working-directory: '.'
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.board }}-display-${{ matrix.display }}-movement.uf2
           path: build/firmware.uf2
@@ -45,21 +60,36 @@ jobs:
       image: emscripten/emsdk
     strategy:
       matrix:
-        board:
-          - "sensorwatch_red"
-          - "sensorwatch_green"
-          - "sensorwatch_blue"
-          - "sensorwatch_pro"
-        display:
-          - "classic"
-          - "custom"
+        include:
+          - board: sensorwatch_red
+            display: classic
+          - board: sensorwatch_red
+            display: custom
+
+          - board: sensorwatch_green
+            display: classic
+          - board: sensorwatch_green
+            display: custom
+
+          - board: sensorwatch_blue
+            display: classic
+          - board: sensorwatch_blue
+            display: custom
+
+          - board: sensorwatch_pro
+            display: classic
+          - board: sensorwatch_pro
+            display: custom
+
+          - board: sensorwatch_jolt
+            display: jolt
     env:
       BOARD: ${{ matrix.board }}
       DISPLAY: ${{ matrix.display }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
       - name: Ensure workspace directory is defined as safe
@@ -72,7 +102,7 @@ jobs:
         run: |
           tar -czf movement.tar.gz firmware.html firmware.wasm firmware.js
       - name: Upload simulator build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.board }}-display-${{ matrix.display }}-movement.tar.gz
           path: build-sim/movement.tar.gz

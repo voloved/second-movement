@@ -1,0 +1,49 @@
+name: Build and Release Firmware
+
+on:
+  push:
+    tags:
+      - 'share-*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    container:
+      image: ghcr.io/armmbed/mbed-os-env:latest
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure workspace directory is defined as safe
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Make script executable
+        run: chmod +x create-to-share.sh
+
+      - name: Build firmware
+        run: ./create-to-share.sh SHARE=true
+
+      - name: Compute release name
+        id: vars
+        run: |
+          NAME="${GITHUB_REF_NAME#share-}"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.vars.outputs.name }}
+          files: |
+            release/*.uf2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

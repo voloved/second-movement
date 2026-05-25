@@ -81,9 +81,7 @@ jobs:
         run: |
           mkdir -p artifacts
 
-          SHA_SHORT="${GITHUB_SHA:0:6}"
-
-          FILE="firmware-${{ matrix.board }}-${{ matrix.display }}-${{ needs.meta.outputs.version_underscore }}-${SHA_SHORT}.uf2"
+          FILE="firmware-${{ matrix.board }}-${{ matrix.display }}-${{ needs.meta.outputs.version_underscore }}.uf2"
 
           cp build/firmware.uf2 "artifacts/${FILE}"
 

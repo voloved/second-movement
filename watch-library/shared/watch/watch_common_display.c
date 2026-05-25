@@ -136,10 +136,10 @@ void watch_display_character(uint8_t character, uint8_t position) {
 
         if (segdata & 1) {
             watch_set_pixel(com, seg);
-            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 0 && seg == 20) watch_set_pixel(2, 20);
+            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 2 && seg == 20) watch_set_pixel(0, 20);
         } else {
             watch_clear_pixel(com, seg);
-            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 0 && seg == 20) watch_clear_pixel(2, 20);
+            if (lcd_type == WATCH_LCD_TYPE_GSHOCK && com == 2 && seg == 20) watch_clear_pixel(0, 20);
         }
 
         segdata = segdata >> 1;
@@ -147,7 +147,7 @@ void watch_display_character(uint8_t character, uint8_t position) {
 
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
         // T is . at this point on the G-Shock in position 1, which is actually Г
-        if (position == 0 && (character == 'm' || character == 'n' || character == 'R')) watch_set_pixel(2, 20); // add descender
+        if (position == 0 && (character == 'm' || character == 'w' || character == 'R')) watch_set_pixel(0, 20); // add descender
         else if (position == 1 && (character == 'B' || character == 'D' || character == '@' || character == '.' || character == 'R')) watch_set_pixel(3, 10); // add funky ninth segment
         if (position == 1 && character == 'R') watch_set_pixel(1, 9);
     } else {

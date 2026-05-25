@@ -1,49 +1,121 @@
-name: Build and Release Firmware
+name: Release
 
 on:
   push:
     tags:
       - 'share-*'
 
-permissions:
-  contents: write
-
 jobs:
-  build-release:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.vars.outputs.version }}
+      version_underscore: ${{ steps.vars.outputs.version_underscore }}
+
+    steps:
+      - name: Compute version metadata
+        id: vars
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"              # share-1.2.3
+          VERSION="${TAG#share-}"               # 1.2.3
+          VERSION_UNDERSCORE="${VERSION//./_}"  # 1_2_3
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_underscore=$VERSION_UNDERSCORE" >> $GITHUB_OUTPUT
+
+  build:
+    needs: meta
     container:
       image: ghcr.io/armmbed/mbed-os-env:latest
 
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        include:
+          - board: sensorwatch_red
+            display: classic
+          - board: sensorwatch_red
+            display: custom
+
+          - board: sensorwatch_green
+            display: classic
+          - board: sensorwatch_green
+            display: custom
+
+          - board: sensorwatch_blue
+            display: classic
+          - board: sensorwatch_blue
+            display: custom
+
+          - board: sensorwatch_pro
+            display: classic
+          - board: sensorwatch_pro
+            display: custom
+
+          - board: sensorwatch_jolt
+            display: jolt
+
+    env:
+      BOARD: ${{ matrix.board }}
+      DISPLAY: ${{ matrix.display }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 0
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure workspace directory is defined as safe
+      - name: Ensure workspace directory is safe
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Make script executable
-        run: chmod +x create-to-share.sh
+      - name: Clean before build
+        run: make clean
 
-      - name: Build firmware
-        run: ./create-to-share.sh SHARE=true
+      - name: Compile firmware
+        run: make
 
-      - name: Compute release name
-        id: vars
+      - name: Rename artifact
+        shell: bash
         run: |
-          NAME="${GITHUB_REF_NAME#share-}"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          mkdir -p artifacts
+
+          SHA_SHORT="${GITHUB_SHA:0:6}"
+
+          FILE="firmware-${{ matrix.board }}-${{ matrix.display }}-${{ needs.meta.outputs.version_underscore }}-${SHA_SHORT}.uf2"
+
+          cp build/firmware.uf2 "artifacts/${FILE}"
+
+          echo "Created: $FILE"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.board }}-${{ matrix.display }}
+          path: artifacts/*.uf2
+
+  release:
+    needs: [meta, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: release
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release_flat
+          find release -type f -name "*.uf2" -exec cp {} release_flat/ \;
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
-          name: ${{ steps.vars.outputs.name }}
-          files: |
-            release/*.uf2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ needs.meta.outputs.version }}
+          generate_release_notes: true
+          files: release_flat/*.uf2

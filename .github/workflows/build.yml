@@ -11,6 +11,34 @@ jobs:
     container:
       image: ghcr.io/armmbed/mbed-os-env:latest
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - board: sensorwatch_red
+            display: classic
+          - board: sensorwatch_red
+            display: custom
+
+          - board: sensorwatch_green
+            display: classic
+          - board: sensorwatch_green
+            display: custom
+
+          - board: sensorwatch_blue
+            display: classic
+          - board: sensorwatch_blue
+            display: custom
+
+          - board: sensorwatch_pro
+            display: classic
+          - board: sensorwatch_pro
+            display: custom
+
+          - board: sensorwatch_jolt
+            display: jolt
+    env:
+      BOARD: ${{ matrix.board }}
+      DISPLAY: ${{ matrix.display }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -18,52 +46,46 @@ jobs:
           submodules: recursive
       - name: Ensure workspace directory is defined as safe
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - name: Build all firmware variants
-        shell: bash
-        run: |
-          set -e
-
-          builds=(
-            "sensorwatch_red classic"
-            "sensorwatch_red custom"
-
-            "sensorwatch_green classic"
-            "sensorwatch_green custom"
-
-            "sensorwatch_blue classic"
-            "sensorwatch_blue custom"
-
-            "sensorwatch_pro classic"
-            "sensorwatch_pro custom"
-
-            "sensorwatch_jolt jolt"
-          )
-
-          mkdir -p artifacts
-
-          for build in "${builds[@]}"; do
-            read -r BOARD DISPLAY <<< "$build"
-
-            echo "========================================"
-            echo "Building BOARD=$BOARD DISPLAY=$DISPLAY"
-            echo "========================================"
-
-            make clean
-
-            make BOARD="$BOARD" DISPLAY="$DISPLAY"
-
-            cp build/firmware.uf2 \
-              "artifacts/${BOARD}-display-${DISPLAY}-movement.uf2"
-          done
+      - name: Compile movement firmware
+        run: make
+        working-directory: '.'
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: firmware-builds
-          path: artifacts/*.uf2
+          name: ${{ matrix.board }}-display-${{ matrix.display }}-movement.uf2
+          path: build/firmware.uf2
 
   build-simulator:
     container:
       image: emscripten/emsdk
+    strategy:
+      matrix:
+        include:
+          - board: sensorwatch_red
+            display: classic
+          - board: sensorwatch_red
+            display: custom
+
+          - board: sensorwatch_green
+            display: classic
+          - board: sensorwatch_green
+            display: custom
+
+          - board: sensorwatch_blue
+            display: classic
+          - board: sensorwatch_blue
+            display: custom
+
+          - board: sensorwatch_pro
+            display: classic
+          - board: sensorwatch_pro
+            display: custom
+
+          - board: sensorwatch_jolt
+            display: jolt
+    env:
+      BOARD: ${{ matrix.board }}
+      DISPLAY: ${{ matrix.display }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -73,40 +95,14 @@ jobs:
       - name: Ensure workspace directory is defined as safe
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Compile movement
-        shell: bash
-        run: |
-          mkdir -p artifacts
-
-          builds=(
-            "sensorwatch_red classic"
-            "sensorwatch_red custom"
-
-            "sensorwatch_green classic"
-            "sensorwatch_green custom"
-
-            "sensorwatch_blue classic"
-            "sensorwatch_blue custom"
-
-            "sensorwatch_pro classic"
-            "sensorwatch_pro custom"
-
-            "sensorwatch_jolt jolt"
-          )
-
-          for build in "${builds[@]}"; do
-            read -r BOARD DISPLAY <<< "$build"
-
-            make clean
-            emmake make BOARD="$BOARD" DISPLAY="$DISPLAY"
-
-            tar -czf \
-              "artifacts/${BOARD}-display-${DISPLAY}-movement.tar.gz" \
-              -C build-sim \
-              firmware.html firmware.wasm firmware.js
-          done
+        run: emmake make
         working-directory: '.'
+      - name: Archive simulator build
+        working-directory: './build-sim'
+        run: |
+          tar -czf movement.tar.gz firmware.html firmware.wasm firmware.js
       - name: Upload simulator build
         uses: actions/upload-artifact@v5
         with:
-          name: movement-simulator
-          path: artifacts/*.tar.gz
+          name: ${{ matrix.board }}-display-${{ matrix.display }}-movement.tar.gz
+          path: build-sim/movement.tar.gz

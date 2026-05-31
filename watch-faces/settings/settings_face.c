@@ -222,8 +222,7 @@ static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
             default:
                 break;
         }
-    }
-    else {
+    } else {
         watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }

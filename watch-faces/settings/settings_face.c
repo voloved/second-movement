@@ -49,6 +49,8 @@ static void clock_setting_display(uint8_t subsecond) {
             watch_display_text(WATCH_POSITION_BOTTOM, "12h");
             break;
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -81,6 +83,8 @@ static void beep_setting_display(uint8_t subsecond) {
             // N for NONE
             watch_display_text(WATCH_POSITION_TOP_RIGHT, " N");
         }
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
 
@@ -119,6 +123,8 @@ static void signal_setting_display(uint8_t subsecond) {
             // L for LOW
             watch_display_text(WATCH_POSITION_TOP_RIGHT, " L");
         }
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
 
@@ -152,6 +158,8 @@ static void timeout_setting_display(uint8_t subsecond) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "30n&in");
                 break;
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -188,6 +196,8 @@ static void low_energy_setting_display(uint8_t subsecond) {
                 watch_display_text(WATCH_POSITION_BOTTOM, " 7 day");
                 break;
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -212,11 +222,8 @@ static void low_energy_deep_sleep_setting_display(uint8_t subsecond) {
             default:
                 break;
         }
-    }
-    else {
-        // IDK why, but writing D in the 0th position on custom LCD puts an
-        // underscore in the 5th position. This overwrites it.
-        watch_display_text(WATCH_POSITION_BOTTOM, "  ");
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -243,6 +250,8 @@ static void hourly_chime_setting_display(uint8_t subsecond) {
             default:
                 break;
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -274,6 +283,8 @@ static void step_counter_setting_display(uint8_t subsecond) {
             default:
                 break;
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -297,6 +308,8 @@ static void led_duration_setting_display(uint8_t subsecond) {
             sprintf(buf, " %1d SeC", (movement_get_backlight_dwell() * 2 - 1) % 10);
             watch_display_text(WATCH_POSITION_BOTTOM, buf);
         }
+    } else {
+        watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     }
 }
 
@@ -317,6 +330,8 @@ static void red_led_setting_display(uint8_t subsecond) {
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.red);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
 
@@ -335,6 +350,8 @@ static void green_led_setting_display(uint8_t subsecond) {
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.green);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
 
@@ -353,6 +370,8 @@ static void blue_led_setting_display(uint8_t subsecond) {
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.blue);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
+    } else {
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     }
 }
 
@@ -491,11 +510,11 @@ bool settings_face_loop(movement_event_t event, void *context) {
                 movement_request_deep_sleep();
             }else {
                 state->current_page = (state->current_page + 1) % state->num_settings;
+                watch_clear_display();
             }
             // fall through
         case EVENT_TICK:
         case EVENT_ACTIVATE:
-            watch_clear_display();
             state->settings_screens[state->current_page].display(event.subsecond);
             break;
         case EVENT_MODE_BUTTON_UP:

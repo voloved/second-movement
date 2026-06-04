@@ -857,6 +857,13 @@ void movement_play_note(watch_buzzer_note_t note, uint16_t duration_ms) {
 }
 
 void movement_play_signal(void) {
+#if defined(MOVEMENT_BIRTH_MONTH) && defined(MOVEMENT_BIRTH_DAY)
+    watch_date_time_t date_time = movement_get_local_date_time();
+    if (date_time.unit.month == MOVEMENT_BIRTH_MONTH && date_time.unit.day == MOVEMENT_BIRTH_DAY) {
+        movement_play_sequence(signal_tune_happy_birthday, BUZZER_PRIORITY_SIGNAL);
+        return;
+    }
+#endif
     movement_play_sequence(signal_tune, BUZZER_PRIORITY_SIGNAL);
 }
 

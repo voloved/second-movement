@@ -23,6 +23,7 @@
  */
 
 #pragma once
+#include "movement_config.h"
 
 #ifdef SIGNAL_TUNE_DEFAULT
 int8_t signal_tune[] = {
@@ -278,3 +279,20 @@ int8_t signal_tune[] = {
     0,
 };
 #endif // SIGNAL_TUNE_EVANGELION
+
+#if defined(MOVEMENT_BIRTH_MONTH) && defined(MOVEMENT_BIRTH_DAY)
+int8_t signal_tune_happy_birthday[] = {
+    BUZZER_NOTE_G4, 6,
+    BUZZER_NOTE_REST, 2,
+    BUZZER_NOTE_G4, 6,
+    BUZZER_NOTE_REST, 2,
+    BUZZER_NOTE_A4, 6,
+    BUZZER_NOTE_REST, 2,
+    BUZZER_NOTE_G4, 6,
+    BUZZER_NOTE_REST, 2,
+    BUZZER_NOTE_C5, 6,
+    BUZZER_NOTE_REST, 2,
+    BUZZER_NOTE_B4, 8,
+    0
+};
+#endif // SIGNAL_TUNE_HAPPY_BIRTHDAY

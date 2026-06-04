@@ -203,6 +203,8 @@ const watch_face_t watch_faces[] = {
  */
 #define MOVEMENT_DEFAULT_LATITUDE 3578
 #define MOVEMENT_DEFAULT_LONGITUDE -7864
+#define MOVEMENT_BIRTH_MONTH 6
+#define MOVEMENT_BIRTH_DAY 3
 #endif
 
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C

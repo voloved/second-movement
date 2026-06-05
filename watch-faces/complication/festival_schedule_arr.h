@@ -36,7 +36,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 14, .unit.minute = 15},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 15, .unit.minute = 0},
         .genre = FESTIVAL_SCHEDULE_GENRE_POP,
-        .popularity = 30
+        .popularity = 31
     },
     {
         .artist = "aMBLE ",
@@ -68,7 +68,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 16, .unit.minute = 45},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 17, .unit.minute = 30},
         .genre = FESTIVAL_SCHEDULE_GENRE_POP,
-        .popularity = 53
+        .popularity = 50
     },
     {
         .artist = "BBNO$ ",
@@ -140,7 +140,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 0, .unit.minute = 40},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 1, .unit.minute = 55},
         .genre = FESTIVAL_SCHEDULE_GENRE_DnB,
-        .popularity = 24
+        .popularity = 25
     },
     {
         .artist = "CHaTS ",
@@ -216,9 +216,9 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
     },
     {
         .artist = "daRE  ",
-        .stage = FESTIVAL_SCHEDULE_STAGE_THAT,
-        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 0, .unit.minute = 15},
-        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 30},
+        .stage = FESTIVAL_SCHEDULE_STAGE_THIS,
+        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 30},
+        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 45},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
         .popularity = 48
     },
@@ -252,7 +252,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 4, .unit.minute = 15},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 5, .unit.minute = 0},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
-        .popularity = 101
+        .popularity = 102
     },
     {
         .artist = "EFFIN ",
@@ -297,8 +297,8 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
     {
         .artist = "GaNJa WHITE NIGHT",
         .stage = FESTIVAL_SCHEDULE_STAGE_OTHER,
-        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 30},
-        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 3, .unit.minute = 45},
+        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 45},
+        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 4, .unit.minute = 0},
         .genre = FESTIVAL_SCHEDULE_GENRE_DUBSTEP,
         .popularity = 76
     },
@@ -308,7 +308,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 12, .unit.hour = 19, .unit.minute = 45},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 12, .unit.hour = 20, .unit.minute = 45},
         .genre = FESTIVAL_SCHEDULE_GENRE_PUNK,
-        .popularity = 25
+        .popularity = 24
     },
     {
         .artist = "GIRL TONES",
@@ -369,8 +369,8 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
     {
         .artist = "INZO  ",
         .stage = FESTIVAL_SCHEDULE_STAGE_OTHER,
-        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 4, .unit.minute = 0},
-        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 5, .unit.minute = 15},
+        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 4, .unit.minute = 15},
+        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 5, .unit.minute = 30},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
         .popularity = 73
     },
@@ -440,9 +440,9 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
     },
     {
         .artist = "LIL JON",
-        .stage = FESTIVAL_SCHEDULE_STAGE_THIS,
-        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 0, .unit.minute = 45},
-        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 0},
+        .stage = FESTIVAL_SCHEDULE_STAGE_THAT,
+        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 0, .unit.minute = 15},
+        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 30},
         .genre = FESTIVAL_SCHEDULE_GENRE_RAP,
         .popularity = 46
     },
@@ -473,8 +473,8 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
     {
         .artist = "MaJOR LaZER",
         .stage = FESTIVAL_SCHEDULE_STAGE_OTHER,
-        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 15},
-        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 15},
+        .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 30},
+        .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 30},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
         .popularity = 9
     },
@@ -492,7 +492,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 2, .unit.minute = 15},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 3, .unit.minute = 0},
         .genre = FESTIVAL_SCHEDULE_GENRE_DUBSTEP,
-        .popularity = 102
+        .popularity = 101
     },
     {
         .artist = "MIdNIGHT GENERaTION",
@@ -620,7 +620,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 23, .unit.minute = 10},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 0, .unit.minute = 40},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
-        .popularity = 31
+        .popularity = 30
     },
     {
         .artist = "RaCHEL CHINOURIRI",
@@ -668,7 +668,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 16, .unit.minute = 15},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 17, .unit.minute = 15},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
-        .popularity = 51
+        .popularity = 53
     },
     {
         .artist = "SaRa LaNdRY",
@@ -724,7 +724,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 2, .unit.minute = 0},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 14, .unit.hour = 2, .unit.minute = 45},
         .genre = FESTIVAL_SCHEDULE_GENRE_EDM,
-        .popularity = 17
+        .popularity = 16
     },
     {
         .artist = "SPaCEY JaNE",
@@ -796,7 +796,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 16, .unit.minute = 45},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 17, .unit.minute = 45},
         .genre = FESTIVAL_SCHEDULE_GENRE_ALT,
-        .popularity = 50
+        .popularity = 51
     },
     {
         .artist = "TEddY SWIMS",
@@ -844,7 +844,7 @@ const festival_schedule_t festival_acts[FESTIVAL_SCHEDULE_NUM_ACTS + 1]=
         .start_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 0, .unit.minute = 30},
         .end_time = {.unit.year = 6, .unit.month = 6, .unit.day = 13, .unit.hour = 1, .unit.minute = 45},
         .genre = FESTIVAL_SCHEDULE_GENRE_PUNK,
-        .popularity = 16
+        .popularity = 17
     },
     {
         .artist = "VILLaNELLE",

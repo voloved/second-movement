@@ -173,7 +173,6 @@ bool tally_face_loop(movement_event_t event, void *context) {
             break;
 #endif
         case EVENT_ALARM_BUTTON_UP:
-            break;
             tally_face_decrement(state, movement_button_should_sound());
             break;
         case EVENT_ALARM_LONG_PRESS:

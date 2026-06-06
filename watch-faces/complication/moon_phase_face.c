@@ -307,7 +307,6 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
             _update(state);
             break;
         case EVENT_TICK:
-            is_southern_hemisphere(state);
             // only update once an hour
             date_time = watch_rtc_get_date_time();
             if ((date_time.unit.minute == 0) && (date_time.unit.second == 0)) _update(state);

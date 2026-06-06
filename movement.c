@@ -2278,6 +2278,20 @@ bool app_loop(void) {
             // If the light is on after its timeout check to see if the LED button is still pressed, just in case the up event wasn't caught
             cb_light_btn_interrupt();
         }
+
+#if __EMSCRIPTEN__
+        // If we're on the simulator and we finally got the long/lat info, update it.
+        movement_location_t location = {0};
+        filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
+        if (location.reg == 0) {
+            location.bit.latitude = EM_ASM_INT({ return lat; });
+            location.bit.longitude = EM_ASM_INT({ return lon; });
+            if (location.reg != 0) {
+                filesystem_write_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
+                printf("Location set to: %d, %d\r\n", (int16_t)location.bit.latitude, (int16_t)location.bit.longitude);
+            }
+        }
+#endif
     }
 
     // handle top-of-minute tasks, if the alarm handler told us we need to

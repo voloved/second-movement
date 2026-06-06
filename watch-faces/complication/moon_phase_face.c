@@ -42,10 +42,10 @@
 
 static const float phase_changes[] = {0, 1, 6.38264692644, 8.38264692644, 13.76529385288, 15.76529385288, 21.14794077932, 23.14794077932, 28.53058770576, 29.53058770576};
 
-static bool is_southern_hemisphere(moon_phase_state_t *state) {
+static void is_southern_hemisphere(moon_phase_state_t *state) {
     movement_location_t location = {0};
     if (filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t))) {
-        state->southern_hemisphere = location.bit.latitude < 0;
+        state->southern_hemisphere = (int16_t)location.bit.latitude < 0;
     }
 }
 

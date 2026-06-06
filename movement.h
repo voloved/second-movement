@@ -345,6 +345,7 @@ typedef struct {
     bool count_steps_keep_on;
     bool count_steps_keep_off;
     bool tap_enabled;
+    bool double_tap_enabled;
     int8_t step_count_disable_req_sec;
 } movement_state_t;
 

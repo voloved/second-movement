@@ -1251,6 +1251,7 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
         uint8_t int1_sources = LIS2DW_CTRL4_INT1_SINGLE_TAP;
         if (enable_double_tap) {
             int1_sources |= LIS2DW_CTRL4_INT1_DOUBLE_TAP;
+            movement_state.double_tap_enabled = true;
         }
         lis2dw_configure_int1(int1_sources);
         movement_state.tap_enabled = true;
@@ -1280,7 +1281,10 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
         val.rebound = 0;
         val.latency = 4;
         val.single_tap_on = PROPERTY_ENABLE;
-        val.double_tap_on = PROPERTY_ENABLE;
+        if (enable_double_tap) {
+            val.double_tap_on = PROPERTY_ENABLE;
+            movement_state.double_tap_enabled = true;
+        }
         val.wait_end_latency = 1;
         lis2dux12_tap_config_set(&dev_ctx, val);
 
@@ -1316,6 +1320,7 @@ bool movement_disable_tap_detection_if_available(void) {
         // ...disable Z axis (not sure if this is needed, does this save power?)...
         lis2dw_configure_tap_threshold(0, 0, 0, 0);
         movement_state.tap_enabled = false;
+        movement_state.double_tap_enabled = false;
 
         return true;
     }
@@ -1339,6 +1344,7 @@ bool movement_disable_tap_detection_if_available(void) {
             lis2dux12_enter_deep_power_down(&dev_ctx, 1);
         }
         movement_state.tap_enabled = false;
+        movement_state.double_tap_enabled = false;
 
         return true;
     }
@@ -1931,6 +1937,7 @@ void app_init(void) {
     movement_state.count_steps_keep_on = false;
     movement_state.count_steps_keep_off = false;
     movement_state.tap_enabled = false;
+    movement_state.double_tap_enabled = false;
     movement_state.step_count_disable_req_sec = -1;
     movement_state.light_on = false;
     movement_state.next_available_backup_register = 2;
@@ -2091,7 +2098,7 @@ void app_setup(void) {
         }
 
         if (movement_state.tap_enabled) {
-            movement_enable_tap_detection_if_available();
+            movement_enable_tap_detection_if_available(movement_state.double_tap_enabled);
         }
 #endif
     }
@@ -2322,7 +2329,8 @@ bool app_loop(void) {
 
         if (movement_state.tap_enabled) {
             movement_disable_tap_detection_if_available();
-            movement_state.tap_enabled = true; // This is to come back and reset it on wake
+            movement_state.tap_enabled = false; // This is to come back and reset it on wake
+            movement_state.double_tap_enabled = false;
         }
 #endif
 

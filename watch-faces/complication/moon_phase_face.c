@@ -42,10 +42,11 @@
 
 static const float phase_changes[] = {0, 1, 6.38264692644, 8.38264692644, 13.76529385288, 15.76529385288, 21.14794077932, 23.14794077932, 28.53058770576, 29.53058770576};
 
-static bool is_southern_hemisphere(void) {
+static bool is_southern_hemisphere(moon_phase_state_t *state) {
     movement_location_t location = {0};
-    filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t));
-    return location.bit.latitude < 0;
+    if (filesystem_read_file("location.u32", (char *) &location.reg, sizeof(movement_location_t))) {
+        state->southern_hemisphere = location.bit.latitude < 0;
+    }
 }
 
 void moon_phase_face_setup(uint8_t watch_face_index, void ** context_ptr) {
@@ -208,7 +209,7 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             if (watch_sleep_animation_is_running()) watch_stop_sleep_animation();
-			state->southern_hemisphere = is_southern_hemisphere();
+            is_southern_hemisphere(state);
             _update(state);
             break;
         case EVENT_TICK:
@@ -220,9 +221,9 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
             // update at the top of the hour OR if we're entering sleep mode with an offset.
             // also, in sleep mode, always show the current moon phase (offset = 0).
             if (state->offset || (watch_rtc_get_date_time().unit.minute == 0)) {
-				state->offset = 0;
-				_update(state);
-			}
+                state->offset = 0;
+                _update(state);
+            }
             // and kill the offset so when the wearer wakes up, it matches what's on screen.
             state->offset = 0;
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC) {
@@ -237,10 +238,10 @@ bool moon_phase_face_loop(movement_event_t event, void *context) {
             state->offset += 86400;
             _update(state);
             break;
-	    case EVENT_ALARM_LONG_PRESS:
-	        state->offset = 0;
+        case EVENT_ALARM_LONG_PRESS:
+            state->offset = 0;
             _update(state);
-	        break;
+            break;
         case EVENT_LIGHT_BUTTON_DOWN:
             break;
         case EVENT_LIGHT_BUTTON_UP:

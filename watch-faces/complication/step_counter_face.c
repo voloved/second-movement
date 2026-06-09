@@ -78,10 +78,11 @@ static void _step_counter_face_log_data(step_counter_state_t *logger_state, uint
 static void _step_counter_face_logging_update_display(step_counter_state_t *logger_state) {
     if (logger_state->display_index == logger_state->data_points) {
         logger_state->step_count_prev = display_step_count_now(logger_state->sensor_seen, logger_state->in_low_batt);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
         watch_display_text_with_fallback(WATCH_POSITION_TOP, "STEP ", "SC");
 #ifdef FORCE_GSHOCK_LCD_TYPE
         watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
+#else
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  "); // To clear the date on the classic display
 #endif
         return;
     }
@@ -102,6 +103,8 @@ static void _step_counter_face_logging_update_display(step_counter_state_t *logg
 #endif
     watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
     watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
+    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
 #else
     sprintf(buf, "%2d", logger_state->data[pos].day);
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
@@ -160,10 +163,16 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + logger_state->data_points) % (logger_state->data_points + 1);
             _step_counter_face_logging_update_display(logger_state);
+            if (logger_state->display_index == logger_state->data_points) {
+                gshock_display_current_time_top_right();
+            }
             break;
         case EVENT_ALARM_BUTTON_UP:
             logger_state->display_index = (logger_state->display_index + 1) % (logger_state->data_points + 1);
             _step_counter_face_logging_update_display(logger_state);
+            if (logger_state->display_index == logger_state->data_points) {
+                gshock_display_current_time_top_right();
+            }
             break;
         case EVENT_ALARM_LONG_PRESS:
             if (displaying_curr_step_count) {
@@ -172,6 +181,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             } else {
                 logger_state->display_index = logger_state->data_points;
                 _step_counter_face_logging_update_display(logger_state);
+                gshock_display_current_time_top_right();
             }
             break;
         case EVENT_ACTIVATE:

@@ -357,7 +357,7 @@ static void _movement_renew_top_of_minute_alarm(void) {
 }
 
 #define PRINT_LIS_EVENTS false
-static uint32_t _movement_get_accelerometer_events() {
+static uint64_t _movement_get_accelerometer_events() {
     uint64_t accelerometer_events = 0;
 #ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
@@ -2245,7 +2245,7 @@ bool app_loop(void) {
 
     movement_event_type_t event_type = 0;
     while (passthrough_pending_events) {
-        uint8_t next_event = __builtin_ctz(passthrough_pending_events);
+        uint8_t next_event = __builtin_ctzll(passthrough_pending_events);
         event.event_type = event_type + next_event;
         can_sleep = movement_default_loop_handler(event) && can_sleep;
         passthrough_pending_events = passthrough_pending_events >> (next_event + 1);
@@ -2254,7 +2254,7 @@ bool app_loop(void) {
 
     event_type = 0;
     while (pending_events) {
-        uint8_t next_event = __builtin_ctz(pending_events);
+        uint8_t next_event = __builtin_ctzll(pending_events);
         event.event_type = event_type + next_event;
         can_sleep = wf->loop(event, watch_face_contexts[movement_state.current_face_idx]) && can_sleep;
         pending_events = pending_events >> (next_event + 1);

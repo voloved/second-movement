@@ -105,8 +105,9 @@ void setup(void) {
 
     Serial.print("Fuses... ");
     dap.fuseRead(); //MUST READ FUSES BEFORE SETTING OR WRITING ANY
-    Serial.println("read.");
-    dap._USER_ROW.bit.BOOTPROT = 0x7;  // 0x2 = 8192 bytes in bootloader protected; 0x7 = No protection
+    Serial.print("read: 0x");
+    Serial.println(dap._USER_ROW.bit.BOOTPROT, HEX);
+    dap._USER_ROW.bit.BOOTPROT = 0x2;  // 0x2 = 8192 bytes in bootloader protected; 0x7 = No protection
     Serial.println("Setting BOOTPROT to 0x2 for 8192 byte bootloader");
     dap.fuseWrite();
     Serial.println("\nDone!!");
@@ -154,6 +155,7 @@ void setup(void) {
 
   dap.deselect();
   dap.dap_disconnect();
+  Serial.println("SUCCESS!");
 }
 
 void loop(void) {

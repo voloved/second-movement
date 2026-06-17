@@ -246,7 +246,7 @@ void watch_enable_display(void) {
         _slcd_framerate = 32;
     } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
         // Custom LCD: 1/3 bias, 1/4 duty with a frame rate of 32 Hz
-        slcd_init(LCD_PIN_ENABLE, SLCD_BIAS_THIRD, SLCD_DUTY_4_COMMON, SLCD_CLOCKSOURCE_XOSC, SLCD_PRESCALER_DIV64, SLCD_CLOCKDIV_4, SLCD_XVLCD_INTERNAL);
+        slcd_init(LCD_PIN_ENABLE, SLCD_BIAS_THIRD, SLCD_DUTY_4_COMMON, SLCD_CLOCKSOURCE_XOSC, SLCD_PRESCALER_DIV64, SLCD_CLOCKDIV_4, SLCD_XVLCD_EXTERNAL);
         // exact frame rate is: 32768 / (3 * 64 * 5) ≈ 34.13 Hz
         _slcd_framerate = 34;
     } else {
@@ -263,7 +263,7 @@ void watch_enable_display(void) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         slcd_set_contrast(0);
     } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
-        slcd_set_contrast(15);
+        slcd_set_contrast(15);  // Does nothing on G-Shock due to SLCD_XVLCD_EXTERNAL
     } else {
         slcd_set_contrast(9);
     }

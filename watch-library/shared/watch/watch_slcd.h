@@ -59,8 +59,8 @@ typedef enum {
     WATCH_INDICATOR_LAP,        ///< The LAP indicator; the F-91W uses this in its stopwatch UI. On custom LCD it's a looped arrow. On the G-Shock it's SPLIT.
 
     // These next indicators are only available on the new custom LCD:
-    WATCH_INDICATOR_ARROWS,     ///< The interlocking arrows indicator; indicates data transfer, or can signal to change the battery. On the G-Shock it's the Sun icon.
-    WATCH_INDICATOR_SLEEP,      ///< The sleep indicator. On the G-Shock it's AUTO.
+    WATCH_INDICATOR_ARROWS,     ///< The interlocking arrows indicator; indicates data transfer, or can signal to change the battery. On the G-Shock it's AUTO.
+    WATCH_INDICATOR_SLEEP,      ///< The sleep indicator. On the G-Shock it's the SUN icon.
 
     // You can generally address the colon using dedicated functions, but it's also available here if needed.
     WATCH_INDICATOR_COLON,      ///< The colon between hours and minutes.

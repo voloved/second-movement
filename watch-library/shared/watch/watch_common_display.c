@@ -551,8 +551,8 @@ void _watch_update_indicator_segments_gshock(void) {
         IndicatorSegments[ 2] = SLCD_SEGID(1, 22); // WATCH_INDICATOR_PM
         IndicatorSegments[ 3] = SLCD_SEGID(0, 22); // WATCH_INDICATOR_24H
         IndicatorSegments[ 4] = SLCD_SEGID(0, 25); // WATCH_INDICATOR_LAP
-        IndicatorSegments[ 5] = SLCD_SEGID(0, 12); // WATCH_INDICATOR_ARROWS
-        IndicatorSegments[ 6] = SLCD_SEGID(0, 17); // WATCH_INDICATOR_SLEEP
+        IndicatorSegments[ 5] = SLCD_SEGID(0, 17); // WATCH_INDICATOR_ARROWS
+        IndicatorSegments[ 6] = SLCD_SEGID(0, 12); // WATCH_INDICATOR_SLEEP
         IndicatorSegments[ 7] = SLCD_SEGID(2, 26); // WATCH_INDICATOR_COLON
         IndicatorSegments[ 8] = SLCD_SEGID(0, 26); // WATCH_INDICATOR_SINGLE_QUOTE
         IndicatorSegments[ 9] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_DOUBLE_QUOTE

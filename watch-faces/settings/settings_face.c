@@ -327,7 +327,7 @@ static void red_led_setting_display(uint8_t subsecond) {
 
     watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "LED", "LT", "LT");
 #ifdef FORCE_GSHOCK_LCD_TYPE
-    watch_display_text(WATCH_POSITION_BOTTOM, " white");
+    watch_display_text(WATCH_POSITION_BOTTOM, "bright");
 #else
     watch_display_text(WATCH_POSITION_BOTTOM, " red  ");
 #endif
@@ -349,7 +349,7 @@ static void green_led_setting_display(uint8_t subsecond) {
     char buf[8];
     movement_color_t color = movement_backlight_color();
 
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "LED", "LT", "LT");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LED", "LT");
     watch_display_text(WATCH_POSITION_BOTTOM, " green");
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.green);
@@ -369,8 +369,8 @@ static void blue_led_setting_display(uint8_t subsecond) {
     char buf[8];
     movement_color_t color = movement_backlight_color();
 
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "LED", "LT", "LT");
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_BOTTOM, "blue  ", "blue  ", " blue ");
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "LED", "LT");
+    watch_display_text_with_fallback(WATCH_POSITION_BOTTOM, "blue  ", " blue ");
     if (subsecond % 2) {
         sprintf(buf, "%2d", color.blue);
         watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);

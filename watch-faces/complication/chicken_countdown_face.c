@@ -1,10 +1,6 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Joseph Bryant
- * Copyright (c) 2023 Konrad Rieck
- * Copyright (c) 2022 Wesley Ellis
- *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -34,13 +30,13 @@
 #define MAX_SECONDS 300
 #define MIN_SECONDS 2
 
-static uint16_t _actual_seconds = DEFAULT_SECONDS;
+static uint16_t _actual_seconds;
 
 
 
-static void draw(void) {
+static void draw(uint16_t number) {
     char buf[8];
-    sprintf(buf, "%4d", _actual_seconds);
+    sprintf(buf, "%4d  ", number);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
@@ -53,12 +49,14 @@ void chicken_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr)
         memset(*context_ptr, 0, sizeof(chicken_countdown_state_t));
         state->target_seconds = DEFAULT_SECONDS;
         state->running = false;
+        state->chime = false;
     }
 }
 
 void chicken_countdown_face_activate(void *context) {
     chicken_countdown_state_t *state = (chicken_countdown_state_t *)context;
     state->running = false;
+    _actual_seconds = state->target_seconds;
     movement_request_tick_frequency(1);
 }
 
@@ -68,16 +66,20 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIKN", "CC");
-            draw();
+            draw(_actual_seconds);
+            if (state->chime) watch_set_indicator(WATCH_INDICATOR_BELL);
             gshock_display_current_time_top_right();
             // fall-through
         case EVENT_TICK:
             if (!state->running) break;
             _actual_seconds -= 1;
             if (_actual_seconds == 0) {
+                if (state->chime) {
+                    movement_play_signal();
+                }
                 _actual_seconds = state->target_seconds;
             }
-            draw();
+            draw(_actual_seconds);
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
@@ -92,7 +94,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             } else {
                 watch_set_indicator(WATCH_INDICATOR_SIGNAL);
             }
-            draw();
+            draw(_actual_seconds);
             break;
         case EVENT_LIGHT_BUTTON_UP:
             // increment
@@ -103,7 +105,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             } else {
                 _actual_seconds += 1;
             }
-            draw();
+            draw(state->target_seconds);
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_START_BUTTON_UP:
@@ -116,8 +118,19 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
                 _actual_seconds = MAX_SECONDS;
             } else {
                 _actual_seconds -= 1;
+                if (_actual_seconds > MAX_SECONDS) {
+                    _actual_seconds = MAX_SECONDS;
+                }
             }
-            draw();
+            draw(state->target_seconds);
+            break;
+        case EVENT_ALARM_LONG_PRESS:
+            state->chime = !state->chime;
+            if (state->chime) {
+                watch_set_indicator(WATCH_INDICATOR_BELL);
+            } else {
+                watch_clear_indicator(WATCH_INDICATOR_BELL);
+            }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             // intentionally squelch the light default event; we only show the light when ccd is running or reset

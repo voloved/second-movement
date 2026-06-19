@@ -73,7 +73,7 @@ static void _handle_alarm_button(watch_date_time_t date_time, uint8_t current_pa
             movement_set_timezone_index(movement_get_timezone_index() + 1);
             if (movement_get_timezone_index() >= NUM_ZONE_NAMES) movement_set_timezone_index(0);
             current_offset = movement_get_current_timezone_offset();
-            break;
+            return;  // Don't reset the time when changing the timezone; we want UTZ time to stay the same so the hour can change.
     }
     movement_set_local_date_time(date_time);
 }

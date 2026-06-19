@@ -32,12 +32,12 @@ const watch_face_t watch_faces[] = {
 #ifdef I2C_SERCOM
     step_counter_face,
 #endif
-#ifndef BUILD_TO_SHARE
-    festival_schedule_face,
-    voltage_face,
-#endif
     fast_stopwatch_face,
     countdown_face,
+#ifndef BUILD_TO_SHARE
+    chicken_countdown_face,
+    voltage_face,
+#endif
     advanced_alarm_face,
     sunrise_sunset_face,
     tally_face,

@@ -1305,6 +1305,7 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
     }
 
 #endif
+    (void)enable_double_tap;
     return false;
 }
 

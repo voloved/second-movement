@@ -1,60 +1,34 @@
-Second Movement - Devolov Fork
+Second Movement - Jolt Fork
 ===============
 
 # Watch Faces
 
 ### Main Faces
   - clock_face
-    - Chiming only occurs from 8am to 8pm
-    - Able to change 12h and 24h with the alarm button
-      - This option is enabled in the settings
+  - step_counter_face
   - fast_stopwatch_face
-    - LIGhT button doesn't turn off LED by default.
   - countdown_face
-    - Default is 5 minutes, not 3.
   - advanced_alarm_face
-    - UI much more like Casio Square.
-    - Made setting where alarm does not go off on USA holidays.
   - tally_face
-    - Able to toggle through the preset starting value of 20 and 40 (for all of my Magic players)
   - sunrise_sunset_face
-    - Same as default
   - moon_phase_face,
-    - [Able to go back in days by clicking the LIGHT button.](https://github.com/joeycastillo/second-movement/pull/99)
-  - activity_logging_face
-    - [Able to go back in days by clicking the LIGHT button.](https://github.com/joeycastillo/second-movement/pull/99)
 ### Start of Secondary Faces
 #### Done by holding the MODE button for 0.5 seconds on the clock
   - settings_face
-    - LED only has 7 brightness options per color.
-      - Max brightness is the same, the granularity of the brightness is just half as big.
-    - Able to choose btn in the hours display mode to toggle 12h and 24h in the clock face..
     - Able to turn off the display and chiming, along with set the clock to go into that mode after 5 hours of the watch reading less than 27C (tested to be a good threshold for when the watch is likely not being worn).
-    - SHows the beep option first.
   - set_time_face
-    - SHows hrs/min/sec beforeshowing the day/mo/yr.
-    - Shows the timezone text only.
-      - Holding the LIGHT button changes the text to the offset.
-      - THe index of the timezone is on the top-right to make searching for your zone easier if you pass it.
   - temperature_logging_face
-    - [Merged with temperature_display_face](https://github.com/joeycastillo/second-movement/pull/97)
   - voltage_face
-    - [Added voltage logging](https://github.com/joeycastillo/second-movement/pull/97)
   - accelerometer_status_face
-    - No changes from default.
 ### Game Faces
-#### Done by holding the ALARM button for 1.5 seconds on the clock face
+#### Done by pressing START button holding the ALARM button for 1.5 seconds on the clock face
+  - black_jack_face
   - endless_runner_face
-    - [Includes everything in this PR.](https://github.com/joeycastillo/second-movement/pull/86)
   - wordle_face
-    - Holding the ALARM button for 1.5 seconds choses a good first-word if it's your first guess and you're on the first character.
   - higher_lower_game_face
-    - [Includes everything in this PR](https://github.com/joeycastillo/second-movement/pull/87)
-    - Getting the same number counts to your score.
   - lander_face
-    - [Inclides everything in this PR](https://github.com/joeycastillo/second-movement/pull/88)
+  - simon_face
   - tarot_face
-    - Retains changed settings between uses](https://github.com/joeycastillo/second-movement/pull/100)
 
 # Other Changes
   - [Uses COUNTER32 logic.](https://github.com/joeycastillo/second-movement/pull/65)
@@ -80,7 +54,7 @@ You will need to install [the GNU Arm Embedded Toolchain](https://developer.arm.
 You will need to fetch the git submodules for this repository too, with `git submodule update --init --recursive` 
 
 
-Building Second Movement
+Building Your Own Movement
 ----------------------------
 You can build the default watch firmware with:
 
@@ -93,10 +67,14 @@ where `board_type` is any of:
 - sensorwatch_green  
 - sensorwatch_red (also known as Sensor Watch Lite)
 - sensorwatch_blue
+- sensorwatch_jolt
 
 and `display_type` is any of:
 - classic
 - custom
+- jolt
+
+If you're using this fork to build for the Jolt PCB (used for the G-Shock), running `make` on its own without selecting a board or diplsay type will work.
 
 Optionally you can set the watch time when building the firmware using `TIMESET=minute`. 
 

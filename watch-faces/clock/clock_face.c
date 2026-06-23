@@ -500,7 +500,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             // uncomment this line to snap back to the clock face when the hour signal sounds:
             // movement_move_to_face(state->watch_face_index);
 #if defined(MOVEMENT_BIRTH_MONTH) && defined(MOVEMENT_BIRTH_DAY)
-            if (date_time.unit.month == MOVEMENT_BIRTH_MONTH && date_time.unit.month == MOVEMENT_BIRTH_DAY) {
+            if (date_time.unit.month == MOVEMENT_BIRTH_MONTH && date_time.unit.day == MOVEMENT_BIRTH_DAY) {
                 movement_play_birthday_signal();
                 return;
             }

@@ -89,7 +89,11 @@ const watch_face_t watch_faces[] = {
 #endif
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
+#ifdef BUILD_TO_SHARE
+#define SIGNAL_TUNE_DEFAULT
+#else
 #define SIGNAL_TUNE_SONG_OF_THE_STORMS
+#endif
 
 /* Determines the intensity of the led colors
  * Set a hex value 0-3 with 0x0 being off and 0x3 being max intensity

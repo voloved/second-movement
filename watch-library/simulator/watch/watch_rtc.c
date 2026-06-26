@@ -41,7 +41,7 @@ static uint32_t counter;
 static uint32_t reference_timestamp;
 static double next_tick_time;
 
-#define WATCH_RTC_N_COMP_CB 8
+#define WATCH_RTC_N_COMP_CB 10
 
 typedef struct {
     volatile uint32_t counter;

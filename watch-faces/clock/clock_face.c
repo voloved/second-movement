@@ -453,19 +453,6 @@ bool clock_face_loop(movement_event_t event, void *context) {
         case EVENT_ACTIVATE:
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
-/*
-            if(current.unit.second % 2) {
-                movement_enable_tap_detection_if_available();
-            } else {
-                movement_disable_tap_detection_if_available();
-            }
-            
-            if(current.unit.second == 15) {
-                movement_set_when_to_count_steps(MOVEMENT_SC_OFF);
-                enable_disable_step_count_times(current);
-                //movement_move_to_next_face();
-            }
-*/
 
             if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM &&
                 (current.reg >> 6) != (state->date_time.previous.reg >> 6)) {

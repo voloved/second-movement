@@ -332,7 +332,7 @@ static void toggle_sound(endless_runner_state_t *state) {
 
 static void enable_tap_control(endless_runner_state_t *state) {
     if (!state->tap_control_on) {
-        movement_enable_tap_detection_if_available(true);
+        movement_enable_tap_detection_if_available(false);
         state->tap_control_on = true;
     }
 }
@@ -649,7 +649,6 @@ bool endless_runner_face_loop(movement_event_t event, void *context) {
                 change_difficulty(state);
             break;
         case EVENT_SINGLE_TAP:
-        case EVENT_DOUBLE_TAP:
             if (state->difficulty > DIFF_HARD) break; // Don't do this on fuel modes
             // Allow starting a new game by tapping.
             if (game_state.curr_screen == SCREEN_SCORE) {

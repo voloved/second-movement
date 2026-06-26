@@ -186,6 +186,7 @@ typedef enum {
     RESIGN_TIMEOUT,             // Resign active face timeout
     SLEEP_TIMEOUT,              // Low-energy begin timeout
     MINUTE_TIMEOUT,             // Top of the Minute timeout
+    SINGLE_TAP_TIMEOUT,         // Single tap is seen and we're waiting to see if the double tap will occur
 } movement_timeout_index_t;
 
 typedef enum {

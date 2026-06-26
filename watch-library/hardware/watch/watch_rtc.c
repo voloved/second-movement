@@ -42,7 +42,7 @@ static const uint32_t RTC_COMP_GRACE_PERIOD = 4;
 
 static const int TB_BKUP_REG = 7;
 
-#define WATCH_RTC_N_COMP_CB 8
+#define WATCH_RTC_N_COMP_CB 10
 
 typedef struct {
     volatile uint32_t counter;

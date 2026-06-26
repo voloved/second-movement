@@ -25,6 +25,9 @@
 
 #define MOVEMENT_LONG_PRESS_TICKS 64
 #define MOVEMENT_REALLY_LONG_PRESS_TICKS 192
+#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS 200
+#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_TICKS (((MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS + 50) * 128) / 1000)
+#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_LATANCY ((MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS * 400) / (32 * 1000))
 #define MOVEMENT_MAX_LONG_PRESS_TICKS 1280 // get a chance to check if a button held down over 10 seconds is a glitch
 #define MOVEMENT_SETTINGS_VERSION 0
 
@@ -104,6 +107,7 @@ typedef struct {
     volatile uint8_t pending_sequence_priority;
     volatile bool schedule_next_comp;
     volatile bool has_pending_accelerometer;
+    volatile rtc_counter_t single_tap_timestamp;
 
     // button tracking for long press
     movement_button_t mode_button;
@@ -207,6 +211,7 @@ void cb_mode_btn_timeout_interrupt(void);
 void cb_light_btn_timeout_interrupt(void);
 void cb_alarm_btn_timeout_interrupt(void);
 void cb_start_btn_timeout_interrupt(void);
+void cb_single_tap_interrupt(void);
 void cb_led_timeout_interrupt(void);
 void cb_resign_timeout_interrupt(void);
 void cb_sleep_timeout_interrupt(void);
@@ -373,11 +378,9 @@ static uint64_t _movement_get_accelerometer_events() {
 #endif
         if (int_src & LIS2DW_REG_ALL_INT_SRC_DOUBLE_TAP) {
             accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
-            printf("Double tap!\r\n");
         }
         if (int_src & LIS2DW_REG_ALL_INT_SRC_SINGLE_TAP) {
             accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
-            printf("Single tap!\r\n");
         }
     }
     else if (movement_state.has_lis2dux) {
@@ -406,12 +409,10 @@ static uint64_t _movement_get_accelerometer_events() {
 #endif
         if (int_src.double_tap) {
             accelerometer_events |= 1ULL << EVENT_DOUBLE_TAP;
-            printf("Double tap!\r\n");
         }
 
         if (int_src.single_tap) {
             accelerometer_events |= 1ULL << EVENT_SINGLE_TAP;
-            printf("Single tap!\r\n");
         }
     }
 #endif
@@ -1233,7 +1234,7 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
 
         // configure tap duration threshold and enable Z axis
         lis2dw_configure_tap_threshold(0, 0, 12, LIS2DW_REG_TAP_THS_Z_Z_AXIS_ENABLE);
-        lis2dw_configure_tap_duration(2, 2, 2);
+        lis2dw_configure_tap_duration(MOVEMENT_LATENCY_FOR_DOUBLE_TAP_LATANCY, 2, 2);
 
         // ramp data rate up to 400 Hz and high performance mode
         lis2dw_set_low_noise_mode(true);
@@ -1669,6 +1670,7 @@ static uint8_t movement_count_new_steps_lis2dw(void)
     }
     if (_awake_state_lis2dw == 1) {
         _awake_state_lis2dw = 2;
+        //_movement_reset_inactivity_countdown();  // Uncomment to reset sleep timeout whenever the watch starts moving.
         lis2dw_clear_fifo();  // likely stale data at this point.
         return new_steps;
     }
@@ -2219,7 +2221,26 @@ bool app_loop(void) {
 
     if (movement_volatile_state.has_pending_accelerometer) {
         movement_volatile_state.has_pending_accelerometer = false;
-        pending_events |= _movement_get_accelerometer_events();
+        uint64_t accelerometer_events = _movement_get_accelerometer_events();
+        if (movement_state.double_tap_enabled) {
+            uint64_t single_tap_seen = accelerometer_events & (1ULL << EVENT_SINGLE_TAP);
+            accelerometer_events &= ~(1ULL << EVENT_SINGLE_TAP);
+            if (accelerometer_events & (1ULL << EVENT_DOUBLE_TAP) && movement_volatile_state.single_tap_timestamp != 0) {
+                movement_volatile_state.single_tap_timestamp = 0;
+                watch_rtc_disable_comp_callback_no_schedule(SINGLE_TAP_TIMEOUT);
+                movement_volatile_state.schedule_next_comp = true;
+            }
+            if (single_tap_seen && movement_volatile_state.single_tap_timestamp == 0) {
+                movement_volatile_state.single_tap_timestamp = watch_rtc_get_counter();
+                watch_rtc_register_comp_callback_no_schedule(
+                    cb_single_tap_interrupt,
+                    movement_volatile_state.single_tap_timestamp + MOVEMENT_LATENCY_FOR_DOUBLE_TAP_TICKS,
+                    SINGLE_TAP_TIMEOUT
+                );
+                movement_volatile_state.schedule_next_comp = true;
+            }
+        }
+        pending_events |= accelerometer_events;
     }
 
     // handle any button up/down events that occurred, e.g. schedule longpress timeouts, reset inactivity, etc.
@@ -2527,6 +2548,11 @@ void cb_start_btn_timeout_interrupt(void) {
 
     movement_volatile_state.pending_events |= 1ULL << _process_button_longpress_timeout(pin_level, button);
 #endif
+}
+
+void cb_single_tap_interrupt(void) {
+    movement_volatile_state.single_tap_timestamp = 0;
+    movement_volatile_state.pending_events |= 1ULL << EVENT_SINGLE_TAP;
 }
 
 void cb_led_timeout_interrupt(void) {

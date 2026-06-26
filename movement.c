@@ -2365,8 +2365,7 @@ bool app_loop(void) {
 
         if (movement_state.tap_enabled) {
             movement_disable_tap_detection_if_available();
-            movement_state.tap_enabled = false; // This is to come back and reset it on wake
-            movement_state.double_tap_enabled = false;
+            movement_state.tap_enabled = true; // This is to come back and reset it on wake
         }
 #endif
 

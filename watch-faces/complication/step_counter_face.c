@@ -185,9 +185,16 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_ACTIVATE:
-            if (!movement_has_lis2dw() && !movement_has_lis2dux()) {  // Skip this face if no accelerometer was seen on start-up
-                movement_move_to_next_face();
-                return false;
+            {
+                movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
+                if (when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED
+#ifndef BUILD_TO_SHARE
+                    || when_to_count_steps == MOVEMENT_SC_OFF  // If not sharing, skip the step counter if counting steps is turned off.
+#endif
+                ) {  // Skip this face if no accelerometer was seen on start-up
+                    movement_move_to_next_face();
+                    return false;
+                }
             }
             logger_state->display_index = logger_state->data_points;
             logger_state->sec_inactivity = 1;

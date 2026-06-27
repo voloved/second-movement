@@ -74,7 +74,7 @@ jobs:
         run: make clean
 
       - name: Compile firmware
-        run: make
+        run: make BOARD=${{ matrix.board }} DISPLAY=${{ matrix.display }} SHARE=TRUE
 
       - name: Rename artifact
         shell: bash

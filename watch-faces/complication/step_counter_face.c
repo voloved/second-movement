@@ -249,7 +249,9 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
-            gshock_display_current_time_top_right();
+            if (displaying_curr_step_count) {
+                gshock_display_current_time_top_right();
+            }
             break;
 #endif
         case EVENT_BACKGROUND_TASK:

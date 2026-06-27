@@ -57,7 +57,7 @@ typedef enum {
     MOVEMENT_CLOCK_MODE_024H        /// use 24 hour clock with leading zero
 } movement_clock_mode_t;
 
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define MOVEMENT_LAST_CLOCK_MODE MOVEMENT_CLOCK_MODE_024H
 #else  // Don't use trailing zeroes on my build
 #define MOVEMENT_LAST_CLOCK_MODE MOVEMENT_CLOCK_MODE_24H

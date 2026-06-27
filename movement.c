@@ -1045,7 +1045,7 @@ bool movement_in_step_counter_interval(uint8_t hour) {
 #define MOVEMENT_STEP_COUNT_HIGH_BATTERY_VOLTAGE_THRESHOLD 2
 static bool movement_step_in_low_battery = false;
 bool movement_step_counter_in_low_battery(void) {
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
     return false;
 #endif
     if (_voltage_last_read == 0) {

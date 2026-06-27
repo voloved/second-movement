@@ -34,7 +34,7 @@ const watch_face_t watch_faces[] = {
 #endif
     fast_stopwatch_face,
     countdown_face,
-#ifndef BUILD_TO_SHARE
+#if !BUILD_TO_SHARE
     chicken_countdown_face,
     voltage_face,
 #endif
@@ -59,7 +59,7 @@ const watch_face_t watch_faces[] = {
     higher_lower_game_face,
     lander_face,
     simon_face,
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
     tarot_face,
 #else
     party_face,
@@ -76,7 +76,7 @@ const watch_face_t watch_faces[] = {
  * If you don't want any faces to be excluded, set this to 0 and a long Mode press will have no effect.
  */
 
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 8)
 #else
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 9)
@@ -89,7 +89,7 @@ const watch_face_t watch_faces[] = {
 #endif
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define SIGNAL_TUNE_DEFAULT
 #else
 #define SIGNAL_TUNE_SONG_OF_THE_STORMS
@@ -154,7 +154,7 @@ const watch_face_t watch_faces[] = {
  * then turn off the screen and other tasks.
  * Only runs if Temperature Logging Face is installed.
 */
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE MOVEMENT_LE_SCREEN_OFF_DISABLE
 #else
 #define MOVEMENT_DEFAULT_TURN_SCREEN_OFF_AFTER_LE MOVEMENT_LE_SCREEN_OFF_ENABLE
@@ -176,7 +176,7 @@ const watch_face_t watch_faces[] = {
  * MOVEMENT_SC_DAYTIME: Count steps between MOVEMENT_STEP_COUNT_START and MOVEMENT_STEP_COUNT_END
  * MOVEMENT_SC_NOT_INSTALLED: The LIS2DW isn't installed (the code handles this without it needing to be manally set)
  */
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define MOVEMENT_DEFAULT_COUNT_STEPS MOVEMENT_SC_OFF
 #else
 #define MOVEMENT_DEFAULT_COUNT_STEPS MOVEMENT_SC_DAYTIME
@@ -199,7 +199,7 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_DAYTIME_START 8
 #define MOVEMENT_DAYTIME_END 20
 
-#ifndef BUILD_TO_SHARE
+#if !BUILD_TO_SHARE
 /* The latitude and longitude used for the wearers location
  * Set signed values in 1/100ths of a degree
  * Set lat and long for Raleigh (3578, -7864)

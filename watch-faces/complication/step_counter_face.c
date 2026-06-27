@@ -26,7 +26,7 @@
 #include <string.h>
 #include "step_counter_face.h"
 
-#ifdef BUILD_TO_SHARE
+#if BUILD_TO_SHARE
 #define STEP_COUNTER_DISPLAY_NO_STEP_DAYS true
 #else
 #define STEP_COUNTER_DISPLAY_NO_STEP_DAYS false
@@ -188,7 +188,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             {
                 movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
                 if (when_to_count_steps == MOVEMENT_SC_NOT_INSTALLED
-#ifndef BUILD_TO_SHARE
+#if !BUILD_TO_SHARE
                     || when_to_count_steps == MOVEMENT_SC_OFF  // If not sharing, skip the step counter if counting steps is turned off.
 #endif
                 ) {  // Skip this face if no accelerometer was seen on start-up

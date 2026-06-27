@@ -25,9 +25,11 @@
 
 #define MOVEMENT_LONG_PRESS_TICKS 64
 #define MOVEMENT_REALLY_LONG_PRESS_TICKS 192
-#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS 200
-#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_TICKS (((MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS + 50) * 128) / 1000)
-#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_LATANCY ((MOVEMENT_LATENCY_FOR_DOUBLE_TAP_MS * 400) / (32 * 1000))
+#define MOVEMENT_DOUBLE_TAP_LATANCY 2  // If not zero, it's in units of 32/400 seconds. At 2: 160ms
+#define MOVEMENT_DOUBLE_TAP_QUIET 2  // If not zero, it's in units of 4/400 seconds. At 2: 20ms
+#define MOVEMENT_DOUBLE_TAP_SHOCK 2  // If not zero, it's in units of 8/400 seconds At 2: 40ms
+#define MOVEMENT_LATENCY_FOR_DOUBLE_TAP_TICKS (((160 + 20 + 40) * 128) / 1000)  // Adding the LATENCY, QUIET, and SHOCK times above and converting to ticks.
+
 #define MOVEMENT_MAX_LONG_PRESS_TICKS 1280 // get a chance to check if a button held down over 10 seconds is a glitch
 #define MOVEMENT_SETTINGS_VERSION 0
 
@@ -1234,7 +1236,7 @@ bool movement_enable_tap_detection_if_available(bool enable_double_tap) {
 
         // configure tap duration threshold and enable Z axis
         lis2dw_configure_tap_threshold(0, 0, 12, LIS2DW_REG_TAP_THS_Z_Z_AXIS_ENABLE);
-        lis2dw_configure_tap_duration(MOVEMENT_LATENCY_FOR_DOUBLE_TAP_LATANCY, 2, 2);
+        lis2dw_configure_tap_duration(MOVEMENT_DOUBLE_TAP_LATANCY, MOVEMENT_DOUBLE_TAP_QUIET, MOVEMENT_DOUBLE_TAP_SHOCK);
 
         // ramp data rate up to 400 Hz and high performance mode
         lis2dw_set_low_noise_mode(true);

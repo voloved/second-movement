@@ -869,6 +869,16 @@ void movement_play_birthday_signal(void) {
 #endif
 }
 
+bool movement_get_today_is_birthday(void) {
+#if defined(MOVEMENT_BIRTH_MONTH) && defined(MOVEMENT_BIRTH_DAY)
+    watch_date_time_t date_time = movement_get_local_date_time();
+    if (date_time.unit.month == MOVEMENT_BIRTH_MONTH && date_time.unit.day == MOVEMENT_BIRTH_DAY) {
+        return true;
+    }
+#endif
+    return false;
+}
+
 void movement_play_alarm(void) {
     movement_play_sequence(alarm_tune, BUZZER_PRIORITY_ALARM);
 }

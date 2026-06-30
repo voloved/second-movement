@@ -75,13 +75,13 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             if (!state->running) break;
             if (_actual_seconds > 0) {
                 _actual_seconds -= 1;
+                if (_actual_seconds == 0 && state->chime) {
+                    movement_play_signal();
+                }
             } else {
                 _actual_seconds += 1;
             }
             if (_actual_seconds == 0) {
-                if (state->chime) {
-                    movement_play_signal();
-                }
                 _actual_seconds = state->target_seconds;
             }
             draw(_actual_seconds);

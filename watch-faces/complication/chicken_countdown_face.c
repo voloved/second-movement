@@ -36,7 +36,7 @@ static int16_t _actual_seconds;
 
 
 static void draw(int16_t number) {
-    char buf[8];
+    char buf[9];
     sprintf(buf, "%4d  ", number);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }

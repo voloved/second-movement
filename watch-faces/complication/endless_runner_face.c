@@ -348,7 +348,7 @@ static void display_title(endless_runner_state_t *state) {
     movement_request_tick_frequency(1);
     game_state.curr_screen = SCREEN_TITLE;
     watch_clear_colon();
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "ENdLS", "ENdLS", "ER  ");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP, "ENdLS", "ENdLS", "ER  ");
     watch_display_text(WATCH_POSITION_BOTTOM, "RUNNER");
     display_sound_indicator(state -> soundOn);
     _ticks_show_title = 1;

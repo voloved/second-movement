@@ -93,7 +93,7 @@ static void _update(moon_phase_state_t *state) {
     switch (phase_index) {
         case 0:
         case 8:
-            watch_display_text_with_fallback_and_gshock(WATCH_POSITION_BOTTOM, "NE!J  ", "NEWW  ", " Neu  ");
+            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_BOTTOM, "NEWW  ", "NE!J  ", " Neu  ");
             watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "   ", "  ");
             break;
         case 1:

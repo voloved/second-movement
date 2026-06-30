@@ -278,7 +278,7 @@ static void do_game_loop(guess_t user_guess) {
                 score++;
             } else {
                 // Incorrect guess, game over
-                watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_LEFT, "End", "End", "GO");
+                watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "End", "End", "GO");
                 game_board[guess_position].revealed = true;
                 watch_display_text(WATCH_POSITION_BOTTOM, "------");
                 render_board_position(guess_position - 1);

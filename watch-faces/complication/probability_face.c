@@ -117,9 +117,9 @@ static void display_dice_roll(probability_state_t *state)
     // Display die type in top right position
     if (state->dice_sides == 100) {
         // Show "00" for d100
-        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_RIGHT, "00", "100", " C");
+        watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "100", "00", " C");
     } else if (state->dice_sides == 2) {
-        watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP_RIGHT, " 2", "coin", " 2");
+        watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "coin", " 2", " 2");
     } else {
         watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
         sprintf(buf, "%2d", state->dice_sides);
@@ -248,7 +248,7 @@ void probability_face_activate(void *context)
     state->rolled_value = 0;
 
     // Display face identifier
-    watch_display_text_with_fallback_and_gshock(WATCH_POSITION_TOP, "Prb", "PR", "PR");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP, "PR", "Prb", "PR");
 
     // Set tick frequency to 1 for proper tap detection timing
     movement_request_tick_frequency(1);

@@ -27,14 +27,15 @@
 #include "watch_utility.h"
 
 #define DEFAULT_SECONDS 9
+#define START_SECONDS -3  // At the start of the count, we want some time between pushing the button and setting up.
 #define MAX_SECONDS 300
 #define MIN_SECONDS 2
 
-static uint16_t _actual_seconds;
+static int16_t _actual_seconds;
 
 
 
-static void draw(uint16_t number) {
+static void draw(int16_t number) {
     char buf[8];
     sprintf(buf, "%4d  ", number);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
@@ -72,7 +73,11 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             // fall-through
         case EVENT_TICK:
             if (!state->running) break;
-            _actual_seconds -= 1;
+            if (_actual_seconds > 0) {
+                _actual_seconds -= 1;
+            } else {
+                _actual_seconds += 1;
+            }
             if (_actual_seconds == 0) {
                 if (state->chime) {
                     movement_play_signal();
@@ -92,6 +97,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
                 _actual_seconds = state->target_seconds;
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             } else {
+                _actual_seconds = START_SECONDS;
                 watch_set_indicator(WATCH_INDICATOR_SIGNAL);
             }
             draw(_actual_seconds);

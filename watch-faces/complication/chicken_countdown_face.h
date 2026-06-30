@@ -38,7 +38,7 @@
 #include "movement.h"
 
 typedef struct {
-    uint16_t target_seconds;
+    int16_t target_seconds;
     bool running;
     bool chime;
 } chicken_countdown_state_t;

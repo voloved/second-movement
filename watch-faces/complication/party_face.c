@@ -49,11 +49,11 @@ void party_face_activate(void *context) {
 
 static void _party_face_init_lcd(party_state_t *state) {
     char text[11];
-    const char partyTime[][7] = {"Party", "Tin&e", " It's"};
-    const char secondaryText[][7] = {"Pron&"};
-    const int partyTextNum = sizeof(partyTime) / sizeof(partyTime[0]);
+    const char primaryText[][8] = {" Party", " Tin&e", "  It's"};
+    const char secondaryText[][8] = {" Pron&"};
+    const int primaryTextNum = sizeof(primaryText) / sizeof(primaryText[0]);
     const int secondaryTextNum = sizeof(secondaryText) / sizeof(secondaryText[0]);
-    const char (*textArray)[7];
+    const char (*textArray)[8];
     int textArrayNum;
     watch_date_time_t date_time;
     switch (state->text)
@@ -64,23 +64,20 @@ static void _party_face_init_lcd(party_state_t *state) {
         break;
     case 0:
     default:
-        textArray = partyTime;
-        textArrayNum = partyTextNum;
+        textArray = primaryText;
+        textArrayNum = primaryTextNum;
         break;
     }
-    if (!state->blink){
+    if (!state->blink) {
         state->party_text = 0;
         watch_clear_indicator(WATCH_INDICATOR_BELL);
     }
-    else{
+    else {
         state->party_text = (state->party_text + 1)  % textArrayNum;
         watch_set_indicator(WATCH_INDICATOR_BELL);
     }
     date_time = movement_get_local_date_time();
-    if (state->text == 1) {
-        watch_clear_display();
-    }
-    else if (state->prev_text != state->text || date_time.unit.day != state->curr_day){
+    if (state->prev_text != state->text || date_time.unit.day != state->curr_day){
         state->curr_day = date_time.unit.day;
         sprintf(text, "%s", watch_utility_get_weekday(date_time));
         watch_display_text(WATCH_POSITION_TOP_LEFT, text);
@@ -104,7 +101,7 @@ static void _party_face_init_lcd(party_state_t *state) {
             watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
         }
     }
-    sprintf(text, " %s",textArray[state->party_text]);
+    sprintf(text, "%s",textArray[state->party_text]);
     watch_display_text(WATCH_POSITION_BOTTOM, text);
     state->prev_text = state->text;
 }
@@ -129,7 +126,7 @@ bool party_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             state->led = (state->led + 1) % 3;
             offset_allow_sleep(state->blink, state->led != 0);
-            if (!state->led){
+            if (!state->led) {
                 watch_set_led_off();
                 break;
             }
@@ -140,8 +137,9 @@ bool party_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_BUTTON_UP:
             state->blink = !state->blink;
-            if (!state->blink)
+            if (!state->blink) {
                 _party_face_init_lcd(state);
+            }
             offset_allow_sleep(state->blink, state->led != 0);
             break;
         case EVENT_ALARM_LONG_PRESS:
@@ -153,14 +151,12 @@ bool party_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             if (state->blink) {
-                if (event.subsecond % 2 == 0)
+                if (event.subsecond % 2 == 0) {
                     _party_face_init_lcd(state);
-                else if (state->text == 0){  // Clear only the bottom row when the party text is occurring
+                } else {  // Clear only the bottom row when the party text is occurring
                     watch_display_text(WATCH_POSITION_BOTTOM, "      ");
                     watch_clear_indicator(WATCH_INDICATOR_BELL);
                 }
-                else
-                    watch_clear_display();
             }
             switch (state->led)
             {
@@ -168,10 +164,11 @@ bool party_face_loop(movement_event_t event, void *context) {
             default:
                 break;
             case 1:
-                if (event.subsecond % 2 == 0)
+                if (event.subsecond % 2 == 0) {
                     watch_set_led_green();
-                else
+                } else {
                     watch_set_led_off();
+                }
                 break;
             case 2:
                 switch (state->color)

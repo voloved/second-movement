@@ -711,6 +711,9 @@ bool movement_default_loop_handler(movement_event_t event) {
             }
             break;
         case EVENT_START_BUTTON_UP:
+            movement_move_to_previous_face();
+            break;
+        case EVENT_START_LONG_PRESS:
             if (can_go_to_teriary_face() ) {
                 if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
                     go_to_teriary_face();
@@ -755,6 +758,59 @@ void movement_move_to_next_face(void) {
         face_max = MOVEMENT_NUM_FACES;
     }
     movement_move_to_face((movement_state.current_face_idx + 1) % face_max);
+}
+
+void movement_move_to_previous_face(void) {
+    uint16_t face_min;
+    uint16_t face_max;
+    if ((MOVEMENT_TERIARY_FACE_INDEX > 0) && (movement_state.current_face_idx == MOVEMENT_TERIARY_FACE_INDEX)) {
+        movement_move_to_face(MOVEMENT_NUM_FACES - 1);
+        return;
+    }
+    if (MOVEMENT_TERIARY_FACE_INDEX > 0 && MOVEMENT_SECONDARY_FACE_INDEX > 0) {
+        if (movement_state.current_face_idx < (int16_t)MOVEMENT_SECONDARY_FACE_INDEX) {
+            face_min = 0;
+            face_max = MOVEMENT_SECONDARY_FACE_INDEX;
+        } else if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
+            face_min = MOVEMENT_SECONDARY_FACE_INDEX;
+            face_max = MOVEMENT_TERIARY_FACE_INDEX;
+        } else {
+            face_min = MOVEMENT_TERIARY_FACE_INDEX;
+            face_max = MOVEMENT_NUM_FACES;
+        }
+    } else if (MOVEMENT_TERIARY_FACE_INDEX > 0) {
+        if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
+            face_min = 0;
+            face_max = MOVEMENT_TERIARY_FACE_INDEX;
+        } else {
+            face_min = MOVEMENT_TERIARY_FACE_INDEX;
+            face_max = MOVEMENT_NUM_FACES;
+        }
+    } else if (MOVEMENT_SECONDARY_FACE_INDEX > 0) {
+        if (movement_state.current_face_idx < (int16_t)MOVEMENT_SECONDARY_FACE_INDEX) {
+            face_min = 0;
+            face_max = MOVEMENT_SECONDARY_FACE_INDEX;
+        } else {
+            face_min = MOVEMENT_SECONDARY_FACE_INDEX;
+            face_max = MOVEMENT_NUM_FACES;
+        }
+    } else {
+        face_min = 0;
+        face_max = MOVEMENT_NUM_FACES;
+    }
+    if (movement_state.current_face_idx == face_min) {
+        movement_move_to_face(face_max - 1);
+    } else {
+        movement_move_to_face(movement_state.current_face_idx - 1);
+    }
+}
+
+void movement_jump_over_face(void) {
+    if (movement_state.current_face_idx < movement_state.previous_face_idx) {
+        movement_move_to_previous_face();
+    } else {
+        movement_move_to_next_face();
+    }
 }
 
 void movement_schedule_background_task(watch_date_time_t date_time) {
@@ -2179,6 +2235,7 @@ static bool _switch_face(void) {
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
 
     wf->resign(watch_face_contexts[movement_state.current_face_idx]);
+    movement_state.previous_face_idx = movement_state.current_face_idx;
     movement_state.current_face_idx = movement_state.next_face_idx;
     // we have just updated the face idx, so we must recache the watch face pointer.
     wf = &watch_faces[movement_state.current_face_idx];

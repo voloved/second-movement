@@ -305,6 +305,8 @@ bool simon_face_loop(movement_event_t event,
         case EVENT_START_BUTTON_UP:
             if (state->playing_state == SIMON_LISTENING_BACK) {
                 _simon_listen(SIMON_START_NOTE, state);
+            } else if (state->playing_state == SIMON_NOT_PLAYING) {
+                movement_move_to_previous_face();
             }
             break;
 #else

@@ -306,6 +306,7 @@ typedef struct {
 
     // transient properties
     int16_t current_face_idx;
+    int16_t previous_face_idx;
     int16_t next_face_idx;
     bool watch_face_changed;
 
@@ -352,6 +353,8 @@ typedef struct {
 
 void movement_move_to_face(uint8_t watch_face_index);
 void movement_move_to_next_face(void);
+void movement_move_to_previous_face(void);
+void movement_jump_over_face(void);
 bool can_go_to_teriary_face(void);
 void go_to_teriary_face(void);
 

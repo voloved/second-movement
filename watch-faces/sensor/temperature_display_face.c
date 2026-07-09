@@ -59,7 +59,7 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ACTIVATE:
             if (skip) {
-                movement_move_to_next_face();
+                movement_jump_over_face();
                 return false;
             }
             watch_display_text_with_fallback(WATCH_POSITION_TOP, "TEMP", "TE");

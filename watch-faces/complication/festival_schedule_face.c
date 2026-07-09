@@ -574,7 +574,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                     watch_date_time_t curr_time = movement_get_local_date_time();
                     if (_compare_dates_times(_ending_time, curr_time) <= 0 ||  // Festival is finished
                     _get_days_until(_starting_time, curr_time) > 30) {  // Festival is more than 30 days away.
-                        movement_move_to_next_face();
+                        movement_jump_over_face();
                         return false;
                     }
                 }
@@ -651,7 +651,7 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
         case EVENT_MODE_BUTTON_UP:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) movement_move_to_next_face();
             // fall through
-        case EVENT_START_BUTTON_UP:
+        case EVENT_START_LONG_PRESS:
             if (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE) {
                 _cyc_all_acts(state, false);
                 set_ticks_purpose(FESTIVAL_SCHEDULE_TICK_CYCLE);

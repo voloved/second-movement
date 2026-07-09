@@ -202,6 +202,8 @@ bool tally_face_loop(movement_event_t event, void *context) {
         case EVENT_START_BUTTON_UP:
             if (!_init_val) {
                 reset_tally(state, movement_button_should_sound(), beep_sequence);
+            } else {
+                movement_move_to_previous_face();
             }
             break;
         case EVENT_START_LONG_PRESS:

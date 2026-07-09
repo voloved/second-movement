@@ -199,7 +199,7 @@ bool temperature_logging_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ACTIVATE:
             if (skip) {
-                movement_move_to_next_face();
+                movement_jump_over_face();
                 return false;
             }
             _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);

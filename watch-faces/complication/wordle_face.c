@@ -619,6 +619,10 @@ bool wordle_face_loop(movement_event_t event, void *context) {
             break;
 #endif
         case EVENT_START_BUTTON_UP:
+            if (state->curr_screen == WORDLE_SCREEN_TITLE) {
+                movement_move_to_previous_face();
+                break;
+            }
             if (state->curr_screen != WORDLE_SCREEN_PLAYING) break;
             get_prev_letter(state->position, state->word_elements, state->known_wrong_letters, state->skip_wrong_letter);
             display_letter(state, true);

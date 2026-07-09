@@ -192,7 +192,7 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                     || when_to_count_steps == MOVEMENT_SC_OFF  // If not sharing, skip the step counter if counting steps is turned off.
 #endif
                 ) {  // Skip this face if no accelerometer was seen on start-up
-                    movement_move_to_next_face();
+                    movement_jump_over_face();
                     return false;
                 }
             }

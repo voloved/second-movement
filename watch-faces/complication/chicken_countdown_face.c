@@ -32,7 +32,7 @@
 #define MIN_SECONDS 2
 
 static int16_t _actual_seconds;
-
+static bool btn_pressed = false;
 
 
 static void draw(int16_t number) {
@@ -70,6 +70,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             draw(_actual_seconds);
             if (state->chime) watch_set_indicator(WATCH_INDICATOR_BELL);
             gshock_display_current_time_top_right();
+            btn_pressed = false;
             // fall-through
         case EVENT_TICK:
             if (!state->running) break;
@@ -92,6 +93,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             break;
 #endif
         case EVENT_ALARM_BUTTON_UP:
+            btn_pressed = true;
             state->running = !state->running;
             if (!state->running) {
                 _actual_seconds = state->target_seconds;
@@ -104,6 +106,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_BUTTON_UP:
             // increment
+            btn_pressed = true;
             state->target_seconds += 1;
             if (state->target_seconds > MAX_SECONDS) {
                 state->target_seconds = MIN_SECONDS;
@@ -115,9 +118,15 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_START_BUTTON_UP:
+            if (!btn_pressed) {
+                movement_move_to_previous_face();
+                break;
+            }
+            // fall-through
 #endif
         case EVENT_LIGHT_LONG_PRESS:
             // decrement
+            btn_pressed = true;
             state->target_seconds -= 1;
             if (state->target_seconds < MIN_SECONDS) {
                 state->target_seconds = MAX_SECONDS;
@@ -131,6 +140,7 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
             draw(state->target_seconds);
             break;
         case EVENT_ALARM_LONG_PRESS:
+            btn_pressed = true;
             state->chime = !state->chime;
             if (state->chime) {
                 watch_set_indicator(WATCH_INDICATOR_BELL);

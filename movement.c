@@ -713,7 +713,7 @@ bool movement_default_loop_handler(movement_event_t event) {
         case EVENT_START_BUTTON_UP:
             if (movement_state.current_face_idx == 0) {
                 go_to_teriary_face();
-            } else if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
+            } else if (movement_state.current_face_idx != (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
                 movement_move_to_previous_face();
             } else {
                 movement_move_to_face(0);

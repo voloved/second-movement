@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef CHICKEN_COUNTDOWN_FACE_H_
-#define CHICKEN_COUNTDOWN_FACE_H_
+#ifndef LOOP_COUNTDOWN_FACE_H_
+#define LOOP_COUNTDOWN_FACE_H_
 
 /*
- * CHICKEN COUNTDOWN TIMER face
+ * LOOP COUNTDOWN TIMER face
  *
  * This face cycles down from a starting second to 1 and back around.
  *   ADJUST - Start the countdown loop
@@ -41,20 +41,20 @@ typedef struct {
     int16_t target_seconds;
     bool running;
     bool chime;
-} chicken_countdown_state_t;
+} loop_countdown_state_t;
 
 
-void chicken_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr);
-void chicken_countdown_face_activate(void *context);
-bool chicken_countdown_face_loop(movement_event_t event, void *context);
-void chicken_countdown_face_resign(void *context);
+void loop_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr);
+void loop_countdown_face_activate(void *context);
+bool loop_countdown_face_loop(movement_event_t event, void *context);
+void loop_countdown_face_resign(void *context);
 
-#define chicken_countdown_face ((const watch_face_t){ \
-    chicken_countdown_face_setup, \
-    chicken_countdown_face_activate, \
-    chicken_countdown_face_loop, \
-    chicken_countdown_face_resign, \
+#define loop_countdown_face ((const watch_face_t){ \
+    loop_countdown_face_setup, \
+    loop_countdown_face_activate, \
+    loop_countdown_face_loop, \
+    loop_countdown_face_resign, \
     NULL, \
 })
 
-#endif // CHICKEN_COUNTDOWN_FACE_H_
+#endif // LOOP_COUNTDOWN_FACE_H_

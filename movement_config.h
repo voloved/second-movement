@@ -35,7 +35,7 @@ const watch_face_t watch_faces[] = {
     fast_stopwatch_face,
     countdown_face,
 #if !BUILD_TO_SHARE
-    chicken_countdown_face,
+    loop_countdown_face,
     voltage_face,
 #endif
     advanced_alarm_face,

@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "chicken_countdown_face.h"
+#include "loop_countdown_face.h"
 #include "watch.h"
 #include "watch_utility.h"
 
@@ -41,28 +41,28 @@ static void draw(int16_t number) {
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
-void chicken_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr) {
+void loop_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
 
     if (*context_ptr == NULL) {
-        *context_ptr = malloc(sizeof(chicken_countdown_state_t));
-        chicken_countdown_state_t *state = (chicken_countdown_state_t *)*context_ptr;
-        memset(*context_ptr, 0, sizeof(chicken_countdown_state_t));
+        *context_ptr = malloc(sizeof(loop_countdown_state_t));
+        loop_countdown_state_t *state = (loop_countdown_state_t *)*context_ptr;
+        memset(*context_ptr, 0, sizeof(loop_countdown_state_t));
         state->target_seconds = DEFAULT_SECONDS;
         state->running = false;
         state->chime = false;
     }
 }
 
-void chicken_countdown_face_activate(void *context) {
-    chicken_countdown_state_t *state = (chicken_countdown_state_t *)context;
+void loop_countdown_face_activate(void *context) {
+    loop_countdown_state_t *state = (loop_countdown_state_t *)context;
     state->running = false;
     _actual_seconds = state->target_seconds;
     movement_request_tick_frequency(1);
 }
 
-bool chicken_countdown_face_loop(movement_event_t event, void *context) {
-    chicken_countdown_state_t *state = (chicken_countdown_state_t *)context;
+bool loop_countdown_face_loop(movement_event_t event, void *context) {
+    loop_countdown_state_t *state = (loop_countdown_state_t *)context;
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
@@ -159,6 +159,6 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
     return true;
 }
 
-void chicken_countdown_face_resign(void *context) {
+void loop_countdown_face_resign(void *context) {
     (void) context;
 }

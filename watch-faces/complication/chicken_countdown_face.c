@@ -122,8 +122,8 @@ bool chicken_countdown_face_loop(movement_event_t event, void *context) {
                 movement_move_to_previous_face();
                 break;
             }
-            // fall-through
 #endif
+            // fall-through
         case EVENT_LIGHT_LONG_PRESS:
             // decrement
             btn_pressed = true;

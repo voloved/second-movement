@@ -26,7 +26,10 @@ ifeq ($(BOARD),lite)
 endif
 
 ifneq (,$(filter $(BOARD),jolt sensorwatch_jolt))
-    DISPLAY = jolt
+    ifneq ($(DISPLAY),jolt)
+      $(info $(DISPLAY) isn't allowed for the $(BOARD). Setting Display to jolt)
+    endif
+    override DISPLAY = jolt
     override BOARD = sensorwatch_jolt
     $(info Setting Board to: $(BOARD))
     $(info Setting Display to: $(DISPLAY))
@@ -35,8 +38,15 @@ endif
 # Set this to the type of display in your watch: classic or custom. Commented out to force a choice when building.
 # DISPLAY=classic
 ifeq ($(DISPLAY),:0)
-    DISPLAY = $(DEFAULT_DISPLAY)
-    $(info Setting Display to: $(DISPLAY))
+    ifeq ($(DEFAULT_DISPLAY),jolt)
+      ifneq (,$(filter $(BOARD),jolt sensorwatch_jolt))
+        DISPLAY = $(DEFAULT_DISPLAY)
+        $(info Setting Display to: $(DISPLAY))
+      endif
+    else
+      DISPLAY = $(DEFAULT_DISPLAY)
+      $(info Setting Display to: $(DISPLAY))
+    endif
 endif
 endif
 

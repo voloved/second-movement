@@ -354,7 +354,7 @@ typedef struct {
 void movement_move_to_face(uint8_t watch_face_index);
 void movement_move_to_next_face(void);
 void movement_move_to_previous_face(void);
-void movement_jump_over_face(void);
+void movement_jump_over_face(void); // This will not work if the face you're trying to jump over is the first in its list
 bool can_go_to_teriary_face(void);
 void go_to_teriary_face(void);
 

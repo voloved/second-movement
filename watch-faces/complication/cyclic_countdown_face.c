@@ -66,7 +66,7 @@ bool cyclic_countdown_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "CYCLIC", "CC");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "LOOP ", "CC");
             draw(_actual_seconds);
             if (state->chime) watch_set_indicator(WATCH_INDICATOR_BELL);
             gshock_display_current_time_top_right();

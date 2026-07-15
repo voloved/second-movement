@@ -45,6 +45,7 @@ void party_face_activate(void *context) {
     state->led = false;
     state->fast = false;
     state->prev_text = -1;
+    state->text = 1;
 }
 
 static void _party_face_init_lcd(party_state_t *state) {

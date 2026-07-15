@@ -45,13 +45,13 @@ void party_face_activate(void *context) {
     state->led = false;
     state->fast = false;
     state->prev_text = -1;
-    state->text = 1;
+    state->text = 0;
 }
 
 static void _party_face_init_lcd(party_state_t *state) {
     char text[11];
     const char primaryText[][8] = {" Party", " Tin&e", "  It's"};
-    const char secondaryText[][8] = {"NACHO ", "HELLO", "MMACHO"};
+    const char secondaryText[][8] = {" Pron&"};
     const int primaryTextNum = sizeof(primaryText) / sizeof(primaryText[0]);
     const int secondaryTextNum = sizeof(secondaryText) / sizeof(secondaryText[0]);
     const char (*textArray)[8];

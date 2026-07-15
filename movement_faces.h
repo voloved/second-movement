@@ -87,5 +87,5 @@
 #include "tomato_face.h"
 #include "solar_time_face.h"
 #include "tide_face.h"
-#include "loop_countdown_face.h"
+#include "cyclic_countdown_face.h"
 // New includes go above this line.

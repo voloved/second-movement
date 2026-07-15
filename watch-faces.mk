@@ -61,5 +61,5 @@ SRCS += \
   ./watch-faces/complication/tomato_face.c \
   ./watch-faces/clock/solar_time_face.c \
   ./watch-faces/complication/tide_face.c \
-  ./watch-faces/complication/loop_countdown_face.c \
+  ./watch-faces/complication/cyclic_countdown_face.c \
 # New watch faces go above this line.

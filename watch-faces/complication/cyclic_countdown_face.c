@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "loop_countdown_face.h"
+#include "cyclic_countdown_face.h"
 #include "watch.h"
 #include "watch_utility.h"
 
@@ -41,32 +41,32 @@ static void draw(int16_t number) {
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
-void loop_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr) {
+void cyclic_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
 
     if (*context_ptr == NULL) {
-        *context_ptr = malloc(sizeof(loop_countdown_state_t));
-        loop_countdown_state_t *state = (loop_countdown_state_t *)*context_ptr;
-        memset(*context_ptr, 0, sizeof(loop_countdown_state_t));
+        *context_ptr = malloc(sizeof(cyclic_countdown_state_t));
+        cyclic_countdown_state_t *state = (cyclic_countdown_state_t *)*context_ptr;
+        memset(*context_ptr, 0, sizeof(cyclic_countdown_state_t));
         state->target_seconds = DEFAULT_SECONDS;
         state->running = false;
         state->chime = false;
     }
 }
 
-void loop_countdown_face_activate(void *context) {
-    loop_countdown_state_t *state = (loop_countdown_state_t *)context;
+void cyclic_countdown_face_activate(void *context) {
+    cyclic_countdown_state_t *state = (cyclic_countdown_state_t *)context;
     state->running = false;
     _actual_seconds = state->target_seconds;
     movement_request_tick_frequency(1);
 }
 
-bool loop_countdown_face_loop(movement_event_t event, void *context) {
-    loop_countdown_state_t *state = (loop_countdown_state_t *)context;
+bool cyclic_countdown_face_loop(movement_event_t event, void *context) {
+    cyclic_countdown_state_t *state = (cyclic_countdown_state_t *)context;
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP, "CHIKN", "CC");
+            watch_display_text_with_fallback(WATCH_POSITION_TOP, "CYCLIC", "CC");
             draw(_actual_seconds);
             if (state->chime) watch_set_indicator(WATCH_INDICATOR_BELL);
             gshock_display_current_time_top_right();
@@ -159,6 +159,6 @@ bool loop_countdown_face_loop(movement_event_t event, void *context) {
     return true;
 }
 
-void loop_countdown_face_resign(void *context) {
+void cyclic_countdown_face_resign(void *context) {
     (void) context;
 }

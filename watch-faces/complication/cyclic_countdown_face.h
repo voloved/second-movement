@@ -22,11 +22,11 @@
  * SOFTWARE.
  */
 
-#ifndef LOOP_COUNTDOWN_FACE_H_
-#define LOOP_COUNTDOWN_FACE_H_
+#ifndef CYCLIC_COUNTDOWN_FACE_H_
+#define CYCLIC_COUNTDOWN_FACE_H_
 
 /*
- * LOOP COUNTDOWN TIMER face
+ * CYCLIC COUNTDOWN TIMER face
  *
  * This face cycles down from a starting second to 1 and back around.
  *   ADJUST - Start the countdown loop
@@ -41,20 +41,20 @@ typedef struct {
     int16_t target_seconds;
     bool running;
     bool chime;
-} loop_countdown_state_t;
+} cyclic_countdown_state_t;
 
 
-void loop_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr);
-void loop_countdown_face_activate(void *context);
-bool loop_countdown_face_loop(movement_event_t event, void *context);
-void loop_countdown_face_resign(void *context);
+void cyclic_countdown_face_setup(uint8_t watch_face_index, void ** context_ptr);
+void cyclic_countdown_face_activate(void *context);
+bool cyclic_countdown_face_loop(movement_event_t event, void *context);
+void cyclic_countdown_face_resign(void *context);
 
-#define loop_countdown_face ((const watch_face_t){ \
-    loop_countdown_face_setup, \
-    loop_countdown_face_activate, \
-    loop_countdown_face_loop, \
-    loop_countdown_face_resign, \
+#define cyclic_countdown_face ((const watch_face_t){ \
+    cyclic_countdown_face_setup, \
+    cyclic_countdown_face_activate, \
+    cyclic_countdown_face_loop, \
+    cyclic_countdown_face_resign, \
     NULL, \
 })
 
-#endif // LOOP_COUNTDOWN_FACE_H_
+#endif // CYCLIC_COUNTDOWN_FACE_H_

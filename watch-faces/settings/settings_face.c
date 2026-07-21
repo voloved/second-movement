@@ -528,6 +528,12 @@ bool settings_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_BUTTON_UP:
             state->settings_screens[state->current_page].advance();
             break;
+        case EVENT_START_BUTTON_UP:
+            if (state->current_page == 0) return movement_default_loop_handler(event);
+            state->current_page = (state->current_page + state->num_settings - 1) % state->num_settings;
+            watch_clear_display();
+            state->settings_screens[state->current_page].display(event.subsecond);
+            break;
         case EVENT_TIMEOUT:
             movement_move_to_face(0);
             break;

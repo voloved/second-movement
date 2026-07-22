@@ -126,7 +126,6 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             *((uint8_t *)context) = current_page;
             break;
         case EVENT_START_BUTTON_UP:
-            if (current_page == 0) return movement_default_loop_handler(event);
             current_page = (current_page + SET_TIME_FACE_NUM_SETTINGS - 1) % SET_TIME_FACE_NUM_SETTINGS;
             *((uint8_t *)context) = current_page;
             break;

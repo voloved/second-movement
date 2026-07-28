@@ -719,15 +719,6 @@ bool movement_default_loop_handler(movement_event_t event) {
                 movement_move_to_face(0);
             }
             break;
-        case EVENT_START_LONG_PRESS:
-            if (can_go_to_teriary_face() ) {
-                if (movement_state.current_face_idx < (int16_t)MOVEMENT_TERIARY_FACE_INDEX) {
-                    go_to_teriary_face();
-                } else {
-                    movement_move_to_face(0);
-                }
-            }
-            break;
         case EVENT_MODE_LONG_PRESS:
             if (MOVEMENT_SECONDARY_FACE_INDEX && movement_state.current_face_idx == 0) {
                 movement_move_to_face(MOVEMENT_SECONDARY_FACE_INDEX);

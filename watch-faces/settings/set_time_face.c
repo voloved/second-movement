@@ -70,8 +70,40 @@ static void _handle_alarm_button(watch_date_time_t date_time, uint8_t current_pa
             date_time.unit.day = (date_time.unit.day % watch_utility_days_in_month(date_time.unit.month, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR)) + 1;
             break;
         case SET_TIME_TZ:
-            movement_set_timezone_index(movement_get_timezone_index() + 1);
-            if (movement_get_timezone_index() >= NUM_ZONE_NAMES) movement_set_timezone_index(0);
+            movement_set_timezone_index((movement_get_timezone_index() + 1) % NUM_ZONE_NAMES);
+            current_offset = movement_get_current_timezone_offset();
+            return;  // Don't reset the time when changing the timezone; we want UTZ time to stay the same so the hour can change.
+    }
+    movement_set_local_date_time(date_time);
+}
+
+static void _handle_start_button(watch_date_time_t date_time, uint8_t current_page) {
+    // handles short or long pressing of the start button, which just decrements the current setting
+
+    switch (current_page) {
+        case SET_TIME_HOUR:
+            date_time.unit.hour = (date_time.unit.hour + 24 - 1) % 24;
+            break;
+        case SET_TIME_MIN:
+            date_time.unit.minute = (date_time.unit.minute + 60 - 1) % 60;
+            break;
+        case SET_TIME_SEC:
+            date_time.unit.second = 30;
+            break;
+        case SET_TIME_YEAR:
+            date_time.unit.year = (date_time.unit.year + 60 - 1) % 60;
+            break;
+        case SET_TIME_MONTH:
+            date_time.unit.month = ((date_time.unit.month + 12 - 2) % 12) + 1;
+            break;
+        case SET_TIME_DAY:
+            {
+                uint8_t days_in_month = watch_utility_days_in_month(date_time.unit.month, date_time.unit.year + WATCH_RTC_REFERENCE_YEAR);
+                date_time.unit.day = ((date_time.unit.day + days_in_month - 2) % days_in_month) + 1;
+            }
+            break;
+        case SET_TIME_TZ:
+            movement_set_timezone_index((movement_get_timezone_index() + NUM_ZONE_NAMES - 1) % NUM_ZONE_NAMES);
             current_offset = movement_get_current_timezone_offset();
             return;  // Don't reset the time when changing the timezone; we want UTZ time to stay the same so the hour can change.
     }
@@ -107,10 +139,14 @@ bool set_time_face_loop(movement_event_t event, void *context) {
         case EVENT_TICK:
             if (_quick_ticks_running) {
                 if (HAL_GPIO_BTN_ALARM_read()) _handle_alarm_button(date_time, current_page);
+#ifdef FORCE_GSHOCK_LCD_TYPE
+                else if (HAL_GPIO_BTN_START_read()) _handle_start_button(date_time, current_page);
+#endif
                 else _abort_quick_ticks();
             }
             break;
         case EVENT_ALARM_LONG_PRESS:
+        case EVENT_START_LONG_PRESS:
             if (current_page != SET_TIME_SEC) {
                 _quick_ticks_running = true;
                 movement_request_tick_frequency(8);
@@ -126,12 +162,13 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             *((uint8_t *)context) = current_page;
             break;
         case EVENT_START_BUTTON_UP:
-            current_page = (current_page + SET_TIME_FACE_NUM_SETTINGS - 1) % SET_TIME_FACE_NUM_SETTINGS;
-            *((uint8_t *)context) = current_page;
+            _abort_quick_ticks();
+            _handle_start_button(date_time, current_page);
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (current_page != SET_TIME_TZ) break; // If not TZ page
-            _display_tz_offset = !_display_tz_offset;
+            if (current_page == SET_TIME_TZ) {
+                _display_tz_offset = !_display_tz_offset;
+            }
             break;
         case EVENT_ALARM_BUTTON_UP:
             _abort_quick_ticks();

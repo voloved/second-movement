@@ -2684,6 +2684,7 @@ void cb_accelerometer_lis2dux_event(void) {
 void cb_accelerometer_wake_event(void) {
 #ifdef I2C_SERCOM
     _awake_state_lis2dw = !HAL_GPIO_A4_read();
+    _movement_reset_inactivity_countdown();
 #endif
 }
 

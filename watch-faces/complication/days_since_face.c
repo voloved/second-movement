@@ -60,7 +60,6 @@ static void _days_since_face_update(days_since_state_t *state) {
     uint32_t julian_now_date = _days_since_face_juliandaynum(date_time.unit.year + WATCH_RTC_REFERENCE_YEAR, date_time.unit.month, date_time.unit.day);
     uint32_t julian_since_date = _days_since_face_juliandaynum(state->working_year, state->working_month, state->working_day);
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "DAY", "DA");
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     if (julian_now_date < julian_since_date) {
         sprintf(buf, "%6lu", julian_since_date - julian_now_date);
     } else {
@@ -138,6 +137,7 @@ bool days_since_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_ACTIVATE:
             _days_since_face_update(state);
+            gshock_display_current_time_top_right();
             break;
         case EVENT_LOW_ENERGY_UPDATE:
         case EVENT_TICK:
@@ -147,6 +147,11 @@ bool days_since_face_loop(movement_event_t event, void *context) {
                 } else {
                     _days_since_face_abort_quick_cycle(state);
                 }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+        case EVENT_MINUTE:
+            gshock_display_current_time_top_right();
+            break;
+#endif
             }
             switch (state->current_page) {
                 // if in settings mode, update whatever the current page is

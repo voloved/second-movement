@@ -29,42 +29,22 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
-#ifdef I2C_SERCOM
-    step_counter_face,
-#endif
-    fast_stopwatch_face,
-    countdown_face,
-#if !BUILD_TO_SHARE
-    cyclic_countdown_face,
-    voltage_face,
-#endif
-    advanced_alarm_face,
-    sunrise_sunset_face,
-    tally_face,
-    probability_face,
-    moon_phase_face,
-// Start of Secondary Faces
-    settings_face,
-    set_time_face,
-    voltage_face,
     temperature_logging_face,
-#ifdef HAS_IR_SENSOR
-    light_sensor_face,
-#endif
+    step_counter_face,
+    countdown_face,
+    fast_stopwatch_face,
+// Start of Secondary Faces
+    set_time_face,
+    settings_face,
+    voltage_face,
+    finetune_face,
+    nanosec_face,
 // Start of Teriary Faces
     blackjack_face,
-    ping_face,
     endless_runner_face,
-    wordle_face,
-    higher_lower_game_face,
-    lander_face,
+    ping_face,
     simon_face,
-#if BUILD_TO_SHARE
-    tarot_face,
-#else
-    party_face,
-    festival_schedule_face,
-#endif
+    days_since_face,
 };
 
 #define MOVEMENT_NUM_FACES (sizeof(watch_faces) / sizeof(watch_face_t))
@@ -76,17 +56,8 @@ const watch_face_t watch_faces[] = {
  * If you don't want any faces to be excluded, set this to 0 and a long Mode press will have no effect.
  */
 
-#if BUILD_TO_SHARE
-#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 8)
-#else
-#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 9)
-#endif
-
-#ifdef I2C_SERCOM
+#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 5)
 #define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 5) // or (0)
-#else
-#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 4) // or (0)
-#endif
 
 /* Custom hourly chime tune. Check movement_custom_signal_tunes.h for options. */
 #if BUILD_TO_SHARE

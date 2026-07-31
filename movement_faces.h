@@ -88,4 +88,6 @@
 #include "solar_time_face.h"
 #include "tide_face.h"
 #include "cyclic_countdown_face.h"
+#include "world_clock2_face.h"
+#include "hydration_face.h"
 // New includes go above this line.

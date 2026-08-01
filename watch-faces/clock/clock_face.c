@@ -250,36 +250,63 @@ static void display_steps(bool force_update, uint8_t seconds) {
             return;
         }
     }
-
-    if (step >= 300000000) {
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "OVFL", "OVFL");
-        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-        return;
-    }
-
+    
     char buf[4 + 1] = {0};
     bool text_changed = false;
     bool show_decimal = false;
-    snprintf(buf, sizeof(buf), "%4lu", step);
-
-    show_decimal = (step >= 3000 && step < 30000) || (step >= 300000 && step < 30000000);
-
-    if (step >= 300000 && step < 1000000) {
-        // show 1 digit
-        buf[2] = buf[0];
-        buf[1] = '0';
+    if (step <= 2999) { // 0 - 2999
+        buf[0] = '0' + (step / 1000);
+        buf[1] = '0' + ((step / 100) % 10);
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 10000) { // 3.0K - 9.9K
         buf[0] = ' ';
-    } else if ((step >= 3000 && step < 10000) || (step >= 30000 && step < 100000) ||
-        (step >= 300000 && step < 10000000) || (step >= 30000000 && step < 100000000)) {
-        // show 2 digits
-        buf[2] = buf[1];
-        buf[1] = buf[0];
-        buf[0] = ' ';
-    }
-    if (step >= 300000) {
-        buf[3] = 'M';
-    } else if (step >= 3000) {
+        buf[1] = '0' + (step / 1000);
+        buf[2] = '0' + ((step / 100) % 10);
         buf[3] = 'K';
+        show_decimal = true;
+    } else if (step < 30000) { // 10.0K - 29.9K
+        buf[0] = '0' + (step / 10000);
+        buf[1] = '0' + ((step / 1000) % 10);
+        buf[2] = '0' + ((step / 100) % 10);
+        buf[3] = 'K';
+        show_decimal = true;
+    } else if (step < 100000) { // 30K - 99K
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 10000);
+        buf[2] = '0' + ((step / 1000) % 10);
+        buf[3] = 'K';
+    } else if (step < 300000) { // 100K - 299K
+        buf[0] = '0' + (step / 100000);
+        buf[1] = '0' + ((step / 10000) % 10);
+        buf[2] = '0' + ((step / 1000) % 10);
+        buf[3] = 'K';
+    } else if (step < 10000000) { // 0.3M - 9.9M
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 1000000);
+        buf[2] = '0' + ((step / 100000) % 10);
+        buf[3] = 'M';
+        show_decimal = true;
+    } else if (step < 30000000) { // 10.0M - 29.9M
+        buf[0] = '0' + (step / 10000000);
+        buf[1] = '0' + ((step / 1000000) % 10);
+        buf[2] = '0' + ((step / 100000) % 10);
+        buf[3] = 'M';
+        show_decimal = true;
+    } else if (step < 100000000) { // 30M - 99M
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 10000000);
+        buf[2] = '0' + ((step / 1000000) % 10);
+        buf[3] = 'M';
+    } else if (step < 300000000) { // 100M - 299M
+        buf[0] = '0' + (step / 100000000);
+        buf[1] = '0' + ((step / 10000000) % 10);
+        buf[2] = '0' + ((step / 1000000) % 10);
+        buf[3] = 'M';
+    } else {
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "OVFL", "OVFL");
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        return;
     }
 
     if (buf[0] != _step_text_prev[0]) {

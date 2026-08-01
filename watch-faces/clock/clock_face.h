@@ -59,6 +59,8 @@ typedef struct {
     clock_rise_set_t rise_set_info;
     bool time_signal_enabled;
     bool battery_low;
+    bool showing_steps;
+    uint32_t steps_previous;
 } clock_state_t;
 
 void clock_face_setup(uint8_t watch_face_index, void ** context_ptr);

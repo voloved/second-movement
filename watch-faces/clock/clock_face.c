@@ -46,6 +46,7 @@
 #define CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD 2400
 #endif
 
+#define CLOCK_FACE_ALLOW_SHOWING_STEPS true // G-Shock only feature allowing steps to display after long-pressing the START button
 #define PRINT_TIME_DEBUG false
 
 static movement_location_t load_location_from_filesystem() {
@@ -221,25 +222,19 @@ static void clock_toggle_time_signal(clock_state_t *state) {
     clock_indicate_time_signal(state);
 }
 
-static uint32_t _steps;
-uint32_t movement_get_step_count1(void) {
-    _steps += 5300;
-    _steps *= 2;
-    return _steps;
-}
-
-static void display_steps(bool force_update, uint32_t steps_previous) {
-    uint32_t step = movement_get_step_count1();
-    printf("steps: %d\r\n", step);
-
-    if (!force_update && step == steps_previous) {
+uint32_t _steps_previous;
+static char _step_text_prev[4];
+static void display_steps(bool force_update) {
+    uint32_t step = movement_get_step_count();
+    if (!force_update && step == _steps_previous) {
         return;
     }
 
-    char buf[5] = {0};
+    char buf[4 + 1] = {0};
+    bool text_changed = false;
     bool show_decimal = false;
     if (step <= 2999) { // 0 - 2999
-        snprintf(buf, sizeof(buf), "%4u", step);
+        snprintf(buf, sizeof(buf), "%4lu", step);
     } else if (step < 10000) { // 3.0K - 9.9K
         buf[0] = ' ';
         buf[1] = '0' + (step / 1000);
@@ -288,6 +283,26 @@ static void display_steps(bool force_update, uint32_t steps_previous) {
     } else {
         watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "OVFL", "OVFL");
         watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        return;
+    }
+
+    if (buf[0] != _step_text_prev[0]) {
+        text_changed = true;
+        _step_text_prev[0] = buf[0];
+    }
+    if (buf[1] != _step_text_prev[1]) {
+        text_changed = true;
+        _step_text_prev[1] = buf[1];
+    }
+    if (buf[2] != _step_text_prev[2]) {
+        text_changed = true;
+        _step_text_prev[2] = buf[2];
+    }
+    if (buf[3] != _step_text_prev[3]) {
+        text_changed = true;
+        _step_text_prev[3] = buf[3];
+    }
+    if (!text_changed) {
         return;
     }
 
@@ -394,8 +409,8 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
         clock_display_all(current, state->showing_steps);
     }
     // Update the steps every 20 seconds
-    if (state->showing_steps && ((current.reg % 20) == 0)) {
-        display_steps(false, state->steps_previous);
+    if (state->showing_steps && ((current.unit.second % 20) == 0)) {
+        display_steps(false);
     }
 }
 
@@ -431,7 +446,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
 }
 
 static bool can_show_steps(void) {
-
+    if (!CLOCK_FACE_ALLOW_SHOWING_STEPS) return false;
     movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
     return when_to_count_steps != MOVEMENT_SC_NOT_INSTALLED && when_to_count_steps != MOVEMENT_SC_OFF && watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK;
 }
@@ -441,7 +456,7 @@ static void clock_toggle_showing_steps(clock_state_t *state) {
         state->showing_steps = !state->showing_steps;
         if (state->showing_steps) {
             watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
-            display_steps(true, 0);
+            display_steps(true);
         } else {
             watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
             clock_display_date(movement_get_local_date_time());
@@ -548,7 +563,11 @@ bool clock_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ACTIVATE:
             if (state->showing_steps) {
-                display_steps(true, state->steps_previous);
+                if (!can_show_steps()) {
+                    state->showing_steps = false;
+                } else {
+                    display_steps(true);
+                }
             }
             // fall-through
         case EVENT_TICK:

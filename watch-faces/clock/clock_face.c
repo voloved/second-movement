@@ -254,7 +254,22 @@ static void display_steps(bool force_update, uint8_t seconds) {
     char buf[4 + 1] = {0};
     bool text_changed = false;
     bool show_decimal = false;
-    if (step <= 2999) { // 0 - 2999
+    if (step < 10) { // 0 - 9
+        buf[0] = ' ';
+        buf[1] = ' ';
+        buf[2] = ' ';
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 100) { // 10 - 99
+        buf[0] = ' ';
+        buf[1] = ' ';
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 1000) { // 100 - 999
+        buf[0] = ' ';
+        buf[1] = '0' + ((step / 100) % 10);
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 3000) { // 0 - 2999
         buf[0] = '0' + (step / 1000);
         buf[1] = '0' + ((step / 100) % 10);
         buf[2] = '0' + ((step / 10) % 10);
@@ -325,7 +340,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
         text_changed = true;
         _step_text_prev[3] = buf[3];
     }
-    if (!text_changed) {
+    if (!force_update && !text_changed) {
         return;
     }
 

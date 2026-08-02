@@ -245,10 +245,10 @@ static void display_steps(bool force_update, uint8_t seconds) {
     }
     
     // We want to update the steps less often when the number gets larger
-    if (!force_update && step >= 3000) {
+    if (!force_update && step >= 3000 && _steps_previous >= 3000) {
         // No need to check under 3000, we want it to refresh every 5 seconds,
         // and that happens outside of this funciton
-        if (step < 30000) {
+        if (_steps_previous < 30000) {
             if ((seconds % 20) != 0) return;
         } else if ((seconds % 60) != 0) {
             return;
@@ -256,7 +256,6 @@ static void display_steps(bool force_update, uint8_t seconds) {
     }
     
     char buf[4 + 1] = {0};
-    bool text_changed = false;
     bool show_decimal = false;
     if (step < 10) { // 0 - 9
         buf[0] = ' ';
@@ -333,27 +332,27 @@ static void display_steps(bool force_update, uint8_t seconds) {
         watch_display_character_lp_seconds(buf[0], 10);
     }
     if (force_update || buf[1] != _step_text_prev[1]) {
-        text_changed = true;
         _step_text_prev[1] = buf[1];
         watch_display_character_lp_seconds(buf[1], 11);
     }
     if (force_update || buf[2] != _step_text_prev[2]) {
-        text_changed = true;
         _step_text_prev[2] = buf[2];
         watch_display_character_lp_seconds(buf[2], 2);
     }
     if (force_update || buf[3] != _step_text_prev[3]) {
-        text_changed = true;
         _step_text_prev[3] = buf[3];
         watch_display_character_lp_seconds(buf[3], 3);
     }
-    if (force_update || text_changed) {
+    bool prev_showed_decimal = (_steps_previous >= 3000 && _steps_previous < 30000) ||
+                                (_steps_previous >= 300000 && _steps_previous < 30000000);
+    if (force_update || prev_showed_decimal != show_decimal) {
         if (show_decimal) {
             watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
         } else {
             watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
         }
     }
+    _steps_previous = step;
 }
 
 static void clock_display_date(watch_date_time_t date_time) {

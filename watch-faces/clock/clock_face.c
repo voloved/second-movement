@@ -328,32 +328,32 @@ static void display_steps(bool force_update, uint8_t seconds) {
         return;
     }
 
-    if (buf[0] != _step_text_prev[0]) {
-        text_changed = true;
+    if (force_update || buf[0] != _step_text_prev[0]) {
         _step_text_prev[0] = buf[0];
+        watch_display_character_lp_seconds(buf[0], 10);
     }
-    if (buf[1] != _step_text_prev[1]) {
+    if (force_update || buf[1] != _step_text_prev[1]) {
         text_changed = true;
         _step_text_prev[1] = buf[1];
+        watch_display_character_lp_seconds(buf[1], 11);
     }
-    if (buf[2] != _step_text_prev[2]) {
+    if (force_update || buf[2] != _step_text_prev[2]) {
         text_changed = true;
         _step_text_prev[2] = buf[2];
+        watch_display_character_lp_seconds(buf[2], 2);
     }
-    if (buf[3] != _step_text_prev[3]) {
+    if (force_update || buf[3] != _step_text_prev[3]) {
         text_changed = true;
         _step_text_prev[3] = buf[3];
+        watch_display_character_lp_seconds(buf[3], 3);
     }
-    if (!force_update && !text_changed) {
-        return;
+    if (force_update || text_changed) {
+        if (show_decimal) {
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        } else {
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        }
     }
-
-    if (show_decimal) {
-        watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-    } else {
-        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-    }
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, buf, buf);
 }
 
 static void clock_display_date(watch_date_time_t date_time) {

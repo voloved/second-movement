@@ -46,6 +46,9 @@
 #define CLOCK_FACE_LOW_BATTERY_VOLTAGE_THRESHOLD 2400
 #endif
 
+#define CLOCK_FACE_SHOWING_STEPS_ALLOW true // G-Shock only feature allowing steps to display after long-pressing the START button
+#define CLOCK_FACE_SHOWING_STEPS_DAY  false // If showing steps, we show the day, rather than the weekday in the left-hand slot
+
 #define PRINT_TIME_DEBUG false
 
 static movement_location_t load_location_from_filesystem() {
@@ -221,31 +224,178 @@ static void clock_toggle_time_signal(clock_state_t *state) {
     clock_indicate_time_signal(state);
 }
 
-static void clock_display_all(watch_date_time_t date_time) {
+#if CLOCK_FACE_SHOWING_STEPS_DAY
+static void display_day_on_weekday_slot(watch_date_time_t date_time) {
+    char buf[3];
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+    snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%-2d", date_time.unit.day);
+#else
+    snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
+#endif
+    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf);
+}
+#endif
+
+uint32_t _steps_previous;
+static char _step_text_prev[4];
+static void display_steps(bool force_update, uint8_t seconds) {
+    uint32_t step = movement_get_step_count();
+    if (!force_update && step == _steps_previous) {
+        return;
+    }
+    
+    // We want to update the steps less often when the number gets larger
+    if (!force_update && step >= 3000 && _steps_previous >= 3000) {
+        // No need to check under 3000, we want it to refresh every 5 seconds,
+        // and that happens outside of this funciton
+        if (_steps_previous < 30000) {
+            if ((seconds % 20) != 0) return;
+        } else if ((seconds % 60) != 0) {
+            return;
+        }
+    }
+    
+    char buf[4 + 1] = {0};
+    bool show_decimal = false;
+    if (step < 10) { // 0 - 9
+        buf[0] = ' ';
+        buf[1] = ' ';
+        buf[2] = ' ';
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 100) { // 10 - 99
+        buf[0] = ' ';
+        buf[1] = ' ';
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 1000) { // 100 - 999
+        buf[0] = ' ';
+        buf[1] = '0' + ((step / 100) % 10);
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 3000) { // 0 - 2999
+        buf[0] = '0' + (step / 1000);
+        buf[1] = '0' + ((step / 100) % 10);
+        buf[2] = '0' + ((step / 10) % 10);
+        buf[3] = '0' + ((step) % 10);
+    } else if (step < 10000) { // 3.0K - 9.9K
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 1000);
+        buf[2] = '0' + ((step / 100) % 10);
+        buf[3] = 'K';
+        show_decimal = true;
+    } else if (step < 30000) { // 10.0K - 29.9K
+        buf[0] = '0' + (step / 10000);
+        buf[1] = '0' + ((step / 1000) % 10);
+        buf[2] = '0' + ((step / 100) % 10);
+        buf[3] = 'K';
+        show_decimal = true;
+    } else if (step < 100000) { // 30K - 99K
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 10000);
+        buf[2] = '0' + ((step / 1000) % 10);
+        buf[3] = 'K';
+    } else if (step < 300000) { // 100K - 299K
+        buf[0] = '0' + (step / 100000);
+        buf[1] = '0' + ((step / 10000) % 10);
+        buf[2] = '0' + ((step / 1000) % 10);
+        buf[3] = 'K';
+    } else if (step < 10000000) { // 0.3M - 9.9M
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 1000000);
+        buf[2] = '0' + ((step / 100000) % 10);
+        buf[3] = 'M';
+        show_decimal = true;
+    } else if (step < 30000000) { // 10.0M - 29.9M
+        buf[0] = '0' + (step / 10000000);
+        buf[1] = '0' + ((step / 1000000) % 10);
+        buf[2] = '0' + ((step / 100000) % 10);
+        buf[3] = 'M';
+        show_decimal = true;
+    } else if (step < 100000000) { // 30M - 99M
+        buf[0] = ' ';
+        buf[1] = '0' + (step / 10000000);
+        buf[2] = '0' + ((step / 1000000) % 10);
+        buf[3] = 'M';
+    } else if (step < 300000000) { // 100M - 299M
+        buf[0] = '0' + (step / 100000000);
+        buf[1] = '0' + ((step / 10000000) % 10);
+        buf[2] = '0' + ((step / 1000000) % 10);
+        buf[3] = 'M';
+    } else {
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "OVFL", "OVFL");
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        return;
+    }
+
+    if (force_update || buf[0] != _step_text_prev[0]) {
+        _step_text_prev[0] = buf[0];
+        watch_display_character_lp_seconds(buf[0], 10);
+    }
+    if (force_update || buf[1] != _step_text_prev[1]) {
+        _step_text_prev[1] = buf[1];
+        watch_display_character_lp_seconds(buf[1], 11);
+    }
+    if (force_update || buf[2] != _step_text_prev[2]) {
+        _step_text_prev[2] = buf[2];
+        watch_display_character_lp_seconds(buf[2], 2);
+    }
+    if (force_update || buf[3] != _step_text_prev[3]) {
+        _step_text_prev[3] = buf[3];
+        watch_display_character_lp_seconds(buf[3], 3);
+    }
+    bool prev_showed_decimal = (_steps_previous >= 3000 && _steps_previous < 30000) ||
+                                (_steps_previous >= 300000 && _steps_previous < 30000000);
+    if (force_update || prev_showed_decimal != show_decimal) {
+        if (show_decimal) {
+            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        } else {
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        }
+    }
+    _steps_previous = step;
+}
+
+static void clock_display_date(watch_date_time_t date_time) {
+    char buf[4 + 1];
+    clock_indicate(WATCH_INDICATOR_BOX_DASH, true);
+    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+    snprintf(
+        buf,
+        sizeof(buf),
+        (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+        date_time.unit.month
+    );
+    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+    snprintf(
+        buf,
+        sizeof(buf),
+#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+        (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+#else
+        (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+#endif
+        date_time.unit.day
+    );
+    watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+}
+
+static void clock_display_all(watch_date_time_t date_time, bool showing_steps) {
     char buf[6 + 1];
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
-    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        clock_indicate(WATCH_INDICATOR_BOX_DASH, true);
-        snprintf(
-            buf,
-            sizeof(buf),
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
-            date_time.unit.month
-        );
-        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
-        snprintf(
-            buf,
-            sizeof(buf),
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
+        if (!showing_steps) {
+            clock_display_date(date_time);
+#if CLOCK_FACE_SHOWING_STEPS_DAY
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+        } else {
+            display_day_on_weekday_slot(date_time);
+        }
 #else
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
+        }
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
 #endif
-            date_time.unit.day
-        );
-        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
     } else {
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
         snprintf(
             buf,
             sizeof(buf),
@@ -305,7 +455,11 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
             clock_indicate_pm(current);
             current = clock_24h_to_12h(current);
         }
-        clock_display_all(current);
+        clock_display_all(current, state->showing_steps);
+    }
+    // Update the steps every 20 seconds
+    if (state->showing_steps && ((current.unit.second % 5) == 0)) {
+        display_steps(false, current.unit.second);
     }
 }
 
@@ -319,24 +473,7 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        snprintf(
-            buf,
-            sizeof(buf),
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
-            date_time.unit.month
-        );
-        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
-        snprintf(
-            buf,
-            sizeof(buf),
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%-2d",
-#else
-            (movement_clock_has_leading_zeroes()) ? "%02d" : "%2d",
-#endif
-            date_time.unit.day
-        );
-        watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+        clock_display_date(date_time);
     } else {
         snprintf(
             buf,
@@ -357,7 +494,35 @@ static void clock_display_low_energy(watch_date_time_t date_time) {
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
-static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
+static bool can_show_steps(void) {
+    if (!CLOCK_FACE_SHOWING_STEPS_ALLOW) return false;
+    movement_step_count_option_t when_to_count_steps = movement_get_when_to_count_steps();
+    return when_to_count_steps != MOVEMENT_SC_NOT_INSTALLED && when_to_count_steps != MOVEMENT_SC_OFF && watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK;
+}
+
+static void clock_toggle_showing_steps(clock_state_t *state) {
+    if (can_show_steps()) {
+        state->showing_steps = !state->showing_steps;
+        if (state->showing_steps) {
+            watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
+            display_steps(true, 0);
+#if CLOCK_FACE_SHOWING_STEPS_DAY
+            display_day_on_weekday_slot(movement_get_local_date_time());
+#endif
+        } else {
+            watch_date_time_t current = movement_get_local_date_time();
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            clock_display_date(current);
+#if CLOCK_FACE_SHOWING_STEPS_DAY
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
+#endif
+        }
+    } else {
+        state->showing_steps = false;
+    }
+}
+
+static void clock_toggle_mode_displayed(watch_date_time_t date_time, bool update_date) {
     char buf[2 + 1];
     movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_LAST_CLOCK_MODE + 1);
     movement_set_clock_mode_24h(next_mode);
@@ -369,23 +534,25 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time) {
     clock_indicate(WATCH_INDICATOR_PM, indicate_pm);
     clock_indicate_24h();
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
-    if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        if (date_time.unit.month < 10) {
-            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.month);
-            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
-        }
-        if (date_time.unit.day < 10) {
-#ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
-            snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%-2d", date_time.unit.day);
-#else
+    if (update_date) {
+        if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
+            if (date_time.unit.month < 10) {
+                snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.month);
+                watch_display_text(WATCH_POSITION_MONTH_GSHOCK, buf);
+            }
+            if (date_time.unit.day < 10) {
+    #ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
+                snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%-2d", date_time.unit.day);
+    #else
+                snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
+    #endif
+                watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+            }
+        } else if (lcd_type == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {
             snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
-#endif
-            watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
         }
-    } else if (lcd_type == WATCH_LCD_TYPE_CUSTOM && date_time.unit.day < 10) {
-        snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.day);
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
-    } 
+    }
     snprintf(buf, sizeof(buf), movement_clock_has_leading_zeroes() ? "%02d" : "%2d", date_time.unit.hour);
     watch_display_text(WATCH_POSITION_HOURS, buf);
 }
@@ -447,10 +614,22 @@ bool clock_face_loop(movement_event_t event, void *context) {
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
             clock_start_tick_tock_animation();
+            // We don't show steps in sleep mode because they can't update in sleep mode. We show the date instead.
             clock_display_low_energy(movement_get_local_date_time());
             break;
-        case EVENT_TICK:
         case EVENT_ACTIVATE:
+            if (state->showing_steps) {
+                if (!can_show_steps()) {
+                    state->showing_steps = false;
+                } else {
+                    display_steps(true, 0);
+#if CLOCK_FACE_SHOWING_STEPS_DAY
+                    display_day_on_weekday_slot(movement_get_local_date_time());
+#endif
+                }
+            }
+            // fall-through
+        case EVENT_TICK:
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
 
@@ -472,12 +651,15 @@ bool clock_face_loop(movement_event_t event, void *context) {
                 go_to_teriary_face();
             }
             break;
+        case EVENT_START_LONG_PRESS:
+            clock_toggle_showing_steps(state);
+            break;
         case EVENT_ALARM_LONG_PRESS:
             clock_toggle_time_signal(state);
             break;
         case EVENT_ALARM_BUTTON_UP:
             if (movement_clock_mode_toggle()) {
-                clock_toggle_mode_displayed(movement_get_local_date_time());
+                clock_toggle_mode_displayed(movement_get_local_date_time(), !state->showing_steps);
             }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:

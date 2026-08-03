@@ -646,7 +646,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
             break;
         case EVENT_ALARM_REALLY_LONG_PRESS:
-            if (can_go_to_teriary_face()) {
+            if (watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK && can_go_to_teriary_face()) {
                 clock_toggle_time_signal(state);
                 go_to_teriary_face();
             }

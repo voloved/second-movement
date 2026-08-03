@@ -272,12 +272,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
         buf[1] = '0' + ((step / 100) % 10);
         buf[2] = '0' + ((step / 10) % 10);
         buf[3] = '0' + ((step) % 10);
-    } else if (step < 3000) { // 0 - 2999
-        buf[0] = '0' + (step / 1000);
-        buf[1] = '0' + ((step / 100) % 10);
-        buf[2] = '0' + ((step / 10) % 10);
-        buf[3] = '0' + ((step) % 10);
-    } else if (step < 10000) { // 3.0K - 9.9K
+    } else if (step < 10000) { // 1.0K - 9.9K
         buf[0] = ' ';
         buf[1] = '0' + (step / 1000);
         buf[2] = '0' + ((step / 100) % 10);

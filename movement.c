@@ -175,6 +175,7 @@ typedef enum {
     MOVEMENT_AWAKE_LIS2DW_JUST_WOKE,
     MOVEMENT_AWAKE_LIS2DW_FIRST_SECOND,
     MOVEMENT_AWAKE_LIS2DW_READY_TO_CLEAR_BUFFER,
+    MOVEMENT_AWAKE_LIS2DW_READY_TO_CHECKING_SPIKE,
     MOVEMENT_AWAKE_LIS2DW_COUNTING
 } movement_awake_state_lis2dw_t;
 
@@ -1743,13 +1744,22 @@ static uint8_t movement_count_new_steps_lis2dw(void)
         return new_steps;
     }
     if (_awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_READY_TO_CLEAR_BUFFER) {
-        _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_COUNTING;
+        _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_READY_TO_CHECKING_SPIKE;
         //_movement_reset_inactivity_countdown();  // Uncomment to reset sleep timeout whenever the watch starts moving.
         lis2dw_clear_fifo();  // likely stale data at this point.
         return new_steps;
     }
     lis2dw_fifo_t fifo = {0};
     lis2dw_read_fifo(&fifo, _step_fifo_timeout_lis2dw);
+    if (_awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_READY_TO_CHECKING_SPIKE) {
+#if COUNT_STEPS_USE_ESPRUINO
+        if (count_steps_ready_to_start_espruino(&fifo)) {
+            _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_COUNTING;
+        }
+        return new_steps;
+#endif
+        _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_COUNTING;
+    }
 #if COUNT_STEPS_USE_ESPRUINO
     new_steps = count_steps_espruino(&fifo);
 #else

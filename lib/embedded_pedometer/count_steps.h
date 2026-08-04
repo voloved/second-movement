@@ -7,6 +7,7 @@
 #define COUNT_STEPS_ESPRUINO_TIMEOUT_SEC 60
 
 uint32_t count_steps_approx_l2_norm(lis2dw_reading_t reading);
+uint32_t count_steps_approx_diff_norm(lis2dw_reading_t prev, lis2dw_reading_t current);
 uint8_t count_steps_simple(lis2dw_fifo_t *fifo_data);
 uint32_t get_steps_simple_threshold(void);
 
@@ -20,5 +21,6 @@ void count_steps_espruino_init(void);
  */
 
 uint8_t count_steps_espruino_sample(uint32_t accMag);
+uint8_t count_steps_ready_to_start_espruino(lis2dw_fifo_t *fifo_data);
 uint8_t count_steps_espruino(lis2dw_fifo_t *fifo_data);
 #endif /* count_steps_h */

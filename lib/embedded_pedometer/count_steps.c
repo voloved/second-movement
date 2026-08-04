@@ -13,7 +13,7 @@
 #define AVG_WINDOW_SIZE                 ((1 << AVG_WINDOW_SIZE_SHIFT) - 1)
 #define MAX_FIFO_SIZE_SIMPLE            13
 #define MAX_SIMPLE_STEPS                (MAX_FIFO_SIZE_SIMPLE / SIMPLE_SAMP_IGNORE_STEP)
-
+#define POWER_SAVE_MIN_ACCEL            1638  // min acceleration before we exit power save... (8192*0.2)
 
 static uint32_t step_counter_threshold = SIMPLE_THRESHOLD;
 
@@ -37,6 +37,26 @@ uint32_t count_steps_approx_l2_norm(lis2dw_reading_t reading)
     return ax + ((15 * ay) >> 4) + ((3 * az) >> 3);
 }
 
+/* Approximate L2 norm of the change between consecutive samples */
+uint32_t count_steps_approx_diff_norm(lis2dw_reading_t prev, lis2dw_reading_t current)
+{
+    int32_t dx = current.x - prev.x;
+    int32_t dy = current.y - prev.y;
+    int32_t dz = current.z - prev.z;
+    
+    /* Absolute values */
+    uint32_t ax = abs(dx);
+    uint32_t ay = abs(dy);
+    uint32_t az = abs(dz);
+
+    /* Sort so ax >= ay >= az */
+    if (ax < ay) { uint32_t t = ax; ax = ay; ay = t; }
+    if (ay < az) { uint32_t t = ay; ay = az; az = t; }
+    if (ax < ay) { uint32_t t = ax; ax = ay; ay = t; }
+
+    /* Approximate sqrt(dx² + dy² + dz²) */
+    return ax + ((15 * ay) >> 4) + ((3 * az) >> 3);
+}
 
 uint8_t count_steps_simple(lis2dw_fifo_t *fifo_data) {
     uint8_t new_steps = 0;
@@ -342,6 +362,17 @@ uint8_t count_steps_espruino_sample(uint32_t accMag) {
   return stepsCounted;
 }
 
+uint8_t count_steps_ready_to_start_espruino(lis2dw_fifo_t *fifo_data) {
+    uint32_t diff;
+    for (uint8_t i = 1; i < fifo_data->count; i++) {
+        diff = count_steps_approx_diff_norm(fifo_data->readings[i-1], fifo_data->readings[i]);
+        diff = diff << 1;
+        if (diff >= POWER_SAVE_MIN_ACCEL) {
+          return true;
+        }
+    }
+    return false;
+}
 
 uint8_t count_steps_espruino(lis2dw_fifo_t *fifo_data) {
     uint8_t new_steps = 0;

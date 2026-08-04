@@ -232,7 +232,7 @@ void cb_buzzer_stop(void);
 void cb_accelerometer_event(void);
 void cb_accelerometer_lis2dux_event(void);
 void cb_accelerometer_wake(void);
-void cb_accelerometer_wake_event(void);
+void cb_accelerometer_sleep_change_event(void);
 
 #if __EMSCRIPTEN__
 void yield(void) {
@@ -1602,7 +1602,7 @@ bool movement_enable_step_count(bool force_enable) {
         if (lis2dw_get_mode() != mode) return false;
         movement_set_accelerometer_motion_threshold(threshold);
         if (movement_get_accelerometer_motion_threshold() != threshold) return false;
-        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_BOTH);
+        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_sleep_change_event, INTERRUPT_TRIGGER_BOTH);
         lis2dw_enable_fifo();
         lis2dw_clear_fifo();
         movement_state.counting_steps = true;
@@ -1737,16 +1737,16 @@ static uint8_t movement_count_new_steps_lis2dw(void)
 {
     uint8_t new_steps = 0;
     if (movement_state.tick_frequency != 1)
-        return new_steps;
+        return 0;
     
     if (_awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_ASLEEP) {
-        return new_steps;
+        return 0;
     }
     if (_awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_READY_TO_CLEAR_BUFFER) {
         _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_COUNTING;
-        //_movement_reset_inactivity_countdown();  // Uncomment to reset sleep timeout whenever the watch starts moving.
+        _movement_reset_inactivity_countdown();
         lis2dw_clear_fifo();  // likely stale data at this point.
-        return new_steps;
+        return 0;
     }
     lis2dw_fifo_t fifo = {0};
     lis2dw_read_fifo(&fifo, _step_fifo_timeout_lis2dw);
@@ -2701,11 +2701,10 @@ void cb_accelerometer_lis2dux_event(void) {
     }
 }
 
-void cb_accelerometer_wake_event(void) {
+void cb_accelerometer_sleep_change_event(void) {
 #ifdef I2C_SERCOM
     _awake_state_lis2dw = HAL_GPIO_A4_read() ? MOVEMENT_AWAKE_LIS2DW_ASLEEP : MOVEMENT_AWAKE_LIS2DW_JUST_WOKE;
     _lis2dw_reinit_timer = _awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_ASLEEP ? COUNT_STEPS_ESPRUINO_TIMEOUT_SEC : -1;
-    _movement_reset_inactivity_countdown();
 #endif
 }
 

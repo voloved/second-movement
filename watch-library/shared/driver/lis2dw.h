@@ -364,6 +364,16 @@ void lis2dw_enable_stationary_motion_detection(void);
 
 void lis2dw_disable_stationary_motion_detection(void);
 
+bool lis2dw_get_stationary_motion_detection(void);
+
+void lis2dw_configure_sleep_duration(uint8_t threshold);
+
+uint8_t lis2dw_get_sleep_duration(void);
+
+void lis2dw_configure_wakeup_duration(uint8_t threshold);
+
+uint8_t lis2dw_get_wakeup_duration(void);
+
 void lis2dw_enable_tap_detection(void);
 
 void lis2dw_disable_tap_detection(void);

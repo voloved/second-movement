@@ -354,6 +354,50 @@ void lis2dw_disable_stationary_motion_detection(void) {
 #endif
 }
 
+bool lis2dw_get_stationary_motion_detection(void) {
+#ifdef I2C_SERCOM
+    return (watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR) & 0b10000) != 0;
+#else
+    return false;
+#endif
+}
+
+void lis2dw_configure_sleep_duration(uint8_t threshold) {
+#ifdef I2C_SERCOM
+    threshold = threshold & 0b1111;
+    uint8_t configuration = watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR) & 0b11110000;
+    watch_i2c_write8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR, configuration | threshold);
+#else
+    (void)threshold;
+#endif
+}
+
+uint8_t lis2dw_get_sleep_duration(void) {
+#ifdef I2C_SERCOM
+    return watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR) & 0b1111;
+#else
+    return 0;
+#endif
+}
+
+void lis2dw_configure_wakeup_duration(uint8_t threshold) {
+#ifdef I2C_SERCOM
+    threshold = threshold & 0b11;
+    uint8_t configuration = watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR) & 0b10011111;
+    watch_i2c_write8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR, configuration | (threshold << 5));
+#else
+    (void)threshold;
+#endif
+}
+
+uint8_t lis2dw_get_wakeup_duration(void) {
+#ifdef I2C_SERCOM
+    return (watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_DUR) & 0b01100000) >> 5;
+#else
+    return 0;
+#endif
+}
+
 void lis2dw_configure_wakeup_threshold(uint8_t threshold) {
 #ifdef I2C_SERCOM
     uint8_t configuration = watch_i2c_read8(LIS2DW_ADDRESS, LIS2DW_REG_WAKE_UP_THS) & 0b11000000;

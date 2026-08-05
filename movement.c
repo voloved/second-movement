@@ -181,7 +181,6 @@ typedef enum {
 static movement_awake_state_lis2dw_t _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_ASLEEP;
 static int8_t _lis2dw_reinit_timer = 0;  // We reset the espruino logic when this hits zero
 static uint16_t _step_count_prev_lis2dux = 0;  // When the LIS2DUX wakes, its step count resets. This value adds onto it if we get a lower step count
-static uint8_t _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT;
 
 #endif
 
@@ -612,11 +611,6 @@ void movement_request_tick_frequency(uint8_t freq) {
     // 0x01 (1 Hz) will have 7 leading zeros for PER7. 0x80 (128 Hz) will have no leading zeroes for PER0.
     uint8_t per_n = __builtin_clz(tmp);
 
-#ifdef I2C_SERCOM
-    // While we try to count steps when the tick faster than 1 second, it may be inaccurate since
-    // all 12-13 samples in the FIFO may not be read.
-    _step_fifo_timeout_lis2dw = LIS2DW_FIFO_TIMEOUT / freq;
-#endif
     movement_state.tick_frequency = freq;
     movement_state.tick_pern = per_n;
 
@@ -1749,7 +1743,7 @@ static uint8_t movement_count_new_steps_lis2dw(void)
         return 0;
     }
     lis2dw_fifo_t fifo = {0};
-    lis2dw_read_fifo(&fifo, _step_fifo_timeout_lis2dw);
+    lis2dw_read_fifo(&fifo);
 #if COUNT_STEPS_USE_ESPRUINO
     new_steps = count_steps_espruino(&fifo);
 #else

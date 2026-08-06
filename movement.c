@@ -174,14 +174,16 @@ typedef enum {
     MOVEMENT_AWAKE_LIS2DW_ASLEEP = 0,
     MOVEMENT_AWAKE_LIS2DW_JUST_WOKE,
     MOVEMENT_AWAKE_LIS2DW_FIRST_SECOND,
+    MOVEMENT_AWAKE_LIS2DW_SECOND_SECOND,
     MOVEMENT_AWAKE_LIS2DW_READY_TO_CLEAR_BUFFER,
     MOVEMENT_AWAKE_LIS2DW_COUNTING
 } movement_awake_state_lis2dw_t;
 
 static movement_awake_state_lis2dw_t _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_ASLEEP;
-static int8_t _lis2dw_reinit_timer = 0;  // We reset the espruino logic when this hits zero
 static uint16_t _step_count_prev_lis2dux = 0;  // When the LIS2DUX wakes, its step count resets. This value adds onto it if we get a lower step count
-
+#if COUNT_STEPS_USE_ESPRUINO
+static int8_t _lis2dw_reinit_timer = 0;  // We reset the espruino logic when this hits zero
+#endif
 #endif
 
 static uint32_t _total_step_count = 0;
@@ -231,7 +233,8 @@ void cb_buzzer_stop(void);
 void cb_accelerometer_event(void);
 void cb_accelerometer_lis2dux_event(void);
 void cb_accelerometer_wake(void);
-void cb_accelerometer_sleep_change_event(void);
+void cb_accelerometer_sleep_event(void);
+void cb_accelerometer_wake_event(void);
 
 #if __EMSCRIPTEN__
 void yield(void) {
@@ -1177,6 +1180,7 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
 }
 
 movement_step_count_option_t movement_get_when_to_count_steps(void) {
+    // return MOVEMENT_SC_ALWAYS;  // Uncomment to force step counting at all times in testing
     if (movement_state.has_lis2dw || movement_state.has_lis2dux) return movement_state.settings.when_to_count_steps;
     return MOVEMENT_SC_NOT_INSTALLED;
 }
@@ -1382,6 +1386,7 @@ bool movement_disable_tap_detection_if_available(void) {
 #ifdef I2C_SERCOM
     if (movement_state.has_lis2dw) {
         movement_state.count_steps_keep_off = false;
+        lis2dw_configure_int1(LIS2DW_CTRL4_INT1_WU);
         // Ramp data rate back down to the usual lowest rate to save power.
         lis2dw_set_low_noise_mode(false);
         lis2dw_set_data_rate(movement_state.accelerometer_background_rate);
@@ -1580,8 +1585,17 @@ bool movement_enable_step_count(bool force_enable) {
         lis2dw_range_t range = LIS2DW_RANGE_4_G;
         lis2dw_mode_t mode = LIS2DW_MODE_LOW_POWER;
         uint8_t threshold = 2;  // 0.06Gs; Used to see if the watch is awake.
+        uint8_t wakeup_duration = 3; // In terms of 1/ODR (so 3 is 3 * 1 / 12.5 = 240ms)
+        uint8_t sleep_duration = 0; // In terms of 512/ODR (so 0 is 16 / 12.5 = 1.28s)
 
-        lis2dw_set_low_noise_mode(low_noise);  // Inntesting, this didn't read back True after setting ever...so we're not checking it
+        lis2dw_enable_stationary_motion_detection();
+        lis2dw_configure_int1(LIS2DW_CTRL4_INT1_WU);
+        if (!lis2dw_get_stationary_motion_detection()) return false;
+        lis2dw_configure_wakeup_duration(wakeup_duration);
+        if (lis2dw_get_wakeup_duration() != wakeup_duration) return false;
+        lis2dw_configure_sleep_duration(sleep_duration);
+        if (lis2dw_get_sleep_duration() != sleep_duration) return false;
+        lis2dw_set_low_noise_mode(low_noise);  // In testing, this didn't read back True after setting ever...so we're not checking it
         movement_set_accelerometer_background_rate(data_rate);
         if (lis2dw_get_data_rate() != data_rate) return false;
         lis2dw_set_filter_type(filter_type);
@@ -1596,7 +1610,8 @@ bool movement_enable_step_count(bool force_enable) {
         if (lis2dw_get_mode() != mode) return false;
         movement_set_accelerometer_motion_threshold(threshold);
         if (movement_get_accelerometer_motion_threshold() != threshold) return false;
-        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_sleep_change_event, INTERRUPT_TRIGGER_BOTH);
+        watch_register_interrupt_callback(HAL_GPIO_A3_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_RISING);
+        watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_sleep_event, INTERRUPT_TRIGGER_RISING);
         lis2dw_enable_fifo();
         lis2dw_clear_fifo();
         movement_state.counting_steps = true;
@@ -1751,6 +1766,7 @@ static uint8_t movement_count_new_steps_lis2dw(void)
 #endif
     _total_step_count += new_steps;
     lis2dw_clear_fifo();
+    // printf("Steps: %lu\r\n", _total_step_count);
     return new_steps;
 }
 #endif
@@ -1803,14 +1819,6 @@ uint32_t movement_get_step_count(void) {
 */
 #endif
     return _total_step_count;
-}
-
-uint8_t movement_get_lis2dw_awake(void) {
-#ifdef I2C_SERCOM
-    return (uint8_t)_awake_state_lis2dw;
-#else
-    return 0;
-#endif
 }
 
 uint16_t movement_watch_get_vcc_voltage(void) {
@@ -2105,25 +2113,22 @@ void app_setup(void) {
             lis2dw_configure_6d_threshold(3);               // 0-3 is 80, 70, 60, or 50 degrees. 50 is least precise, hopefully most sensitive?
 
             // set up interrupts:
-            // INT1 is wired to pin A3. We'll configure the accelerometer to output an interrupt on INT1 when it detects an orientation change.
-            /// TODO: We had routed this interrupt to TC2 to count orientation changes, but TC2 consumed too much power.
-            /// Orientation changes helped with sleep tracking; would love to bring this back if we can find a low power solution.
-            /// For now, commenting these lines out; check commit 27f0c629d865f4bc56bc6e678da1eb8f4b919093 for power-hungry but working code.
-            // lis2dw_configure_int1(LIS2DW_CTRL4_INT1_6D);
-            // HAL_GPIO_A3_in();
+            // INT1 is wired to pin A3. We'll configure the accelerometer to output an interrupt on INT1 when it detects the wake-up event
+            lis2dw_configure_int1(LIS2DW_CTRL4_INT1_WU);
+            HAL_GPIO_A3_in();
 
             // next: INT2 is wired to pin A4. We'll configure the accelerometer to output the sleep state on INT2.
-            // a falling edge on INT2 indicates the accelerometer has woken up.
-            lis2dw_configure_int2(LIS2DW_CTRL5_INT2_SLEEP_STATE | LIS2DW_CTRL5_INT2_SLEEP_CHG);
+            // a rising edge on INT2 indicates the accelerometer has gone to sleep.
+            lis2dw_configure_int2(LIS2DW_CTRL5_INT2_SLEEP_CHG | LIS2DW_CTRL5_INT2_SLEEP_STATE);
             HAL_GPIO_A4_in();
 
             // Wake on motion seemed like a good idea when the threshold was lower, but the UX makes less sense now.
             // Still if you want to wake on motion, you can do it by uncommenting this line:
-            // watch_register_extwake_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake, false);
+            watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_sleep_event, INTERRUPT_TRIGGER_RISING);
 
             // later on, we are going to use INT1 for tap detection. We'll set up that interrupt here,
-            // but it will only fire once tap recognition is enabled.
-            watch_register_interrupt_callback(HAL_GPIO_A3_pin(), cb_accelerometer_event, INTERRUPT_TRIGGER_RISING);
+            // it's also used for WU interrupts whenever not used for tapping.
+            watch_register_interrupt_callback(HAL_GPIO_A3_pin(), cb_accelerometer_wake_event, INTERRUPT_TRIGGER_RISING);
 
             // Enable the interrupts...
             lis2dw_enable_interrupts();
@@ -2695,15 +2700,26 @@ void cb_accelerometer_lis2dux_event(void) {
     }
 }
 
-void cb_accelerometer_sleep_change_event(void) {
+void cb_accelerometer_sleep_event(void) {
 #ifdef I2C_SERCOM
-    _awake_state_lis2dw = HAL_GPIO_A4_read() ? MOVEMENT_AWAKE_LIS2DW_ASLEEP : MOVEMENT_AWAKE_LIS2DW_JUST_WOKE;
-    _lis2dw_reinit_timer = _awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_ASLEEP ? COUNT_STEPS_ESPRUINO_TIMEOUT_SEC : -1;
+    _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_ASLEEP;
+#if COUNT_STEPS_USE_ESPRUINO
+    _lis2dw_reinit_timer = COUNT_STEPS_ESPRUINO_TIMEOUT_SEC;
+#endif
+#endif
+}
+
+void cb_accelerometer_wake_event(void) {
+#ifdef I2C_SERCOM
+    _awake_state_lis2dw = MOVEMENT_AWAKE_LIS2DW_JUST_WOKE;
+#if COUNT_STEPS_USE_ESPRUINO
+    _lis2dw_reinit_timer = -1;
+#endif
 #endif
 }
 
 void cb_accelerometer_wake(void) {
     movement_volatile_state.pending_events |= 1 << EVENT_ACCELEROMETER_WAKE;
     // also: wake up!
-    _movement_reset_inactivity_countdown();
+    movement_request_wake();
 }

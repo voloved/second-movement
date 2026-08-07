@@ -2098,7 +2098,7 @@ void app_setup(void) {
             lis2dw_set_low_power_mode(LIS2DW_LP_MODE_1);    // lowest power mode, 12-bit
             lis2dw_set_low_noise_mode(false);               // low noise mode raises power consumption slightly; we don't need it
             lis2dw_enable_stationary_motion_detection();    // stationary/motion detection mode keeps the data rate at 1.6 Hz even in sleep
-            lis2dw_configure_wakeup_duration(3);            // In terms of 1/ODR (so 3 is 3 * 1 / 12.5 = 240ms)
+            lis2dw_configure_wake_duration(3);            // In terms of 1/ODR (so 3 is 3 * 1 / 12.5 = 240ms)
             lis2dw_configure_sleep_duration(0);             // In terms of 512/ODR (so 0 is 16 * 1 / 12.5 = 1.28s)
             lis2dw_set_range(LIS2DW_RANGE_2_G);             // Application note AN5038 recommends 2g range
             lis2dw_enable_sleep();                          // allow acceleromter to sleep and wake on activity

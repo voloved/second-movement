@@ -2118,10 +2118,6 @@ void app_setup(void) {
             lis2dw_configure_int2(LIS2DW_CTRL5_INT2_SLEEP_STATE | LIS2DW_CTRL5_INT2_SLEEP_CHG);
             HAL_GPIO_A4_in();
 
-            // Wake on motion seemed like a good idea when the threshold was lower, but the UX makes less sense now.
-            // Still if you want to wake on motion, you can do it by uncommenting this line:
-            // watch_register_extwake_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake, false);
-
             // later on, we are going to use INT1 for tap detection. We'll set up that interrupt here,
             // but it will only fire once tap recognition is enabled.
             watch_register_interrupt_callback(HAL_GPIO_A3_pin(), cb_accelerometer_event, INTERRUPT_TRIGGER_RISING);
@@ -2233,6 +2229,13 @@ static void _sleep_mode_app_loop(void) {
 }
 
 #endif
+
+// True if wake-on-motion is active and the accelerometer currently reports motion.
+static bool _movement_accelerometer_in_motion(void) {
+    if (!movement_state.has_lis2dw) return false;
+    if (movement_state.accelerometer_background_rate == LIS2DW_DATA_RATE_POWERDOWN) return false;
+    return !(HAL_GPIO_A4_read());  // Alternatively, you can use lis2dw_get_wakeup_source() & LIS2DW_WAKEUP_SRC_SLEEP_STATE, but a digital read is cheaper than a serial call.
+}
 
 static bool _switch_face(void) {
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
@@ -2416,6 +2419,14 @@ bool app_loop(void) {
     }
 
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
+    // Wake-on-motion: if the countdown expired but the accelerometer still reports
+    // motion, restart the countdown and stay awake instead of sleeping.
+    if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing &&
+        _movement_accelerometer_in_motion()) {
+        movement_volatile_state.enter_sleep_mode = false;
+        movement_volatile_state.enter_deep_sleep_mode = false;
+        _movement_reset_inactivity_countdown();
+    }
     if (movement_volatile_state.enter_deep_sleep_mode) {
         movement_volatile_state.enter_deep_sleep_mode = false;
         movement_begin_deep_sleep();
@@ -2447,6 +2458,14 @@ bool app_loop(void) {
         if (movement_state.tap_enabled) {
             movement_disable_tap_detection_if_available();
             movement_state.tap_enabled = true; // This is to come back and reset it on wake
+        }
+        if (movement_state.has_lis2dw) {
+            movement_set_accelerometer_background_rate(LIS2DW_DATA_RATE_LOWEST);
+            lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
+            lis2dw_configure_int2(LIS2DW_CTRL5_INT2_SLEEP_STATE | LIS2DW_CTRL5_INT2_SLEEP_CHG);
+            lis2dw_configure_wakeup_threshold(8);  // 8 is around 0.25g
+            delay_ms(50);
+            watch_register_interrupt_callback(HAL_GPIO_A4_pin(), cb_accelerometer_wake, INTERRUPT_TRIGGER_FALLING);
         }
 #endif
 
@@ -2706,5 +2725,5 @@ void cb_accelerometer_sleep_change_event(void) {
 void cb_accelerometer_wake(void) {
     movement_volatile_state.pending_events |= 1 << EVENT_ACCELEROMETER_WAKE;
     // also: wake up!
-    _movement_reset_inactivity_countdown();
+    movement_request_wake();
 }

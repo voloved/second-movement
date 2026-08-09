@@ -213,6 +213,7 @@ const watch_face_t watch_faces[] = {
 
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C
 #define MOVEMENT_HOURS_BEFORE_DEEPSLEEP 5
+#define MOVEMENT_WAKE_ON_MOTION true
 
 /* Optionally debounce button presses (disable by default).
  * A value of 4 is a good starting point if you have issues

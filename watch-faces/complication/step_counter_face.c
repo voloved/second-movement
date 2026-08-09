@@ -25,11 +25,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "step_counter_face.h"
+#include "watch_utility.h"
 
 #if BUILD_TO_SHARE
 #define STEP_COUNTER_DISPLAY_NO_STEP_DAYS true
+#define HOUR_FOR_STEPS_TO_RESET 3
 #else
 #define STEP_COUNTER_DISPLAY_NO_STEP_DAYS false
+#define HOUR_FOR_STEPS_TO_RESET 0
 #endif
 #define STEP_COUNTER_MINUTES_NO_ACTIVITY_RESIGN 5
 #define STEP_COUNTER_MINUTES_SEC_BEFORE_START 2
@@ -64,7 +67,10 @@ static uint16_t display_step_count_now(bool sensor_seen, bool in_low_batt) {
 }
 
 static void _step_counter_face_log_data(step_counter_state_t *logger_state, uint32_t step_count) {
-    watch_date_time_t date_time = movement_get_local_date_time();
+    // Because we want to display the previous day, we get the previous day by getting the date at 11:59 of that day.
+    unix_timestamp_t timestamp = movement_get_utc_timestamp();
+    timestamp -= ((HOUR_FOR_STEPS_TO_RESET * 3600) + 60);
+    watch_date_time_t date_time = watch_utility_date_time_from_unix_time(timestamp, movement_get_current_timezone_offset());
     size_t pos = logger_state->data_points % STEP_COUNTER_NUM_DATA_POINTS;
 
 #ifdef FORCE_GSHOCK_LCD_TYPE
@@ -278,7 +284,6 @@ movement_watch_face_advisory_t step_counter_face_advise(void *context) {
     (void) context;
     movement_watch_face_advisory_t retval = { 0 };
     watch_date_time_t date_time = movement_get_local_date_time();
-    // To reset the step count at midnight (or 11:59 as a hack to retain the current day's data)
-    retval.wants_background_task = (date_time.unit.hour == 23 && date_time.unit.minute == 59);
+    retval.wants_background_task = (date_time.unit.hour == HOUR_FOR_STEPS_TO_RESET && date_time.unit.minute == 0);
     return retval;
 }

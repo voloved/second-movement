@@ -1173,8 +1173,21 @@ void movement_set_button_volume(watch_buzzer_volume_t value) {
 watch_buzzer_volume_t movement_signal_volume(void) {
     return movement_state.settings.signal_volume;
 }
+
 void movement_set_signal_volume(watch_buzzer_volume_t value) {
     movement_state.settings.signal_volume = value;
+}
+
+bool movement_wake_on_motion_allowed(void) {
+    return MOVEMENT_WAKE_ON_MOTION && movement_state.has_lis2dw;
+}
+
+bool movement_get_wake_on_motion(void) {
+    return movement_state.settings.wake_on_motion;
+}
+
+void movement_set_wake_on_motion(bool value) {
+    movement_state.settings.wake_on_motion = value;
 }
 
 movement_step_count_option_t movement_get_when_to_count_steps(void) {
@@ -2230,14 +2243,12 @@ static void _sleep_mode_app_loop(void) {
 
 #endif
 
-#if MOVEMENT_WAKE_ON_MOTION
 // True if wake-on-motion is active and the accelerometer currently reports motion.
 static bool _movement_accelerometer_in_motion(void) {
     if (!movement_state.has_lis2dw) return false;
     if (movement_state.accelerometer_background_rate == LIS2DW_DATA_RATE_POWERDOWN) return false;
     return !(HAL_GPIO_A4_read());  // Alternatively, you can use lis2dw_get_wakeup_source() & LIS2DW_WAKEUP_SRC_SLEEP_STATE, but a digital read is cheaper than a serial call.
 }
-#endif
 
 static bool _switch_face(void) {
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
@@ -2421,16 +2432,14 @@ bool app_loop(void) {
     }
 
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
-#if MOVEMENT_WAKE_ON_MOTION
     // Wake-on-motion: if the countdown expired but the accelerometer still reports
     // motion, restart the countdown and stay awake instead of sleeping.
     if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing &&
-        _movement_accelerometer_in_motion()) {
+        (movement_get_wake_on_motion() || movement_state.counting_steps) && _movement_accelerometer_in_motion()) {
         movement_volatile_state.enter_sleep_mode = false;
         movement_volatile_state.enter_deep_sleep_mode = false;
         _movement_reset_inactivity_countdown();
     }
-#endif
     if (movement_volatile_state.enter_deep_sleep_mode) {
         movement_volatile_state.enter_deep_sleep_mode = false;
         movement_begin_deep_sleep();
@@ -2464,7 +2473,7 @@ bool app_loop(void) {
             movement_state.tap_enabled = true; // This is to come back and reset it on wake
         }
 #if MOVEMENT_WAKE_ON_MOTION
-        if (movement_state.has_lis2dw) {
+        if (movement_state.has_lis2dw && movement_get_wake_on_motion()) {
             movement_set_accelerometer_background_rate(LIS2DW_DATA_RATE_LOWEST);
             lis2dw_set_mode(LIS2DW_MODE_LOW_POWER);
             lis2dw_configure_int2(LIS2DW_CTRL5_INT2_SLEEP_STATE | LIS2DW_CTRL5_INT2_SLEEP_CHG);

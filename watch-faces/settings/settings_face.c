@@ -295,6 +295,24 @@ static void step_counter_setting_advance(void) {
     movement_set_when_to_count_steps(next_mode);
 }
 
+static void wake_on_motion_setting_display(uint8_t subsecond) {
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "LE", "LE", "LE");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_BOTTOM, "motion", "motion", "motion");
+    if (subsecond % 2) {
+        if (movement_get_wake_on_motion()) {
+            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "  On", " Y", " Y");
+        } else {
+            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, " OFF", " N", " N");
+        }
+    } else {
+        watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "    ", "  ", "  ");
+    }
+}
+
+static void wake_on_motion_setting_advance(void) {
+    movement_set_wake_on_motion(!movement_get_wake_on_motion());
+}
+
 static void led_duration_setting_display(uint8_t subsecond) {
     char buf[8];
 
@@ -448,6 +466,16 @@ void settings_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         state->settings_screens[current_setting].advance = low_energy_deep_sleep_setting_advance;
         state->screen_off_screen = current_setting;
         current_setting++;
+        (void)wake_on_motion_setting_display;
+        (void)wake_on_motion_setting_advance;
+#ifdef I2C_SERCOM
+        if (movement_wake_on_motion_allowed()) {
+            state->settings_screens[current_setting].display = wake_on_motion_setting_display;
+            state->settings_screens[current_setting].advance = wake_on_motion_setting_advance;
+            state->num_settings++;
+            current_setting++;
+        }
+#endif
 #endif
         state->settings_screens[current_setting].display = hourly_chime_setting_display;
         state->settings_screens[current_setting].advance = hourly_chime_setting_advance;

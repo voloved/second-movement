@@ -115,7 +115,8 @@ typedef struct {
         uint8_t clock_mode_toggle : 1;      // If true, then pressing the alarm button toggles 24H mode
         uint8_t use_imperial_units : 1;     // indicates whether to use metric units (the default) or imperial.
         uint8_t hourly_chime_times : 2;     // The timespan when hourly chime occurs. Either Always, 8am-8pn, or when the sun is out
-        uint8_t when_to_count_steps : 4;
+        uint8_t when_to_count_steps : 3;
+        uint8_t wake_on_motion : 1;
 } __attribute__((packed)) movement_settings_t;
 
 // movement_location_t is for storing the wearer's location. This will be useful for astronomical calculations such as
@@ -468,6 +469,10 @@ void movement_set_button_volume(watch_buzzer_volume_t value);
 
 watch_buzzer_volume_t movement_signal_volume(void);
 void movement_set_signal_volume(watch_buzzer_volume_t value);
+
+bool movement_wake_on_motion_allowed(void);
+bool movement_get_wake_on_motion(void);
+void movement_set_wake_on_motion(bool value);
 
 movement_step_count_option_t movement_get_when_to_count_steps(void);
 void movement_set_when_to_count_steps(movement_step_count_option_t value);

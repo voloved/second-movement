@@ -456,6 +456,11 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
     if (state->showing_steps && ((current.unit.second % 5) == 0)) {
         display_steps(false, current.unit.second);
     }
+    else if (state->showing_steps && current.unit.minute  == 0 && current.unit.second  == 1) {
+        // A bit of a hack, but step counter is able to reset the steps at the background event on the hour after the tick event.
+        // This refreshes the steps on the very next second.
+        display_steps(false, current.unit.second);
+    }
 }
 
 static void clock_display_low_energy(watch_date_time_t date_time) {

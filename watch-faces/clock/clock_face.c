@@ -338,7 +338,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
         _step_text_prev[3] = buf[3];
         watch_display_character_lp_seconds(buf[3], 3);
     }
-    bool prev_showed_decimal = (_steps_previous >= 3000 && _steps_previous < 30000) ||
+    bool prev_showed_decimal = (_steps_previous >= 1000 && _steps_previous < 30000) ||
                                 (_steps_previous >= 300000 && _steps_previous < 30000000);
     if (force_update || prev_showed_decimal != show_decimal) {
         clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, show_decimal);

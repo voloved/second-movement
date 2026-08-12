@@ -318,7 +318,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
         buf[3] = 'M';
     } else {
         watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "OVFL", "OVFL");
-        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, false);
         return;
     }
 
@@ -341,11 +341,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
     bool prev_showed_decimal = (_steps_previous >= 3000 && _steps_previous < 30000) ||
                                 (_steps_previous >= 300000 && _steps_previous < 30000000);
     if (force_update || prev_showed_decimal != show_decimal) {
-        if (show_decimal) {
-            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-        } else {
-            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-        }
+        clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, show_decimal);
     }
     _steps_previous = step;
 }
@@ -353,7 +349,7 @@ static void display_steps(bool force_update, uint8_t seconds) {
 static void clock_display_date(watch_date_time_t date_time) {
     char buf[4 + 1];
     clock_indicate(WATCH_INDICATOR_BOX_DASH, true);
-    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+    clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, false);
     snprintf(
         buf,
         sizeof(buf),
@@ -504,14 +500,14 @@ static void clock_toggle_showing_steps(clock_state_t *state) {
     if (can_show_steps()) {
         state->showing_steps = !state->showing_steps;
         if (state->showing_steps) {
-            watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
+            clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
             display_steps(true, 0);
 #if CLOCK_FACE_SHOWING_STEPS_DAY
             display_day_on_weekday_slot(movement_get_local_date_time());
 #endif
         } else {
             watch_date_time_t current = movement_get_local_date_time();
-            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, false);
             clock_display_date(current);
 #if CLOCK_FACE_SHOWING_STEPS_DAY
             watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
@@ -597,6 +593,7 @@ void clock_face_activate(void *context) {
     clock_indicate_24h();
 
     watch_set_colon();
+    clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
 
     // this ensures that none of the timestamp fields will match, so we can re-render them all.
     state->date_time.previous.reg = 0xFFFFFFFF;

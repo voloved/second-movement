@@ -47,7 +47,13 @@
 #endif
 
 #define CLOCK_FACE_SHOWING_STEPS_ALLOW true // G-Shock only feature allowing steps to display after long-pressing the START button
-#define CLOCK_FACE_SHOWING_STEPS_DAY  false // If showing steps, we show the day, rather than the weekday in the left-hand slot
+
+// If showing steps, we show the day, rather than the weekday in the left-hand slot
+#if BUILD_TO_SHARE
+#define CLOCK_FACE_SHOWING_STEPS_DAY false
+#else
+#define CLOCK_FACE_SHOWING_STEPS_DAY true
+#endif
 
 #define PRINT_TIME_DEBUG false
 

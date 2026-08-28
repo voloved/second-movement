@@ -81,6 +81,26 @@
 #define WATCH_OPTICAL_RX_ENABLE_PIN          IR_ENABLE
 #define WATCH_OPTICAL_RX_ENABLE_ACTIVE_LOW   1
 
+#elif defined(BOARD_sensorwatch_jolt)
+/* Sensor Watch Jolt (Casio DW5600 G-Shock mainboard):
+ *   TX: PB22 (white LED, named RED in pins.h), mux C -> SERCOM0 PAD[2]
+ *   RX: PB01 (IRSENSE), mux C -> SERCOM3 PAD[3]
+ *   Phototransistor bias enable on PB02 (IR_ENABLE), active-low.
+ * NB: the Jolt's LED is wired inverted for PWM (WATCH_INVERT_LED_POLARITY),
+ * but that does not affect the link: in IrDA mode the SERCOM's SIR encoder
+ * fixes the line polarity itself, so no per-board polarity knob is needed. */
+#define HAS_OPTICAL_LINK
+#define WATCH_OPTICAL_TX_SERCOM              0
+#define WATCH_OPTICAL_TX_PAD                 2
+#define WATCH_OPTICAL_TX_PIN                 RED
+#define WATCH_OPTICAL_TX_PMUX                HAL_GPIO_PMUX_SERCOM
+#define WATCH_OPTICAL_RX_SERCOM              3
+#define WATCH_OPTICAL_RX_PAD                 3
+#define WATCH_OPTICAL_RX_PIN                 IRSENSE
+#define WATCH_OPTICAL_RX_PMUX                HAL_GPIO_PMUX_SERCOM
+#define WATCH_OPTICAL_RX_ENABLE_PIN          IR_ENABLE
+#define WATCH_OPTICAL_RX_ENABLE_ACTIVE_LOW   1
+
 /* New boards go above this line. */
 #endif
 

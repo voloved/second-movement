@@ -388,17 +388,24 @@ bool firmware_flasher_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_LONG_PRESS:
             // A long Light press toggles the settings lock, but only from the
             // menu (the link must not be active). Unlocking reveals the parameter
-            // pages and jumps to the first (baud) page; re-locking resets every
-            // option to its default and returns to the flash page.
+            // pages and jumps to the first (baud) page; re-locking
+            // returns to the flash page.
             if (state->phase == IR_FLASHER_PHASE_MENU) {
                 if (!state->settings_unlocked) {
                     state->settings_unlocked = true;
                     state->menu_index = IR_FLASHER_MENU_RX_BAUD;
                 } else {
-                    set_defaults(state);
                     state->settings_unlocked = false;
                     state->menu_index = IR_FLASHER_MENU_FLASH;
                 }
+                render_menu(state);
+            }
+            break;
+
+        case EVENT_START_BUTTON_UP:
+            // A START press in the settings resets every option
+            if (state->phase == IR_FLASHER_PHASE_MENU && state->settings_unlocked) {
+                set_defaults(state);
                 render_menu(state);
             }
             break;

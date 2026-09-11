@@ -29,11 +29,11 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
+    fast_stopwatch_face,
+    countdown_face,
 #ifdef I2C_SERCOM
     step_counter_face,
 #endif
-    fast_stopwatch_face,
-    countdown_face,
 #if !BUILD_TO_SHARE
     cyclic_countdown_face,
     voltage_face,

@@ -47,14 +47,6 @@
 #endif
 
 #define CLOCK_FACE_SHOWING_STEPS_ALLOW true // G-Shock only feature allowing steps to display after long-pressing the START button
-
-// If showing steps, we show the day, rather than the weekday in the left-hand slot
-#if BUILD_TO_SHARE
-#define CLOCK_FACE_SHOWING_STEPS_DAY false
-#else
-#define CLOCK_FACE_SHOWING_STEPS_DAY true
-#endif
-
 #define PRINT_TIME_DEBUG false
 
 static movement_location_t load_location_from_filesystem() {
@@ -230,7 +222,6 @@ static void clock_toggle_time_signal(clock_state_t *state) {
     clock_indicate_time_signal(state);
 }
 
-#if CLOCK_FACE_SHOWING_STEPS_DAY
 static void display_day_on_weekday_slot(watch_date_time_t date_time) {
     char buf[3];
 #ifdef MOVEMENT_GSHOCK_DAY_JUSTIFY_LEFT
@@ -240,7 +231,6 @@ static void display_day_on_weekday_slot(watch_date_time_t date_time) {
 #endif
     watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, buf, buf);
 }
-#endif
 
 uint32_t _steps_previous;
 static char _step_text_prev[4];
@@ -376,21 +366,20 @@ static void clock_display_date(watch_date_time_t date_time) {
     watch_display_text(WATCH_POSITION_DAY_GSHOCK, buf);
 }
 
-static void clock_display_all(watch_date_time_t date_time, bool showing_steps) {
+static void clock_display_all(watch_date_time_t date_time, bool showing_steps, bool showing_steps_day) {
     char buf[6 + 1];
     watch_lcd_type_t lcd_type = watch_get_lcd_type();
     if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        if (!showing_steps) {
-            clock_display_date(date_time);
-#if CLOCK_FACE_SHOWING_STEPS_DAY
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+        if (showing_steps) {
+            if (showing_steps_day) {
+                display_day_on_weekday_slot(date_time);
+            } else {
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
+            }
         } else {
-            display_day_on_weekday_slot(date_time);
+            clock_display_date(date_time);
+            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
         }
-#else
-        }
-        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
-#endif
     } else {
         watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(date_time), watch_utility_get_weekday(date_time));
         snprintf(
@@ -452,7 +441,7 @@ static void clock_display_clock(clock_state_t *state, watch_date_time_t current)
             clock_indicate_pm(current);
             current = clock_24h_to_12h(current);
         }
-        clock_display_all(current, state->showing_steps);
+        clock_display_all(current, state->showing_steps, state->showing_steps_day);
     }
     // Update the steps every 20 seconds
     if (state->showing_steps && ((current.unit.second % 5) == 0)) {
@@ -505,19 +494,21 @@ static bool can_show_steps(void) {
 static void clock_toggle_showing_steps(clock_state_t *state) {
     if (can_show_steps()) {
         state->showing_steps = !state->showing_steps;
+        watch_date_time_t current = movement_get_local_date_time();
         if (state->showing_steps) {
             clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
             display_steps(true, 0);
-#if CLOCK_FACE_SHOWING_STEPS_DAY
-            display_day_on_weekday_slot(movement_get_local_date_time());
-#endif
+            if (state->showing_steps_day) {
+                display_day_on_weekday_slot(current);
+            } else {
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
+            }
         } else {
-            watch_date_time_t current = movement_get_local_date_time();
             clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, false);
             clock_display_date(current);
-#if CLOCK_FACE_SHOWING_STEPS_DAY
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
-#endif
+            if (state->showing_steps_day) {
+                watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
+            }
         }
     } else {
         state->showing_steps = false;
@@ -585,6 +576,7 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
         memset(*context_ptr, 0, sizeof(clock_state_t));
         clock_state_t *state = (clock_state_t *) *context_ptr;
         state->time_signal_enabled = true;
+        state->showing_steps_day = false;
         state->watch_face_index = watch_face_index;
     }
 }
@@ -626,9 +618,9 @@ bool clock_face_loop(movement_event_t event, void *context) {
                     state->showing_steps = false;
                 } else {
                     display_steps(true, 0);
-#if CLOCK_FACE_SHOWING_STEPS_DAY
-                    display_day_on_weekday_slot(movement_get_local_date_time());
-#endif
+                    if (state->showing_steps_day) {
+                        display_day_on_weekday_slot(movement_get_local_date_time());
+                    }
                 }
             }
             // fall-through
@@ -654,6 +646,19 @@ bool clock_face_loop(movement_event_t event, void *context) {
                 go_to_teriary_face();
             }
             break;
+        case EVENT_START_REALLY_LONG_PRESS:
+            if (!can_show_steps()) break;
+            state->showing_steps_day = !state->showing_steps_day;
+            if (state->showing_steps) {
+                current = movement_get_local_date_time();
+                if (state->showing_steps_day) {
+                    display_day_on_weekday_slot(current);
+                } else {
+                    watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
+                }
+                break;
+            }
+            // fall through
         case EVENT_START_LONG_PRESS:
             clock_toggle_showing_steps(state);
             break;

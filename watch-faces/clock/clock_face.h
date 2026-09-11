@@ -60,6 +60,7 @@ typedef struct {
     bool time_signal_enabled;
     bool battery_low;
     bool showing_steps;
+    bool showing_steps_day;  // If showing steps, we show the day, rather than the weekday in the left-hand slot
 } clock_state_t;
 
 void clock_face_setup(uint8_t watch_face_index, void ** context_ptr);

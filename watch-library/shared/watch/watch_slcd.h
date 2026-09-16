@@ -67,7 +67,8 @@ typedef enum {
 
     // These are G-Shock Specific Inidcators
     WATCH_INDICATOR_SINGLE_QUOTE,   ///< Top-right of hour digit
-    WATCH_INDICATOR_DOUBLE_QUOTE,   ///< Top-right of minutes digit
+    WATCH_INDICATOR_DOUBLE_QUOTE_LEFT,  ///< Top-right of minutes digit
+    WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT,  ///< Top-right of minutes digit
     WATCH_INDICATOR_BOX_DASH,      ///< In the Date box between the colon
     WATCH_INDICATOR_BOX_COLON_TOP,  ///< In the Date box
     WATCH_INDICATOR_BOX_COLON_BOTTOM, ///< In the Date box

@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-uint8_t IndicatorSegments[13] = {
+uint8_t IndicatorSegments[14] = {
     SLCD_SEGID(0, 17), // WATCH_INDICATOR_SIGNAL
     SLCD_SEGID(0, 16), // WATCH_INDICATOR_BELL
     SLCD_SEGID(2, 17), // WATCH_INDICATOR_PM
@@ -44,7 +44,8 @@ uint8_t IndicatorSegments[13] = {
 
     // Placeholders for indicators avaialbe only for G-Shock display
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_SINGLE_QUOTE (does not exist, will set in SDATAL4 which is harmless)
-    SLCD_SEGID(4, 0),  // WATCH_INDICATOR_DOUBLE_QUOTE (does not exist, will set in SDATAL4 which is harmless)
+    SLCD_SEGID(4, 0),  // WATCH_INDICATOR_DOUBLE_QUOTE_LEFT (does not exist, will set in SDATAL4 which is harmless)
+    SLCD_SEGID(4, 0),  // WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_BOX_DASH (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0),  // WATCH_INDICATOR_BOX_COLON_TOP (does not exist, will set in SDATAL4 which is harmless)
     SLCD_SEGID(4, 0)   // WATCH_INDICATOR_BOX_COLON_BOTTOM (does not exist, will set in SDATAL4 which is harmless)
@@ -508,7 +509,8 @@ void watch_set_all_indicators(void) {
     watch_set_indicator(WATCH_INDICATOR_SLEEP);
     watch_set_indicator(WATCH_INDICATOR_COLON);
     watch_set_indicator(WATCH_INDICATOR_SINGLE_QUOTE);
-    watch_set_indicator(WATCH_INDICATOR_DOUBLE_QUOTE);
+    watch_set_indicator(WATCH_INDICATOR_DOUBLE_QUOTE_LEFT);
+    watch_set_indicator(WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT);
     watch_set_indicator(WATCH_INDICATOR_BOX_DASH);
     watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
     watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
@@ -525,7 +527,8 @@ void watch_clear_all_indicators(void) {
     watch_clear_indicator(WATCH_INDICATOR_SLEEP);
     watch_clear_indicator(WATCH_INDICATOR_COLON);
     watch_clear_indicator(WATCH_INDICATOR_SINGLE_QUOTE);
-    watch_clear_indicator(WATCH_INDICATOR_DOUBLE_QUOTE);
+    watch_clear_indicator(WATCH_INDICATOR_DOUBLE_QUOTE_LEFT);
+    watch_clear_indicator(WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT);
     watch_clear_indicator(WATCH_INDICATOR_BOX_DASH);
     watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
     watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
@@ -555,9 +558,10 @@ void _watch_update_indicator_segments_gshock(void) {
         IndicatorSegments[ 6] = SLCD_SEGID(0, 12); // WATCH_INDICATOR_SLEEP
         IndicatorSegments[ 7] = SLCD_SEGID(2, 26); // WATCH_INDICATOR_COLON
         IndicatorSegments[ 8] = SLCD_SEGID(0, 26); // WATCH_INDICATOR_SINGLE_QUOTE
-        IndicatorSegments[ 9] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_DOUBLE_QUOTE
-        IndicatorSegments[10] = SLCD_SEGID(2,  5); // WATCH_INDICATOR_BOX_DASH
-        IndicatorSegments[11] = SLCD_SEGID(3,  5); // WATCH_INDICATOR_BOX_COLON_TOP
-        IndicatorSegments[12] = SLCD_SEGID(1,  4); // WATCH_INDICATOR_BOX_COLON_BOTTOM
+        IndicatorSegments[ 9] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_DOUBLE_QUOTE_LEFT
+        IndicatorSegments[10] = SLCD_SEGID(0, 16); // WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT
+        IndicatorSegments[11] = SLCD_SEGID(2,  5); // WATCH_INDICATOR_BOX_DASH
+        IndicatorSegments[12] = SLCD_SEGID(3,  5); // WATCH_INDICATOR_BOX_COLON_TOP
+        IndicatorSegments[13] = SLCD_SEGID(1,  4); // WATCH_INDICATOR_BOX_COLON_BOTTOM
     }
 }

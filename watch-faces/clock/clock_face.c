@@ -496,9 +496,6 @@ static void clock_toggle_showing_steps(clock_state_t *state) {
         state->showing_steps = !state->showing_steps;
         watch_date_time_t current = movement_get_local_date_time();
         if (state->showing_steps) {
-#if !BUILD_TO_SHARE
-            movement_enable_step_count_multiple_attempts(3, false);
-#endif
             clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
             display_steps(true, 0);
             if (state->showing_steps_day) {
@@ -507,9 +504,6 @@ static void clock_toggle_showing_steps(clock_state_t *state) {
                 watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, watch_utility_get_long_weekday(current), watch_utility_get_weekday(current));
             }
         } else {
-#if !BUILD_TO_SHARE
-            movement_disable_step_count(false);
-#endif
             clock_indicate(WATCH_INDICATOR_BOX_COLON_BOTTOM, false);
             clock_display_date(current);
             if (state->showing_steps_day) {

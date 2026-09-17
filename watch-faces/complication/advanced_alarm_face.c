@@ -40,6 +40,14 @@ typedef enum {
     alarm_setting_idx_count,
 } alarm_setting_idx_t;
 
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+static const movement_event_type_t btn_alarm_map = EVENT_LIGHT_BUTTON_DOWN;
+static const movement_event_type_t btn_light_map = EVENT_ALARM_BUTTON_DOWN;
+#else
+static const movement_event_type_t btn_alarm_map = EVENT_ALARM_BUTTON_DOWN;
+static const movement_event_type_t btn_light_map = EVENT_LIGHT_BUTTON_DOWN;
+#endif
+
 static const char _dow_strings_classic[ALARM_DAY_STATES + 1][2] ={"AL",  "MO",  "TU",  "WE",  "TH",  "FR",  "SA",  "SU",  "ED",  "1t",  "MF",  "WN",  "WD"};
 static const char _dow_strings_custom[ALARM_DAY_STATES + 1][3] ={ "AL ", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN", "DAY", "1t ", "M-F", "WKD", "WRK"};
 static const uint8_t _beeps_blink_idx = 9;
@@ -381,7 +389,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
     case EVENT_ACTIVATE:
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
-    case EVENT_LIGHT_BUTTON_UP:
+    case btn_light_map + 1:
         if (!state->is_setting) {
             // stop wait ticks counter
             _wait_ticks = -1;
@@ -396,14 +404,14 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
             _alarm_resume_setting(state, event.subsecond);
         }
         break;
-    case EVENT_LIGHT_LONG_PRESS:
+    case btn_light_map + 2:
         if (state->is_setting) {
             _alarm_resume_setting(state, event.subsecond);
         } else {
             _alarm_initiate_setting(state, event.subsecond);
         }
         break;
-    case EVENT_ALARM_BUTTON_UP:
+    case btn_alarm_map + 1:
         if (!state->is_setting) {
             // stop wait ticks counter
             _wait_ticks = -1;
@@ -502,7 +510,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         }
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
-    case EVENT_ALARM_LONG_PRESS:
+    case btn_alarm_map + 2:
         if (!state->is_setting) {
             // toggle the enabled flag for current alarm
             state->alarm[state->alarm_idx].enabled ^= 1;
@@ -523,7 +531,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         }
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
-    case EVENT_ALARM_LONG_UP:
+    case btn_alarm_map + 3:
     case EVENT_START_LONG_UP:
         if (state->is_setting) {
             if (state->setting_state == alarm_setting_idx_hour || state->setting_state == alarm_setting_idx_minute)

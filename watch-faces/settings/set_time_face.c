@@ -138,26 +138,42 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             if (_quick_ticks_running) {
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+                if (HAL_GPIO_BTN_LIGHT_read()) _handle_alarm_button(date_time, current_page);
+#else
                 if (HAL_GPIO_BTN_ALARM_read()) _handle_alarm_button(date_time, current_page);
+#endif
 #ifdef FORCE_GSHOCK_LCD_TYPE
                 else if (HAL_GPIO_BTN_START_read()) _handle_start_button(date_time, current_page);
 #endif
                 else _abort_quick_ticks();
             }
             break;
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+        case EVENT_LIGHT_LONG_PRESS:
+#else
         case EVENT_ALARM_LONG_PRESS:
+#endif
         case EVENT_START_LONG_PRESS:
             if (current_page != SET_TIME_SEC) {
                 _quick_ticks_running = true;
                 movement_request_tick_frequency(8);
             }
             break;
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+        case EVENT_LIGHT_LONG_UP:
+#else
         case EVENT_ALARM_LONG_UP:
+#endif
             _abort_quick_ticks();
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             break;
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+        case EVENT_ALARM_BUTTON_UP:
+#else
         case EVENT_LIGHT_BUTTON_UP:
+#endif
             current_page = (current_page + 1) % SET_TIME_FACE_NUM_SETTINGS;
             *((uint8_t *)context) = current_page;
             break;
@@ -165,12 +181,20 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             _abort_quick_ticks();
             _handle_start_button(date_time, current_page);
             break;
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+        case EVENT_ALARM_LONG_PRESS:
+#else
         case EVENT_LIGHT_LONG_PRESS:
+#endif
             if (current_page == SET_TIME_TZ) {
                 _display_tz_offset = !_display_tz_offset;
             }
             break;
+#if !BUILD_TO_SHARE && defined(FORCE_GSHOCK_LCD_TYPE)
+        case EVENT_LIGHT_BUTTON_UP:
+#else
         case EVENT_ALARM_BUTTON_UP:
+#endif
             _abort_quick_ticks();
             _handle_alarm_button(date_time, current_page);
             break;

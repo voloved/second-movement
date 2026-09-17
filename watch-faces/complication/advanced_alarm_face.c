@@ -301,6 +301,13 @@ void advanced_alarm_face_setup(uint8_t watch_face_index, void **context_ptr) {
             _buzzer_segdata[1][1] = 5;
             _buzzer_segdata[2][0] = 3;
             _buzzer_segdata[2][1] = 10;
+        } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+            _buzzer_segdata[0][0] = 3;
+            _buzzer_segdata[0][1] = 13;
+            _buzzer_segdata[1][0] = 1;
+            _buzzer_segdata[1][1] = 14;
+            _buzzer_segdata[2][0] = 0;
+            _buzzer_segdata[2][1] = 13;
         }
     }
 }

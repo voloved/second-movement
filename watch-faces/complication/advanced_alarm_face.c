@@ -448,10 +448,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         break;
     case EVENT_START_BUTTON_UP:
         if (!state->is_setting) {
-            // stop wait ticks counter
-            _wait_ticks = -1;
-            // cycle through the alarms
-            state->alarm_idx = (state->alarm_idx + ALARM_ALARMS - 1) % (ALARM_ALARMS);
+            movement_move_to_previous_face();
         } else {
             // handle the settings behaviour
             switch (state->setting_state) {

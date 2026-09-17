@@ -446,6 +446,65 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         }
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
+    case EVENT_START_BUTTON_UP:
+        if (!state->is_setting) {
+            // stop wait ticks counter
+            _wait_ticks = -1;
+            // cycle through the alarms
+            state->alarm_idx = (state->alarm_idx + ALARM_ALARMS - 1) % (ALARM_ALARMS);
+        } else {
+            // handle the settings behaviour
+            switch (state->setting_state) {
+            case alarm_setting_idx_day:
+                // day selection
+                state->alarm[state->alarm_idx].day = (state->alarm[state->alarm_idx].day + ALARM_DAY_STATES - 1) % (ALARM_DAY_STATES);
+                break;
+            case alarm_setting_idx_hour:
+                // hour selection
+                _abort_quick_ticks(state);
+                state->alarm[state->alarm_idx].hour = (state->alarm[state->alarm_idx].hour + 24 - 1) % 24;
+                break;
+            case alarm_setting_idx_minute:
+                // minute selection
+                _abort_quick_ticks(state);
+                state->alarm[state->alarm_idx].minute = (state->alarm[state->alarm_idx].minute + 60 - 1) % 60;
+                break;
+            case alarm_setting_idx_pitch:
+                // pitch level
+                state->alarm[state->alarm_idx].pitch = (state->alarm[state->alarm_idx].pitch + 3 - 1) % 3;
+                // play sound to show user what this is for
+                _alarm_indicate_beep(state);
+                break;
+            case alarm_setting_idx_beeps:
+                // number of beeping rounds selection
+                state->alarm[state->alarm_idx].beeps = (state->alarm[state->alarm_idx].beeps + ALARM_MAX_BEEP_ROUNDS - 1) % ALARM_MAX_BEEP_ROUNDS;
+                // play sounds when user reaches 'short' length and also one time on regular beep length
+                if (state->alarm[state->alarm_idx].beeps <= 1) _alarm_indicate_beep(state);
+                break;
+            default:
+                break;
+            }
+            // auto enable an alarm if user sets anything
+            state->alarm[state->alarm_idx].enabled = true;
+        }
+        _advanced_alarm_face_draw(state, event.subsecond);
+        break;
+    case EVENT_START_LONG_PRESS:
+        if (state->is_setting) {
+            // handle the long press settings behaviour
+            switch (state->setting_state) {
+            case alarm_setting_idx_minute:
+            case alarm_setting_idx_hour:
+                // initiate fast cycling for hour or minute settings
+                movement_request_tick_frequency(8);
+                state->alarm_quick_ticks = true;
+                break;
+            default:
+                break;
+            }
+        }
+        _advanced_alarm_face_draw(state, event.subsecond);
+        break;
     case EVENT_ALARM_LONG_PRESS:
         if (!state->is_setting) {
             // toggle the enabled flag for current alarm
@@ -468,6 +527,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
         _advanced_alarm_face_draw(state, event.subsecond);
         break;
     case EVENT_ALARM_LONG_UP:
+    case EVENT_START_LONG_UP:
         if (state->is_setting) {
             if (state->setting_state == alarm_setting_idx_hour || state->setting_state == alarm_setting_idx_minute)
                 _abort_quick_ticks(state);

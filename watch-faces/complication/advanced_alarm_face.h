@@ -80,6 +80,7 @@ typedef struct {
     uint8_t setting_state : 3;
     int8_t alarm_handled_minute;
     bool alarm_quick_ticks : 1;
+    bool start_quick_ticks : 1;
     bool is_setting : 1;
     alarm_setting_t alarm[ALARM_ALARMS];
 } alarm_state_t;

@@ -127,7 +127,7 @@ static void _advanced_alarm_face_draw(alarm_state_t *state, uint8_t subsecond) {
     }
 
     // blink items if in settings mode
-    bool blinking = state->is_setting && subsecond % 2 && state->setting_state < alarm_setting_idx_pitch && !state->alarm_quick_ticks;
+    bool blinking = state->is_setting && subsecond % 2 && state->setting_state < alarm_setting_idx_pitch && !state->alarm_quick_ticks && !state->start_quick_ticks;
     sprintf(buf, "%2d", (state->alarm_idx + 1));
     watch_display_text(WATCH_POSITION_TOP_RIGHT, buf);
     if (state->setting_state == alarm_setting_idx_day && blinking) {
@@ -265,9 +265,10 @@ static void _alarm_indicate_beep(alarm_state_t *state) {
 
 static void _abort_quick_ticks(alarm_state_t *state) {
     // abort counting quick ticks
-    if (state->alarm_quick_ticks) {
+    if (state->alarm_quick_ticks || state->start_quick_ticks) {
         state->alarm[state->alarm_idx].enabled = true;
         state->alarm_quick_ticks = false;
+        state->start_quick_ticks = false;
         movement_request_tick_frequency(4);
     }
 }
@@ -315,6 +316,7 @@ void advanced_alarm_face_resign(void *context) {
     _alarm_update_alarm_enabled(state);
     watch_set_led_off();
     state->alarm_quick_ticks = false;
+    state->start_quick_ticks = false;
     _wait_ticks = -1;
     movement_request_tick_frequency(1);
 }
@@ -363,12 +365,14 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
     case EVENT_TICK:
-        if (state->alarm_quick_ticks) {
+        if (state->alarm_quick_ticks || state->start_quick_ticks) {
             // we are in fast cycling mode
             if (state->setting_state == alarm_setting_idx_hour) {
-                        state->alarm[state->alarm_idx].hour = (state->alarm[state->alarm_idx].hour + 1) % 24;
+                        uint8_t increment = state->start_quick_ticks ? 23 : 1;
+                        state->alarm[state->alarm_idx].hour = (state->alarm[state->alarm_idx].hour + increment) % 24;
             } else if (state->setting_state == alarm_setting_idx_minute) {
-                        state->alarm[state->alarm_idx].minute = (state->alarm[state->alarm_idx].minute + 1) % 60;
+                        uint8_t increment = state->start_quick_ticks ? 59 : 1;
+                        state->alarm[state->alarm_idx].minute = (state->alarm[state->alarm_idx].minute + increment) % 60;
             } else _abort_quick_ticks(state);
         } else if (!state->is_setting) {
             if (_wait_ticks >= 0) _wait_ticks++;
@@ -502,7 +506,7 @@ bool advanced_alarm_face_loop(movement_event_t event, void *context) {
             case alarm_setting_idx_hour:
                 // initiate fast cycling for hour or minute settings
                 movement_request_tick_frequency(8);
-                state->alarm_quick_ticks = true;
+                state->start_quick_ticks = true;
                 break;
             default:
                 break;

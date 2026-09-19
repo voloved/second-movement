@@ -92,5 +92,7 @@
 #include "cyclic_countdown_face.h"
 #include "world_clock2_face.h"
 #include "hydration_face.h"
+#if !BUILD_TO_SHARE
 #include "pet_face.h"
+#endif
 // New includes go above this line.

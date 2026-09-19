@@ -54,8 +54,11 @@ const watch_face_t watch_faces[] = {
 #endif
 // Start of Teriary Faces
     blackjack_face,
-    ping_face,
+#if !BUILD_TO_SHARE
+    pet_face,
+#endif
     endless_runner_face,
+    ping_face,
     wordle_face,
     higher_lower_game_face,
     lander_face,

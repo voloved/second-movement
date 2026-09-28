@@ -191,6 +191,25 @@ static void settings_increment(countdown_state_t *state) {
     return;
 }
 
+static void settings_decrement(countdown_state_t *state) {
+    switch(state->selection) {
+        case 0:
+            state->hours = (state->hours + 23) % 24;
+            break;
+        case 1:
+            state->minutes = (state->minutes + 59) % 60;
+            break;
+        case 2:
+            state->seconds = (state->seconds + 59) % 60;
+            break;
+        default:
+            // should never happen
+            break;
+    }
+    return;
+}
+
+
 void countdown_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
 
@@ -237,6 +256,10 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             if (quick_ticks_running) {
                 if (HAL_GPIO_BTN_ALARM_read())
                     settings_increment(state);
+#ifdef FORCE_GSHOCK_LCD_TYPE
+                else if (HAL_GPIO_BTN_START_read())
+                    settings_decrement(state);
+#endif
                 else
                     abort_quick_ticks(state);
             }
@@ -352,6 +375,20 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_LONG_UP:
             abort_quick_ticks(state);
+            break;
+        case EVENT_START_BUTTON_UP:
+            if (state->mode == cd_setting) {
+                settings_decrement(state);
+            } else {
+                movement_move_to_previous_face();
+            }
+            break;
+        case EVENT_START_LONG_PRESS:
+            if (state->mode == cd_setting) {
+                // long press in settings mode starts quick ticks for adjusting the time
+                quick_ticks_running = true;
+                movement_request_tick_frequency(8);
+            } 
             break;
         case EVENT_BACKGROUND_TASK:
             times_up(state);

@@ -632,8 +632,16 @@ static const digit_mapping_t *_pet_display_mapping(void)
 {
     // UNKNOWN (an autodetect build sitting on USB) falls back to classic, which is
     // what watch_display_character() does with the same question.
-    return watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM ? Custom_LCD_Display_Mapping
-                                                         : Classic_LCD_Display_Mapping;
+    switch (watch_get_lcd_type())
+    {
+    case WATCH_LCD_TYPE_GSHOCK:
+        return GShock_LCD_Display_Mapping;
+    case WATCH_LCD_TYPE_CUSTOM:
+        return Custom_LCD_Display_Mapping;
+    case WATCH_LCD_TYPE_CLASSIC:
+    default:
+        return Classic_LCD_Display_Mapping;
+    }
 }
 
 static void _pet_draw(pet_state_t *s)

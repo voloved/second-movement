@@ -470,6 +470,9 @@ void movement_set_button_volume(watch_buzzer_volume_t value);
 watch_buzzer_volume_t movement_signal_volume(void);
 void movement_set_signal_volume(watch_buzzer_volume_t value);
 
+bool movement_has_thermistor(void);
+void movement_toggle_using_thermistor(void);
+
 bool movement_wake_on_motion_allowed(void);
 bool movement_get_wake_on_motion(void);
 void movement_set_wake_on_motion(bool value);

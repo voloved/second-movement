@@ -1178,6 +1178,19 @@ void movement_set_signal_volume(watch_buzzer_volume_t value) {
     movement_state.settings.signal_volume = value;
 }
 
+bool movement_has_thermistor(void) {
+    return movement_state.has_thermistor;
+}
+
+void movement_toggle_using_thermistor(void) {
+    if (movement_state.has_thermistor) {
+        thermistor_driver_disable();
+        movement_state.has_thermistor = false;
+    } else {
+        movement_state.has_thermistor = thermistor_driver_init();
+    }
+}
+
 bool movement_wake_on_motion_allowed(void) {
     return MOVEMENT_WAKE_ON_MOTION && movement_state.has_lis2dw;
 }

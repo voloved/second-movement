@@ -154,6 +154,18 @@ static void _temperature_logging_face_update_display(temperature_logging_state_t
     }
 }
 
+static void display_using_thermistor(void) {
+#if !BUILD_TO_SHARE
+    if (movement_has_thermistor()) {
+        watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+    } else {
+        watch_set_indicator(WATCH_INDICATOR_SLEEP);
+    }
+#else
+    return;
+#endif
+}
+
 void temperature_logging_face_setup(uint8_t watch_face_index, void ** context_ptr) {
     (void) watch_face_index;
 
@@ -197,12 +209,19 @@ bool temperature_logging_face_loop(movement_event_t event, void *context) {
             else logger_state->ts_ticks = 2;
             _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
             break;
+#if !BUILD_TO_SHARE
+        case EVENT_START_LONG_PRESS:
+            movement_toggle_using_thermistor();
+            display_using_thermistor();
+            break;
+#endif
         case EVENT_ACTIVATE:
             if (skip) {
                 movement_jump_over_face();
                 return false;
             }
             _temperature_logging_face_update_display(logger_state, movement_use_imperial_units(), movement_clock_is_24h(), true);
+            display_using_thermistor();
             gshock_display_current_time_top_right();
             break;
         case EVENT_TICK:

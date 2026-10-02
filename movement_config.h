@@ -54,10 +54,10 @@ const watch_face_t watch_faces[] = {
 #endif
 // Start of Teriary Faces
     blackjack_face,
+    endless_runner_face,
 #if !BUILD_TO_SHARE
     pet_face,
 #endif
-    endless_runner_face,
     ping_face,
     wordle_face,
     higher_lower_game_face,
@@ -83,7 +83,7 @@ const watch_face_t watch_faces[] = {
 #if BUILD_TO_SHARE
 #define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 8)
 #else
-#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 9)
+#define MOVEMENT_TERIARY_FACE_INDEX (MOVEMENT_NUM_FACES - 10)
 #endif
 
 #ifdef HAS_IR_SENSOR

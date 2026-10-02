@@ -123,7 +123,7 @@ void set_time_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 }
 
 void set_time_face_activate(void *context) {
-    *((uint8_t *)context) = 0;
+    *((uint8_t *)context) = SET_TIME_TZ;
     movement_request_tick_frequency(4);
     _quick_ticks_running = false;
     current_offset = movement_get_current_timezone_offset();

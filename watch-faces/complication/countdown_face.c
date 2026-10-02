@@ -254,7 +254,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             if (quick_ticks_running) {
-#if BUILD_TO_SHARE
+#if BUILD_TO_SHARE || !defined(FORCE_GSHOCK_LCD_TYPE)
                 if (HAL_GPIO_BTN_ALARM_read())
 #else
                 if (HAL_GPIO_BTN_LIGHT_read())
@@ -299,7 +299,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     button_beep();
                     break;
                 case cd_setting:
-#if BUILD_TO_SHARE
+#if BUILD_TO_SHARE || !defined(FORCE_GSHOCK_LCD_TYPE)
                     state->selection++;
                     if(state->selection >= CD_SELECTIONS) {
                         state->selection = 0;
@@ -332,7 +332,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     }
                     break;
                 case cd_setting:
-#if BUILD_TO_SHARE
+#if BUILD_TO_SHARE || !defined(FORCE_GSHOCK_LCD_TYPE)
                     settings_increment(state);
 #else
                     state->selection++;
@@ -358,7 +358,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     button_beep();
                     break;
                 case cd_setting:
-#if BUILD_TO_SHARE
+#if BUILD_TO_SHARE || !defined(FORCE_GSHOCK_LCD_TYPE)
                     // long press in settings mode starts quick ticks for adjusting the time
                     quick_ticks_running = true;
                     movement_request_tick_frequency(8);
@@ -384,7 +384,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (state->mode == cd_setting) {
-#if BUILD_TO_SHARE
+#if BUILD_TO_SHARE || !defined(FORCE_GSHOCK_LCD_TYPE)
                 switch (state->selection) {
                     case 0:
                         state->hours = 0;

@@ -254,7 +254,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             if (quick_ticks_running) {
+#if BUILD_TO_SHARE
                 if (HAL_GPIO_BTN_ALARM_read())
+#else
+                if (HAL_GPIO_BTN_LIGHT_read())
+#endif
                     settings_increment(state);
 #ifdef FORCE_GSHOCK_LCD_TYPE
                 else if (HAL_GPIO_BTN_START_read())
@@ -295,6 +299,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     button_beep();
                     break;
                 case cd_setting:
+#if BUILD_TO_SHARE
                     state->selection++;
                     if(state->selection >= CD_SELECTIONS) {
                         state->selection = 0;
@@ -303,6 +308,9 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                         movement_request_tick_frequency(1);
                         button_beep();
                     }
+#else
+                    settings_increment(state);
+#endif
                     break;
             }
             draw(state, event.subsecond);
@@ -324,7 +332,18 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     }
                     break;
                 case cd_setting:
+#if BUILD_TO_SHARE
                     settings_increment(state);
+#else
+                    state->selection++;
+                    if(state->selection >= CD_SELECTIONS) {
+                        state->selection = 0;
+                        state->mode = cd_reset;
+                        store_countdown(state);
+                        movement_request_tick_frequency(1);
+                        button_beep();
+                    }
+#endif
                     break;
             }
             draw(state, event.subsecond);
@@ -339,9 +358,23 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                     button_beep();
                     break;
                 case cd_setting:
+#if BUILD_TO_SHARE
                     // long press in settings mode starts quick ticks for adjusting the time
                     quick_ticks_running = true;
                     movement_request_tick_frequency(8);
+#else
+                    switch (state->selection) {
+                        case 0:
+                            state->hours = 0;
+                            // intentional fallthrough
+                        case 1:
+                            state->minutes = 0;
+                            // intentional fallthrough
+                        case 2:
+                            state->seconds = 0;
+                            break;
+                    }
+#endif
                     break;
                 case cd_running:
                 case cd_paused:
@@ -351,6 +384,7 @@ bool countdown_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_LONG_PRESS:
             if (state->mode == cd_setting) {
+#if BUILD_TO_SHARE
                 switch (state->selection) {
                     case 0:
                         state->hours = 0;
@@ -362,6 +396,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                         state->seconds = 0;
                         break;
                 }
+#else
+                // long press in settings mode starts quick ticks for adjusting the time
+                quick_ticks_running = true;  
+                movement_request_tick_frequency(8);
+#endif
             } else {
                 // Toggle auto-repeat
                 button_beep();

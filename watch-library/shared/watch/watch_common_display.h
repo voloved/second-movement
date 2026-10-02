@@ -69,14 +69,17 @@ static const uint8_t Custom_LCD_Character_Set[] =
     0b01001111, // 3
     0b01100110, // 4
     0b01101101, // 5
-    0b01111101, // 6
 #if BUILD_TO_SHARE
+    0b01111101, // 6
     0b00000111, // 7
-#else
-    0b00100111, // 7 with seriff
-#endif
     0b01111111, // 8
     0b01101111, // 9
+#else
+    0b01111100, // b
+    0b00100111, // 7 with seriff
+    0b01111111, // 8
+    0b01100111, // q
+#endif
     0b01011101, // ö (: is unused, so this is taking over)
     0b00011101, // ü (; is unused, so this is taking over)
     0b01011000, // <
@@ -309,14 +312,17 @@ static const uint8_t Classic_LCD_Character_Set[] =
     0b01001111, // 3
     0b01100110, // 4
     0b01101101, // 5
-    0b01111101, // 6
 #if BUILD_TO_SHARE
+    0b01111101, // 6
     0b00000111, // 7
-#else
-    0b00100111, // 7 with seriff
-#endif
     0b01111111, // 8
     0b01101111, // 9
+#else
+    0b01111100, // b
+    0b00100111, // 7 with seriff
+    0b01111111, // 8
+    0b01100111, // q
+#endif
     0b01011101, // ö (: is unused, so this is taking over)
     0b00011101, // ü (; is unused, so this is taking over)
     0b01011000, // <
@@ -539,14 +545,17 @@ static const uint8_t GShock_LCD_Character_Set[] =
     0b01001111, // 3
     0b01100110, // 4
     0b01101101, // 5
-    0b01111101, // 6
 #if BUILD_TO_SHARE
+    0b01111101, // 6
     0b00000111, // 7
-#else
-    0b00100111, // 7 with seriff
-#endif
     0b01111111, // 8
     0b01101111, // 9
+#else
+    0b01111100, // b
+    0b00100111, // 7 with seriff
+    0b01111111, // 8
+    0b01100111, // q
+#endif
     0b01011101, // ö (: is unused, so this is taking over)
     0b00011101, // ü (; is unused, so this is taking over)
     0b01011000, // <

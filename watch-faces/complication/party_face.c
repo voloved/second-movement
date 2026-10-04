@@ -44,33 +44,39 @@ void party_face_activate(void *context) {
     state->blink = false;
     state->led = false;
     state->fast = false;
-    state->prev_text = -1;
-    state->text = 0;
+    state->prev_text = PARTY_FACE_TEXT_MAX;
+    state->text = PARTY_FACE_TEXT_NACHO;
 }
 
 static void _party_face_init_lcd(party_state_t *state) {
     char text[11];
-    const char primaryText[][8] = {" Party", " Tin&e", "  It's"};
-    const char secondaryText[][8] = {"HELLO ", "WWorld"};
-    const int primaryTextNum = sizeof(primaryText) / sizeof(primaryText[0]);
-    const int secondaryTextNum = sizeof(secondaryText) / sizeof(secondaryText[0]);
+    const char text0[][8] = {" Party", " Tin&e", "  It's"};
+    const char text1[][8] = {"HELLO ", "WWorld"};
+    const char text2[][8] = {"NACHO ", "MMACHO"};
+    const int text0Num = sizeof(text0) / sizeof(text0[0]);
+    const int text1Num = sizeof(text1) / sizeof(text1[0]);
+    const int text2Num = sizeof(text2) / sizeof(text2[0]);
     const char (*textArray)[8];
     int textArrayNum;
     watch_date_time_t date_time;
     switch (state->text)
     {
-    case 1:
-        textArray = secondaryText;
-        textArrayNum = secondaryTextNum;
+    case PARTY_FACE_TEXT_NACHO:
+        textArray = text2;
+        textArrayNum = text2Num;
         break;
-    case 0:
+    case PARTY_FACE_TEXT_HELLO_WORLD:
+        textArray = text1;
+        textArrayNum = text1Num;
+        break;
+    case PARTY_FACE_TEXT_PARTY_TIME:
     default:
-        textArray = primaryText;
-        textArrayNum = primaryTextNum;
+        textArray = text0;
+        textArrayNum = text0Num;
         break;
     }
     if (!state->blink) {
-        state->party_text = 0;
+        state->party_text = PARTY_FACE_TEXT_PARTY_TIME;
         watch_clear_indicator(WATCH_INDICATOR_BELL);
     }
     else {
@@ -80,7 +86,11 @@ static void _party_face_init_lcd(party_state_t *state) {
     date_time = movement_get_local_date_time();
     if (state->prev_text != state->text || date_time.unit.day != state->curr_day){
         state->curr_day = date_time.unit.day;
-        sprintf(text, "%s", watch_utility_get_weekday(date_time));
+        if (state->text == PARTY_FACE_TEXT_NACHO) {
+            sprintf(text, "%s", "HI");
+        } else {
+            sprintf(text, "%s", watch_utility_get_weekday(date_time));
+        }
         watch_display_text(WATCH_POSITION_TOP_LEFT, text);
         if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
             // We're using the day bit to contain the minute for the gshock.
@@ -133,7 +143,7 @@ bool party_face_loop(movement_event_t event, void *context) {
             }
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            state->text = (state->text + 1) % MAX_TEXT;
+            state->text = (state->text + 1) % PARTY_FACE_TEXT_MAX;
             _party_face_init_lcd(state);
             break;
         case EVENT_ALARM_BUTTON_UP:

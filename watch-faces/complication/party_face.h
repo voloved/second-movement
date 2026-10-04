@@ -28,21 +28,26 @@
 #include "movement.h"
 
 /*
- * A DESCRIPTION OF YOUR WATCH FACE
- *
- * and a description of how use it
- *
+ * devolov's first watch face.
+ * Made to blink that it's party time along with other basic messages.
  */
+
+ typedef enum {
+    PARTY_FACE_TEXT_PARTY_TIME = 0,
+    PARTY_FACE_TEXT_HELLO_WORLD,
+    PARTY_FACE_TEXT_NACHO,
+    PARTY_FACE_TEXT_MAX
+} party_face_text_t;
 
 typedef struct {
     bool blink;
     bool fast;
     uint8_t led : 2; // 0 = None; 1 = Green only; 2 = All
-    uint8_t text : 2;
+    party_face_text_t text : 2;
     uint8_t color : 2;
     uint8_t party_text : 2;
     uint8_t curr_day : 6;
-    int8_t prev_text;
+    party_face_text_t prev_text;
 } party_state_t;
 
 void party_face_setup(uint8_t watch_face_index, void ** context_ptr);
@@ -57,9 +62,6 @@ void party_face_resign(void *context);
     party_face_resign, \
     NULL, \
 })
-#define MAX_TEXT  2
-// 0 - Party
-// 1 - Prom
 
 #endif // PARTY_FACE_H_
 

@@ -56,7 +56,7 @@ const watch_face_t watch_faces[] = {
     blackjack_face,
     endless_runner_face,
 #if !BUILD_TO_SHARE
-    pet_face,
+    virtual_pet_face,
 #endif
     ping_face,
     wordle_face,

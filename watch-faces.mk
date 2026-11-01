@@ -1,8 +1,3 @@
-ifeq ($(SHARE),false)
-    $(info INCLUDING pet_face.c)
-    SRCS += ./watch-faces/complication/pet_face.c
-endif
-
 SRCS += \
   ./watch-faces/clock/clock_face.c \
   ./watch-faces/clock/beats_face.c \

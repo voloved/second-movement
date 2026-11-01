@@ -71,4 +71,5 @@ SRCS += \
   ./watch-faces/complication/tide_face.c \
   ./watch-faces/complication/cyclic_countdown_face.c \
   ./watch-faces/clock/world_clock2_face.c \
+  ./watch-faces/complication/virtual_pet_face.c \
 # New watch faces go above this line.

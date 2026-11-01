@@ -95,4 +95,5 @@
 #if !BUILD_TO_SHARE
 #include "pet_face.h"
 #endif
+#include "virtual_pet_face.h"
 // New includes go above this line.

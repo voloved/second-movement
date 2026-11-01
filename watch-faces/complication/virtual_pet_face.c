@@ -811,6 +811,8 @@ static void watch_display_byte(uint8_t segdata, uint8_t position) {
 
     if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
         segmap = Custom_LCD_Display_Mapping[position];
+    } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        segmap = GShock_LCD_Display_Mapping[position];
     } else {
         segmap = Classic_LCD_Display_Mapping[position];
     }
@@ -844,7 +846,7 @@ static void _draw_character(void *context) {
     for (uint8_t i = 0; i < VIRTUAL_PET_CHARACTER_STRING_LENGTH; i++) {
         watch_display_byte(
             _get_current_character_animation(state)[state->current_character_animation_frame*3+i],
-            ((state->is_sleeping) ? VIRTUAL_PET_ANIMATION_SLEEP_DISPLAY_OFFSET : virtual_pet_phase_animations[state->phase].display_offset) + ((watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) ? 4 : 4) + i
+            ((state->is_sleeping) ? VIRTUAL_PET_ANIMATION_SLEEP_DISPLAY_OFFSET : virtual_pet_phase_animations[state->phase].display_offset) + ((watch_get_lcd_type() != WATCH_LCD_TYPE_CLASSIC) ? 4 : 4) + i
         );
     }
     if (state->phase == VIRTUAL_PET_PHASE_CHILD && !state->is_sleeping) watch_set_colon();
@@ -889,7 +891,7 @@ static void _draw_little_ghost(void *context) {
     state->current_little_ghost_animation_frame = (state->current_little_ghost_animation_frame == sizeof(little_ghost_animation)/sizeof(little_ghost_animation[0])-1) ? 0 : state->current_little_ghost_animation_frame + 1;
     watch_display_byte(
         little_ghost_animation[state->current_little_ghost_animation_frame],
-        (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) ? 1 : 0
+        (watch_get_lcd_type() != WATCH_LCD_TYPE_CLASSIC) ? 0 : 1
     );
 }
 

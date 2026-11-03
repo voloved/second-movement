@@ -51,11 +51,11 @@ static void _simon_clear_display(simon_state_t *state) {
     watch_clear_display();
     if (state->playing_state != SIMON_NOT_PLAYING) {
         sprintf(_simon_display_buf, "%2d", state->sequence_length);
-#ifdef FORCE_GSHOCK_LCD_TYPE
-        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, _simon_display_buf);
-#else
-        watch_display_text(WATCH_POSITION_TOP_RIGHT, _simon_display_buf);
-#endif
+        if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, _simon_display_buf);
+        } else {
+            watch_display_text(WATCH_POSITION_TOP_RIGHT, _simon_display_buf);
+        }
     }
 }
 
@@ -104,9 +104,24 @@ static void _simon_display_note(SimonNote note, simon_state_t *state) {
     sprintf(_simon_display_buf, "%2d", state->sequence_length);
 #ifdef FORCE_GSHOCK_LCD_TYPE
     watch_display_text(WATCH_POSITION_MONTH_GSHOCK, _simon_display_buf);
+    switch (note) {
+        case SIMON_LED_NOTE:
+            watch_display_text(WATCH_POSITION_DAY_GSHOCK, "St");
+            break;
+        case SIMON_ALARM_NOTE:
+            watch_display_text(WATCH_POSITION_SECONDS, "LI");
+            break;
+        case SIMON_START_NOTE:
+            watch_display_text(WATCH_POSITION_TOP_LEFT, "Ad");
+            break;
+        case SIMON_MODE_NOTE:
+            watch_display_text(WATCH_POSITION_HOURS, "Md");
+            break;
+        default:
+            break;
+    }
 #else
     watch_display_text(WATCH_POSITION_TOP_RIGHT, _simon_display_buf);
-#endif
     switch (note) {
         case SIMON_LED_NOTE:
             watch_display_text(WATCH_POSITION_TOP_LEFT, "LI");
@@ -117,12 +132,10 @@ static void _simon_display_note(SimonNote note, simon_state_t *state) {
         case SIMON_MODE_NOTE:
             watch_display_text_with_fallback(WATCH_POSITION_HOURS, "Md", "DE");
             break;
-        case SIMON_START_NOTE:
-            watch_display_text(WATCH_POSITION_DAY_GSHOCK, "St");
-            break;
         default:
             break;
     }
+#endif
 }
 
 static void _simon_play_note(SimonNote note, simon_state_t *state, bool skip_rest) {
@@ -134,7 +147,6 @@ static void _simon_play_note(SimonNote note, simon_state_t *state, bool skip_res
             delay_ms(_delay_beep);
             break;
         case SIMON_MODE_NOTE:
-        case SIMON_START_NOTE:
             if (!state->lightOff) watch_set_led_red();
             if (!state->soundOff) watch_buzzer_play_note(BUZZER_NOTE_E4, _delay_beep);
             delay_ms(_delay_beep);
@@ -142,6 +154,11 @@ static void _simon_play_note(SimonNote note, simon_state_t *state, bool skip_res
         case SIMON_ALARM_NOTE:
             if (!state->lightOff) watch_set_led_green();
             if (!state->soundOff) watch_buzzer_play_note(BUZZER_NOTE_C3, _delay_beep);
+            delay_ms(_delay_beep);
+            break;
+        case SIMON_START_NOTE:
+            if (!state->lightOff) watch_set_led_red();
+            if (!state->soundOff) watch_buzzer_play_note(BUZZER_NOTE_F3, _delay_beep);
             delay_ms(_delay_beep);
             break;
         case SIMON_WRONG_NOTE:
@@ -167,12 +184,11 @@ static void _simon_setup_next_note(simon_state_t *state) {
 
     _simon_clear_display(state);
     state->playing_state = SIMON_TEACHING;
-    state->sequence[state->sequence_length] = _simon_get_rand_num(3) + 1;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-    if (state->sequence[state->sequence_length] == SIMON_MODE_NOTE) {
-        state->sequence[state->sequence_length] = SIMON_START_NOTE;
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK && state->mode != SIMON_MODE_EASY) {
+        state->sequence[state->sequence_length] = _simon_get_rand_num(4) + 1;
+    } else {
+        state->sequence[state->sequence_length] = _simon_get_rand_num(3) + 1;
     }
-#endif
     state->sequence_length = state->sequence_length + 1;
     state->teaching_index = 0;
     state->listen_index = 0;
@@ -301,15 +317,15 @@ bool simon_face_loop(movement_event_t event,
                 _simon_listen(SIMON_LED_NOTE, state);
             }
             break;
-#ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_START_BUTTON_UP:
             if (state->playing_state == SIMON_LISTENING_BACK) {
-                _simon_listen(SIMON_START_NOTE, state);
+                if (state->mode != SIMON_MODE_EASY) {
+                    _simon_listen(SIMON_START_NOTE, state);
+                }
             } else if (state->playing_state == SIMON_NOT_PLAYING) {
                 movement_move_to_previous_face();
             }
             break;
-#else
         case EVENT_MODE_LONG_PRESS:
             if (state->playing_state == SIMON_NOT_PLAYING) {
                 movement_move_to_face(0);
@@ -325,7 +341,6 @@ bool simon_face_loop(movement_event_t event,
                 _simon_listen(SIMON_MODE_NOTE, state);
             }
             break;
-#endif
         case EVENT_ALARM_BUTTON_UP:
             if (state->playing_state == SIMON_LISTENING_BACK) {
                 _simon_listen(SIMON_ALARM_NOTE, state);

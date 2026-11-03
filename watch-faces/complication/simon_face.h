@@ -41,9 +41,16 @@
  * A sequence will be played, starting with length 1. The sequence can be
  * made up of tones corresponding to any of the three buttons.
  *
- * light button: "LI" will display at the top of the screen, the LED will be yellow, and a high D will play
- * mode button: "DE" will display at the left of the screen, the LED will be red, and a high E will play
- * alarm button: "AL" will display on the right of the screen, the LED will be green, and a high C will play
+ * F91W
+ *   light button: "LI" will display at the top of the screen, the LED will be yellow, and a high D will play
+ *   mode button: "Md" will display at the left of the screen, the LED will be red, and a high E will play
+ *   alarm button: "AL" will display on the right of the screen, the LED will be green, and a high C will play
+ * 
+ * G-Shock
+ *   light button: "LI" will display at the bottom-right of the screen, and a high C will play
+ *   mode button: "Md" will display at the bottom-left of the screen, and a high E will play
+ *   start button: "St" will display on the top-right of the screen, and a high D will play
+ *   adjust button: "Ad" will display on the top-left of the screen, and a high D will play
  *
  * Once the sequence has finished, press the same buttons to recreate the sequence.
  *
@@ -59,9 +66,9 @@
 
 typedef enum SimonNote {
     SIMON_LED_NOTE = 1,
-    SIMON_START_NOTE,  // For G-Shock Only
     SIMON_MODE_NOTE,
     SIMON_ALARM_NOTE,
+    SIMON_START_NOTE,  // For G-Shock Only
     SIMON_WRONG_NOTE
 } SimonNote;
 

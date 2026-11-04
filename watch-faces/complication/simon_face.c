@@ -236,8 +236,8 @@ void simon_face_setup(uint8_t watch_face_index,
     if (*context_ptr == NULL) {
         *context_ptr = malloc(sizeof(simon_state_t));
         memset(*context_ptr, 0, sizeof(simon_state_t));
-        // Do any one-time tasks in here; the inside of this conditional happens
-        // only at boot.
+        simon_state_t *state = (simon_state_t *)*context_ptr;
+        state->lightOff = watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK;
     }
     // Do any pin or peripheral setup here; this will be called whenever the watch
     // wakes from deep sleep.

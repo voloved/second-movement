@@ -517,7 +517,8 @@ static void clock_toggle_showing_steps(clock_state_t *state) {
 
 static void clock_toggle_mode_displayed(watch_date_time_t date_time, bool update_date) {
     char buf[2 + 1];
-    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_LAST_CLOCK_MODE + 1);
+    // When toggling, don't toggle through trailing zeroes.
+    movement_clock_mode_t next_mode = (movement_clock_mode_24h() + 1) % (MOVEMENT_CLOCK_MODE_24H + 1);
     movement_set_clock_mode_24h(next_mode);
     bool in_12h_mode = !movement_clock_is_24h();
     bool indicate_pm = in_12h_mode && clock_is_pm(date_time);

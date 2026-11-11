@@ -33,8 +33,8 @@
  *
  * Life phases:
  * - Egg (5-120 min)
- * - Baby (45 min)
- * - Child (~1 day)
+ * - Baby (2 hrs)
+ * - Child (~2 days)
  * - Adult
  * 
  * Depending on how you take care of it, you can get a different type of pet.
@@ -54,7 +54,7 @@
  * Hunger: Your pet will get hungry over time, just like it will be less happy if you don't play with it!
  * 
  * Sickness: Sometimes your pet gets sick. It happens when you don't take good care of your pet. To heal your pet, give it medicine.
- * Sickness will be shown as a skull in the top left (weekday).
+ * Sickness will be shown as a skull in the top left (weekday digits).
  * 
  * Poop: Sometimes your pet will poop. It will be on the screen, usually in the lower or upper right corner, as a box with a visible odor going back and forth.
  * To remove poop, clean the pet. If you fail to remove poop, the pet might become sick.
@@ -64,6 +64,10 @@
  * 
  * Sleep: Just like you, your pet sleeps. In every life phase it will sleep a different amount of time.
  * Sleep is visible on with "ZZ" in the top left. A bed will be visible. You can't wake it up, it will wake up on its own.
+ * 
+ * Pause: If you want to store your watch, or just need to pause for some reason, you can pause the pet. Go to the action menu and pause.
+ * When paused, the pet will be sleeping, even in daytime. To unpause, press the alarm button.
+ * If the pet hasn't been seen by its caretaker in about a day, it will automatically pause.
  * 
  * Buttons:
  * Press Light to open the status menu. In the status menu, you can advance the menu by pressing the Light button again.
@@ -91,7 +95,6 @@
  * By the way, this watch face will consume more power than your average watch face.
  * Game updates are always done in the background and you should not expect this to last a long time on a single CR2016 coin cell.
  * Game updates are done every minute, only when needed. But the logic can be expensive in terms of processing power.
- * average power consumption is to be determined.
  */
 
 
@@ -109,24 +112,31 @@
 #define VIRTUAL_PET_MAX_NEEDS 6
 #define VIRTUAL_PET_MAX_POOPS 2
 #define VIRTUAL_PET_MAX_SICKNESS 5
-#define VIRTUAL_PET_MAX_SNACKS_DAILY 35
+#define VIRTUAL_PET_MAX_SNACKS_DAILY 55
+#define VIRTUAL_PET_MINIMUM_ATTENTION_INTERVAL 5 // minimum amount of minutes between attention calls
 
 #define VIRTUAL_PET_POOP_SICKNESS_CHANCE 3 // 0-9
-#define VIRTUAL_PET_SNACK_SICKNESS_CHANCE 1 // 0-9
+#define VIRTUAL_PET_OVERFEED_AMOUNT_SICKNESS 5 
 #define VIRTUAL_PET_METER_EMPTY_SICKNESS_CHANCE 0 // 0-9
 #define VIRTUAL_PET_ADULT_RANDOM_SICKNESS_CHANCE 1 // 0-9
-#define VIRTUAL_PET_MEDS_NOT_WORKING_CHANCE 3 // 0-9
+#define VIRTUAL_PET_MEDS_NOT_WORKING_CHANCE 4 // 0-9
 #define VIRTUAL_PET_SLEEPING_ANIMATION_CHANCE 0 // 0-9
 
 #define VIRTUAL_PET_MAX_GAME_ROUNDS 5
 #define VIRTUAL_PET_GAME_WIN_SCORE 3
 
 // For debugging or development purposes only. Don't cheat on your pet!
-#define VIRTUAL_PET_SHOW_MINUTES_ALIVE 0
+#if __EMSCRIPTEN__
+#define VIRTUAL_PET_RANDOM_HATCH_TIME false
+#else
 #define VIRTUAL_PET_RANDOM_HATCH_TIME true
+#endif
+
 #define VIRTUAL_PET_HATCH_TIME 3 // overridden by above
-#define VIRTUAL_PET_PRE_HATCH_TIME 12 // seconds before hatching, make egg more active and move to foreground
+#define VIRTUAL_PET_PRE_EVOLVE_TIME 9 // seconds before hatching, make egg more active and move to foreground
 #define VIRTUAL_PET_BACKGROUND_TASK_TUNE false
+#define VIRTUAL_PET_SECONDS_AFTER_ACTIVATE 3 // seconds before anything can happen (evolution, death) on screen after going to the watch face.
+#define VIRTUAL_PET_CRYO_TIME 72000 // seconds of inactivity after the pet goes into a very deep sleep (20h)
 
 #define VIRTUAL_PET_STARTING_PHASE VIRTUAL_PET_PHASE_EGG
 #define VIRTUAL_PET_STARTING_TYPE VIRTUAL_PET_TYPE_EASY // Only applicable if starting phase is adult
@@ -135,9 +145,6 @@
 #define VIRTUAL_PET_STARTING_NEEDS 6
 #define VIRTUAL_PET_STARTING_POOPS 1
 #define VIRTUAL_PET_STARTING_SICKNESS 0
-#define VIRTUAL_PET_STARTING_ATTENTION 0
-#define VIRTUAL_PET_STARTING_CARE_MISTAKES 0
-#define VIRTUAL_PET_STARTING_GAMES_PLAYED 0
 
 #define VIRTUAL_PET_GAME_REACTION_TICKS 1
 #define VIRTUAL_PET_GAMES_PLAYED_FOR_SECRET_TYPE 20
@@ -216,6 +223,7 @@ typedef enum {
     VIRTUAL_PET_ACTION_MENU_ITEM_CLEAN,
     VIRTUAL_PET_ACTION_MENU_ITEM_MEDICATION,
     VIRTUAL_PET_ACTION_MENU_ITEM_BUZZER,
+    VIRTUAL_PET_ACTION_MENU_ITEM_PAUSE,
     VIRTUAL_PET_ACTION_MENU_LENGTH,
 } virtual_pet_action_menu_item;
 
@@ -252,15 +260,23 @@ typedef struct {
  */
 typedef struct {
     // Anything you need to keep track of, put it here!
-    uint8_t face_idx;
+    uint8_t face_idx; // needed for boot sound
+    bool face_active;
+    uint32_t activate_ts;
+    bool paused;
+    bool paused_automatically;
+
     uint32_t next_background_task_ts;
-    bool came_out_of_sleep;
+    uint32_t last_attention_call_ts;
+    bool going_to_die;
+    uint8_t overfeed_counter;
 
     rtc_counter_t start_counter : 32; // rtc counter when starting
     rtc_counter_t birth_counter : 32; // rtc counter when egg hatched
     rtc_counter_t awake_in_phase_counter : 32; 
     rtc_counter_t last_game_logic_loop_counter : 32;
     rtc_counter_t passing_counter : 32; // rtc counter when died
+    rtc_counter_t paused_counter : 32; // rtc counter (cumulative) of time paused
     uint8_t minutes_to_hatch : 8;
     uint32_t seconds_until_background_task : 32; // = when requesting a background task, this is the amount of seconds until we are in the exact minute for the next task.
 
@@ -290,6 +306,7 @@ typedef struct {
     uint8_t current_little_ghost_animation_frame : 1;
     uint8_t current_sleeping_animation_frame : 2;
     uint8_t current_eating_animation_frame : 4;
+    uint8_t current_paused_animation_frame : 1;
 
     virtual_pet_game_mode game_display_mode : 3;
     uint8_t game_round : 3;

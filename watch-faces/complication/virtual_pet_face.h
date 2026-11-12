@@ -104,7 +104,7 @@
  */
 
 #define VIRTUAL_PET_CHARACTER_STRING_LENGTH 3
-#define VIRTUAL_PET_DEFAULT_BUZZER_ENABLED 1
+#define VIRTUAL_PET_DEFAULT_BUZZER_ENABLED 0
 #define VIRTUAL_PET_GRIEVING_TIME 2 // minutes after death, the game won't respond to anything.
 
 #define VIRTUAL_PET_MAX_HUNGER 6

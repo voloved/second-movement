@@ -42,17 +42,17 @@ void party_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 void party_face_activate(void *context) {
     party_state_t *state = (party_state_t *)context;
     state->blink = false;
-    state->led = false;
+    state->led = 0;
     state->fast = false;
     state->prev_text = PARTY_FACE_TEXT_MAX;
-    state->text = PARTY_FACE_TEXT_NACHO;
+    state->text = PARTY_FACE_TEXT_PARTY_TIME;
 }
 
 static void _party_face_init_lcd(party_state_t *state) {
     char text[11];
     const char text0[][8] = {" Party", " Tin&e", "  It's"};
     const char text1[][8] = {"HELLO ", "WWorld"};
-    const char text2[][8] = {"NACHO ", "MMACHO"};
+    const char text2[][8] = {" Prom&"};
     const int text0Num = sizeof(text0) / sizeof(text0[0]);
     const int text1Num = sizeof(text1) / sizeof(text1[0]);
     const int text2Num = sizeof(text2) / sizeof(text2[0]);
@@ -61,7 +61,7 @@ static void _party_face_init_lcd(party_state_t *state) {
     watch_date_time_t date_time;
     switch (state->text)
     {
-    case PARTY_FACE_TEXT_NACHO:
+    case PARTY_FACE_TEXT_PROM:
         textArray = text2;
         textArrayNum = text2Num;
         break;
@@ -86,30 +86,27 @@ static void _party_face_init_lcd(party_state_t *state) {
     date_time = movement_get_local_date_time();
     if (state->prev_text != state->text || date_time.unit.day != state->curr_day){
         state->curr_day = date_time.unit.day;
-        if (state->text == PARTY_FACE_TEXT_NACHO) {
-            sprintf(text, "%s", "HI");
-        } else {
+        if (state->text != PARTY_FACE_TEXT_PROM) {
             sprintf(text, "%s", watch_utility_get_weekday(date_time));
-        }
-        watch_display_text(WATCH_POSITION_TOP_LEFT, text);
-        if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
-            // We're using the day bit to contain the minute for the gshock.
-            state->curr_day = date_time.unit.minute;
-            uint8_t hour = date_time.unit.hour;
-            if (!movement_clock_is_24h()) {
-                if (hour >= 12) watch_set_indicator(WATCH_INDICATOR_PM);
-                hour %= 12;
-                if (hour == 0) hour = 12;
+            watch_display_text(WATCH_POSITION_TOP_LEFT, text);
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                // We're using the day bit to contain the minute for the gshock.
+                state->curr_day = date_time.unit.minute;
+                uint8_t hour = date_time.unit.hour;
+                if (!movement_clock_is_24h()) {
+                    hour %= 12;
+                    if (hour == 0) hour = 12;
+                }
+                sprintf( text, "%2d", hour);
+                watch_display_text(WATCH_POSITION_MONTH_GSHOCK, text);
+                sprintf( text, "%02d", date_time.unit.minute);
+                watch_display_text(WATCH_POSITION_DAY_GSHOCK, text);
+                watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+                watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            } else {
+                sprintf(text, "%2d", date_time.unit.day);
+                watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
             }
-            sprintf( text, "%2d", hour);
-            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, text);
-            sprintf( text, "%02d", date_time.unit.minute);
-            watch_display_text(WATCH_POSITION_DAY_GSHOCK, text);
-            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
-            watch_set_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-        } else {
-            sprintf(text, "%2d", date_time.unit.day);
-            watch_display_text(WATCH_POSITION_TOP_RIGHT, text);
         }
     }
     sprintf(text, "%s",textArray[state->party_text]);
@@ -135,7 +132,11 @@ bool party_face_loop(movement_event_t event, void *context) {
             _party_face_init_lcd(state);
             break;
         case EVENT_LIGHT_BUTTON_UP:
-            state->led = (state->led + 1) % 3;
+            if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+                state->led = !state->led;
+            } else {
+                state->led = (state->led + 1) % 3;
+            }
             offset_allow_sleep(state->blink, state->led != 0);
             if (!state->led) {
                 watch_set_led_off();
@@ -144,6 +145,7 @@ bool party_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_LIGHT_LONG_PRESS:
             state->text = (state->text + 1) % PARTY_FACE_TEXT_MAX;
+            watch_clear_display();
             _party_face_init_lcd(state);
             break;
         case EVENT_ALARM_BUTTON_UP:
@@ -164,14 +166,14 @@ bool party_face_loop(movement_event_t event, void *context) {
             if (state->blink) {
                 if (event.subsecond % 2 == 0) {
                     _party_face_init_lcd(state);
-                } else {  // Clear only the bottom row when the party text is occurring
+                } else {  // Clear only the bottom row when the text is occurring
                     watch_display_text(WATCH_POSITION_BOTTOM, "      ");
                     watch_clear_indicator(WATCH_INDICATOR_BELL);
                 }
             }
             switch (state->led)
             {
-            case 0:        
+            case 0:
             default:
                 break;
             case 1:
@@ -192,12 +194,12 @@ bool party_face_loop(movement_event_t event, void *context) {
                     break;
                 case 2:
                     watch_set_led_yellow();
-                    break;               
+                    break;
                 default:
                     watch_set_led_off();
                     break;
                 }
-                state->color = (state->color + 1) % 3;  
+                state->color = (state->color + 1) % 3;
             }
             break;
         case EVENT_LIGHT_BUTTON_DOWN:

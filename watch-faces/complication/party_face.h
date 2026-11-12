@@ -35,7 +35,7 @@
  typedef enum {
     PARTY_FACE_TEXT_PARTY_TIME = 0,
     PARTY_FACE_TEXT_HELLO_WORLD,
-    PARTY_FACE_TEXT_NACHO,
+    PARTY_FACE_TEXT_PROM,
     PARTY_FACE_TEXT_MAX
 } party_face_text_t;
 

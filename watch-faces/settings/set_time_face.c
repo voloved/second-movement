@@ -207,7 +207,6 @@ bool set_time_face_loop(movement_event_t event, void *context) {
     }
 
     char buf[11];
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     watch_display_text_with_fallback(WATCH_POSITION_TOP, (char *) set_time_face_titles[current_page], (char *) set_time_face_fallback_titles[current_page]);
     if (current_page == SET_TIME_TZ) {
         uint8_t curr_idx = movement_get_timezone_index();
@@ -226,20 +225,23 @@ bool set_time_face_loop(movement_event_t event, void *context) {
             sprintf(buf, "%s", watch_utility_time_zone_name_at_index(movement_get_timezone_index()));
             watch_clear_colon();
         }
-    } else if (current_page >= SET_TIME_YEAR && current_page <= SET_TIME_DAY) {
-        watch_clear_colon();
-        watch_clear_indicator(WATCH_INDICATOR_24H);
-        watch_clear_indicator(WATCH_INDICATOR_PM);
-        sprintf(buf, "%2d%02d%02d", date_time.unit.year + 20, date_time.unit.month, date_time.unit.day);
     } else {
-        watch_set_colon();
-        if (movement_clock_is_24h()) {
-            watch_set_indicator(WATCH_INDICATOR_24H);
-            sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" :"%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+        watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
+        if (current_page >= SET_TIME_YEAR && current_page <= SET_TIME_DAY) {
+            watch_clear_colon();
+            watch_clear_indicator(WATCH_INDICATOR_24H);
+            watch_clear_indicator(WATCH_INDICATOR_PM);
+            sprintf(buf, "%2d%02d%02d", date_time.unit.year + 20, date_time.unit.month, date_time.unit.day);
         } else {
-            sprintf(buf, "%2d%02d%02d", (date_time.unit.hour % 12) ? (date_time.unit.hour % 12) : 12, date_time.unit.minute, date_time.unit.second);
-            if (date_time.unit.hour < 12) watch_clear_indicator(WATCH_INDICATOR_PM);
-            else watch_set_indicator(WATCH_INDICATOR_PM);
+            watch_set_colon();
+            if (movement_clock_is_24h()) {
+                watch_set_indicator(WATCH_INDICATOR_24H);
+                sprintf(buf, movement_clock_has_leading_zeroes() ? "%02d%02d%02d" :"%2d%02d%02d", date_time.unit.hour, date_time.unit.minute, date_time.unit.second);
+            } else {
+                sprintf(buf, "%2d%02d%02d", (date_time.unit.hour % 12) ? (date_time.unit.hour % 12) : 12, date_time.unit.minute, date_time.unit.second);
+                if (date_time.unit.hour < 12) watch_clear_indicator(WATCH_INDICATOR_PM);
+                else watch_set_indicator(WATCH_INDICATOR_PM);
+            }
         }
     }
 

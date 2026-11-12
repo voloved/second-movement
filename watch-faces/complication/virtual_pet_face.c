@@ -55,12 +55,12 @@ static virtual_pet_phase_attribute_t virtual_pet_phase_attributes[] = {
     },
     { // Baby
         .phase_length = 120, // 2 hrs
-        .time_hunger = 18, // 1.8 hrs
-        .time_happiness = 12, // 1.2 hrs
+        .time_hunger = 10, // 1 hrs
+        .time_happiness = 8, // 48 mins
         .time_needs = 6, // 36 mins
     },
     { // Child
-        .phase_length = 26*60, // 26 hrs awake (~2 days total)
+        .phase_length = 20*60, // 20 hrs awake (~2 days total)
         .time_hunger = 25, // 2.5 hrs
         .time_happiness = 20, // 2 hrs
         .time_needs = 12, // 1.2 hrs
@@ -109,23 +109,23 @@ static virtual_pet_bottom_text_t virtual_pet_type_text[] = {
 static virtual_pet_type_attribute_t virtual_pet_type_attributes[] = {
     // Minutes for every subtraction of a stat {hunger, happiness}
     { // Needy
-        .time_hunger = 40, // 4 hrs
-        .time_happiness = 25, // 2.5 hrs
+        .time_hunger = 60, // 6 hrs
+        .time_happiness = 45, // 4.5 hrs
         .time_needs = 20, // 2 hrs
     },
     { // Average
-        .time_hunger = 55, // 5.5 hrs
-        .time_happiness = 35, // 3.5 hrs
+        .time_hunger = 70, // 7 hrs
+        .time_happiness = 55, // 5.5 hrs
         .time_needs = 25, // 2.5 hrs
     },
     { // Easy
-        .time_hunger = 70, // 7 hrs
-        .time_happiness = 40, // 4 hrs
+        .time_hunger = 90, // 9 hrs
+        .time_happiness = 65, // 6.5 hrs
         .time_needs = 30, // 3 hrs
     },
     { // Secret is suuuuper chill
         .time_hunger = 100, // 10 hrs
-        .time_happiness = 60, // 6 hrs
+        .time_happiness = 70, // 7 hrs
         .time_needs = 45, // 4.5 hrs
     },
 };
@@ -598,7 +598,7 @@ static void _setup_pet(void *context) {
     state->last_game_logic_loop_counter = 0;
     state->games_played = 0;
     state->egg_idle_animation_chance = virtual_pet_phase_animations[VIRTUAL_PET_PHASE_EGG].idle_animation_chance;
-    state->snacks_today = 0;
+    state->overfed_snacks_today = 0;
 
     _reset_animation_frames(state);
 
@@ -750,7 +750,7 @@ static void _set_is_sleeping(void *context, watch_date_time_t current_time) {
         if (state->is_sleeping) {
             state->is_sleeping = false;
             // reset snacks_today
-            state->snacks_today = 0;
+            state->overfed_snacks_today = 0;
             //update stats after waking up
             if (state->phase > VIRTUAL_PET_PHASE_EGG) {
                 for (int i = 0; i < 2; i++) {
@@ -1252,6 +1252,7 @@ static bool _handle_action_menu_choice(void *context) {
             if (state->happiness >= VIRTUAL_PET_MAX_HAPPINESS) {
                 if (state->overfeed_counter < VIRTUAL_PET_OVERFEED_AMOUNT_SICKNESS) {
                     state->overfeed_counter++;
+                    if (state->overfed_snacks_today < VIRTUAL_PET_MAX_OVERFEED_SNACKS_DAILY && state->phase > VIRTUAL_PET_PHASE_BABY) state->overfed_snacks_today++;
                     // fall through
                 } else {
                     _make_pet_sick(state);
@@ -1264,7 +1265,6 @@ static bool _handle_action_menu_choice(void *context) {
             // start eating animation
             if (state->buzzer_enabled) button_beep();
             _start_eating_animation(state);
-            if (state->snacks_today < VIRTUAL_PET_MAX_SNACKS_DAILY && state->phase > VIRTUAL_PET_PHASE_BABY) state->snacks_today++;
             return true;
         case VIRTUAL_PET_ACTION_MENU_ITEM_CLEAN:
             if (state->poops > 0) {
@@ -1772,7 +1772,7 @@ static void _game_logic_loop(void *context) {
         }
         // Happiness
         if (state->time_alive % time_happiness == 0) {
-            if (state->snacks_today == VIRTUAL_PET_MAX_SNACKS_DAILY) _make_pet_dead(state);
+            if (state->overfed_snacks_today == VIRTUAL_PET_MAX_OVERFEED_SNACKS_DAILY) _make_pet_dead(state);
             if (state->happiness == 0) {
                 if (state->phase == VIRTUAL_PET_PHASE_CHILD) state->care_mistakes++;
                 if (!playing_game) _make_pet_sick_with_chance(state, VIRTUAL_PET_METER_EMPTY_SICKNESS_CHANCE);
@@ -1788,7 +1788,8 @@ static void _game_logic_loop(void *context) {
             if (state->needs == VIRTUAL_PET_MAX_NEEDS) {
                 if (state->poops == VIRTUAL_PET_MAX_POOPS) {
                     if (!playing_game) _make_pet_sick_with_chance(state, VIRTUAL_PET_POOP_SICKNESS_CHANCE);
-                } else {
+                } else if (state->hunger > 0) {
+                    // no poops when hungry!
                     state->poops++;
                     state->needs = 0;
                 }
@@ -1888,7 +1889,7 @@ bool virtual_pet_face_loop(movement_event_t event, void *context) {
             if (state->start_counter == 0) {
                 // start vpet!
                 // don't play boot sound when it's the main face. no need to drive it and it breaks the emulator sound otherwise
-                if (state->face_idx > 0 && state->buzzer_enabled) movement_play_sequence(virtual_pet_start_tune, BUZZER_PRIORITY_SIGNAL);
+                if (state->face_idx > 0 && state->buzzer_enabled) movement_play_sequence(virtual_pet_start_tune, BUZZER_PRIORITY_BUTTON);
                 _setup_pet(state);
                 state->start_counter = watch_rtc_get_counter();
                 // set birth counter if not egg (otherwise only gets set when hatching, which doesn't happen when starting from baby or larger.)

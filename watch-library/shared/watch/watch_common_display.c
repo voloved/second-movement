@@ -449,7 +449,7 @@ void watch_set_colon(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_pixel(0, 0);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_set_pixel(2, 0);
+        watch_set_pixel(2, 26);
     } else {
         watch_set_pixel(1, 16);
     }
@@ -460,7 +460,7 @@ void watch_clear_colon(void) {
     if (lcd_type == WATCH_LCD_TYPE_CUSTOM) {
         watch_clear_pixel(0, 0);
     } else if (lcd_type == WATCH_LCD_TYPE_GSHOCK) {
-        watch_clear_pixel(2, 0);
+        watch_clear_pixel(2, 26);
     } else {
         watch_clear_pixel(1, 16);
     }
@@ -556,8 +556,8 @@ void _watch_update_indicator_segments_gshock(void) {
         IndicatorSegments[ 4] = SLCD_SEGID(0, 25); // WATCH_INDICATOR_LAP
         IndicatorSegments[ 5] = SLCD_SEGID(0, 17); // WATCH_INDICATOR_ARROWS
         IndicatorSegments[ 6] = SLCD_SEGID(0, 12); // WATCH_INDICATOR_SLEEP
-        IndicatorSegments[ 7] = SLCD_SEGID(2,  0); // WATCH_INDICATOR_COLON
-        IndicatorSegments[ 8] = SLCD_SEGID(0,  0); // WATCH_INDICATOR_SINGLE_QUOTE
+        IndicatorSegments[ 7] = SLCD_SEGID(2, 26); // WATCH_INDICATOR_COLON
+        IndicatorSegments[ 8] = SLCD_SEGID(0, 26); // WATCH_INDICATOR_SINGLE_QUOTE
         IndicatorSegments[ 9] = SLCD_SEGID(0, 15); // WATCH_INDICATOR_DOUBLE_QUOTE_LEFT
         IndicatorSegments[10] = SLCD_SEGID(0, 16); // WATCH_INDICATOR_DOUBLE_QUOTE_RIGHT
         IndicatorSegments[11] = SLCD_SEGID(2,  5); // WATCH_INDICATOR_BOX_DASH

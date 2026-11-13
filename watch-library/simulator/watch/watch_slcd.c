@@ -131,36 +131,23 @@ static void watch_invoke_indicator_blink_callback(void *userData) {
 
 void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32_t duration) {
     // Indicators can only blink on the custom LCD.
-    if (watch_get_lcd_type() != WATCH_LCD_TYPE_CUSTOM && watch_get_lcd_type() != WATCH_LCD_TYPE_GSHOCK) return;
+    if (watch_get_lcd_type() != WATCH_LCD_TYPE_CUSTOM) return;
 
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
-        switch (indicator) {
-        case WATCH_INDICATOR_COLON:
-            indicator_blink_com = 0;
-            break;
-        case WATCH_INDICATOR_LAP:
-            indicator_blink_com = 1;
-            break;
-        case WATCH_INDICATOR_ARROWS:
-            indicator_blink_com = 2;
-            break;
-        case WATCH_INDICATOR_SLEEP:
-            indicator_blink_com = 3;
-            break;
-        default:
-            return;
-        }
-    } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
-        switch (indicator) {
-        case WATCH_INDICATOR_SINGLE_QUOTE:
-            indicator_blink_com = 0;
-            break;
-        case WATCH_INDICATOR_COLON:
-            indicator_blink_com = 2;
-            break;
-        default:
-            return;
-        }
+    switch (indicator) {
+    case WATCH_INDICATOR_COLON:
+        indicator_blink_com = 0;
+        break;
+    case WATCH_INDICATOR_LAP:
+        indicator_blink_com = 1;
+        break;
+    case WATCH_INDICATOR_ARROWS:
+        indicator_blink_com = 2;
+        break;
+    case WATCH_INDICATOR_SLEEP:
+        indicator_blink_com = 3;
+        break;
+    default:
+        return;
     }
 
     if (indicator_blink_interval_id != -1) emscripten_clear_interval(indicator_blink_interval_id);
@@ -220,12 +207,6 @@ bool watch_sleep_animation_is_running(void) {
         // COM3, SEG0 contains the half moon icon
         return EM_ASM_INT({
             const e = document.querySelector("[data-com='3'][data-seg='0']");
-            return e && e.style.opacity == 1 ? 1 : 0;
-        });
-    } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
-        // COM0, SEG12 contains the sun icon
-        return EM_ASM_INT({
-            const e = document.querySelector("[data-com='0'][data-seg='12']");
             return e && e.style.opacity == 1 ? 1 : 0;
         });
     } else {

@@ -953,17 +953,28 @@ static void _draw_food(void *context) {
     if (!last_frame) state->current_eating_animation_frame++;
 }
 
+static void _draw_title(void) {
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "PET", "");
+    }
+}
+
 static void _draw_pet(void *context) {
     virtual_pet_state_t *state = (virtual_pet_state_t *)context;
 
+    bool can_draw_title = true;  // Title is drawn on top right.
     _draw_character(state);
     _draw_paused(state);
     // only update when not eating for added gameplay
     if (state->phase > VIRTUAL_PET_PHASE_EGG && !state->is_eating) _draw_attention(state);
     _draw_buzzer_enabled(state);
-    if (state->paused) return;
+    if (state->paused) {
+        _draw_title();
+        return;
+    }
     if (state->phase > VIRTUAL_PET_PHASE_EGG && state->phase != VIRTUAL_PET_PHASE_DEAD) {
-        _draw_poop(state);
+        can_draw_title = state->poops == 0;
+        if (!can_draw_title) _draw_poop(state);
         _draw_sickness(state);
         if (state->is_eating) _draw_food(state);
     } else if (state->phase == VIRTUAL_PET_PHASE_DEAD) {
@@ -985,6 +996,9 @@ static void _draw_pet(void *context) {
                 break;
         }
     }
+    if (can_draw_title) {
+        _draw_title();
+    }
 }
 
 static void _draw_pet_low_energy(void *context) {
@@ -994,19 +1008,27 @@ static void _draw_pet_low_energy(void *context) {
     state->current_poop_animation_frame = (state->current_poop_animation_frame == 0) ? 1 : 3;
     state->current_paused_animation_frame = 0;
 
+    bool can_draw_title = true;  // Title is drawn on top right.
     _draw_character(state);
     _draw_paused(state);
     if (state->phase > VIRTUAL_PET_PHASE_EGG) _draw_attention(state);
     _draw_buzzer_enabled(state);
-    if (state->paused) return;
+    if (state->paused) {
+        _draw_title();
+        return;
+    }
     if (state->phase > VIRTUAL_PET_PHASE_EGG && state->phase != VIRTUAL_PET_PHASE_DEAD) {
-        _draw_poop(state);
+        can_draw_title = state->poops == 0;
+        if (!can_draw_title) _draw_poop(state);
         _draw_sickness(state);
     } else if (state->phase == VIRTUAL_PET_PHASE_DEAD) {
         _draw_little_ghost(state);
     }
     if (state->is_sleeping) {
         watch_display_text(WATCH_POSITION_TOP_RIGHT, "22");
+    }
+    if (can_draw_title) {
+        _draw_title();
     }
 }
 

@@ -387,6 +387,9 @@ bool watch_sleep_animation_is_running(void) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         // COM3, SEG0 contains the half moon icon
         return SLCD->SDATAL3.bit.SDATA & 1;
+    } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
+        // COM0, SEG12 contains the sun icon
+        return SLCD->SDATAL0.bit.SDATA & (1 << 12);
     } else {
         // CSREN indicates that the tick/tick animation is running
         return SLCD->CTRLD.bit.CSREN;

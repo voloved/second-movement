@@ -209,6 +209,12 @@ bool watch_sleep_animation_is_running(void) {
             const e = document.querySelector("[data-com='3'][data-seg='0']");
             return e && e.style.opacity == 1 ? 1 : 0;
         });
+    } else if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        // COM0, SEG12 contains the sun icon
+        return EM_ASM_INT({
+            const e = document.querySelector("[data-com='0'][data-seg='12']");
+            return e && e.style.opacity == 1 ? 1 : 0;
+        });
     } else {
         return tick_interval_id != -1;
     }

@@ -150,7 +150,7 @@ const watch_face_t watch_faces[] = {
  * 6: 1 day
  * 7: 7 days
  */
-#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 2
+#define MOVEMENT_DEFAULT_LOW_ENERGY_INTERVAL 1
 
 /*
  * If true and we're in LE mode and it's the top of the hour

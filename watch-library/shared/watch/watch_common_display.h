@@ -641,7 +641,7 @@ static const digit_mapping_t GShock_LCD_Display_Mapping[] = {
             { .address = { .com = 1, .seg = 19 } }, // 1E
             { .address = { .com = 2, .seg = 10 } }, // 1F
             { .address = { .com = 1, .seg = 10 } }, // 1G
-            { .address = { .com = 3, .seg = 10 } },  // 1H
+            { .address = { .com = 3, .seg = 10 } }, // 1H
         },
     },
     // Positions 2 and 3 are the Day digits
@@ -659,13 +659,13 @@ static const digit_mapping_t GShock_LCD_Display_Mapping[] = {
     },
     {
         .segment = {
-            { .address = { .com = 3, .seg = 0 } },  // 3A
-            { .address = { .com = 2, .seg = 0 } },  // 3B
-            { .address = { .com = 1, .seg = 0 } },  // 3C
-            { .address = { .com = 1, .seg = 1 } },  // 3D
-            { .address = { .com = 2, .seg = 2 } },  // 3E
-            { .address = { .com = 3, .seg = 1 } },  // 3F
-            { .address = { .com = 2, .seg = 1 } },  // 3G
+            { .address = { .com = 3, .seg = 26 } }, // 3A
+            { .address = { .com = 2, .seg = 26 } }, // 3B
+            { .address = { .com = 1, .seg = 26 } }, // 3C
+            { .address = { .com = 1, .seg =  1 } }, // 3D
+            { .address = { .com = 2, .seg =  2 } }, // 3E
+            { .address = { .com = 3, .seg =  1 } }, // 3F
+            { .address = { .com = 2, .seg =  1 } }, // 3G
             { .value = segment_does_not_exist },    // 3H
         },
     },
@@ -685,8 +685,8 @@ static const digit_mapping_t GShock_LCD_Display_Mapping[] = {
     {
         .segment = {
             { .address = { .com = 1, .seg = 25 } }, // 5A
-            { .address = { .com = 1, .seg = 26 } }, // 5B
-            { .address = { .com = 3, .seg = 26 } }, // 5C
+            { .address = { .com = 1, .seg =  0 } }, // 5B
+            { .address = { .com = 3, .seg =  0 } }, // 5C
             { .address = { .com = 3, .seg = 25 } }, // 5D
             { .address = { .com = 3, .seg = 24 } }, // 5E
             { .address = { .com = 2, .seg = 24 } }, // 5F

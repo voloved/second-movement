@@ -308,9 +308,10 @@ void watch_start_character_blink(char character, uint32_t duration) {
 }
 
 void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32_t duration) {
+    if (_installed_display != WATCH_LCD_TYPE_CUSTOM && _installed_display != WATCH_LCD_TYPE_GSHOCK) return;
+    // Indicators can only blink on the custom LCD.
+    uint8_t mask = 0;
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
-        // Indicators can only blink on the custom LCD.
-        uint8_t mask = 0;
         switch (indicator) {
         case WATCH_INDICATOR_COLON:
             mask = 0b0001;
@@ -327,22 +328,33 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
         default:
             return;
         }
-        watch_set_indicator(indicator);
-
-        if (duration <= _slcd_fc_min_ms_bypass) {
-            slcd_configure_frame_counter(0, (duration / (1000 / _slcd_framerate)) - 1, false);
-        } else {
-            slcd_configure_frame_counter(0, ((duration / (1000 / _slcd_framerate)) / 8 - 1), true);
+    } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
+        switch (indicator) {
+        case WATCH_INDICATOR_SINGLE_QUOTE:
+            mask = 0b0001;
+            break;
+        case WATCH_INDICATOR_COLON:
+            mask = 0b0100;
+            break;
+        default:
+            return;
         }
-        slcd_set_frame_counter_enabled(0, true);
-
-
-        slcd_disable();
-        slcd_set_blink_enabled(false);
-        slcd_configure_blink(false, mask, 0, 0);
-        slcd_set_blink_enabled(true);
-        slcd_enable();
     }
+    watch_set_indicator(indicator);
+
+    if (duration <= _slcd_fc_min_ms_bypass) {
+        slcd_configure_frame_counter(0, (duration / (1000 / _slcd_framerate)) - 1, false);
+    } else {
+        slcd_configure_frame_counter(0, ((duration / (1000 / _slcd_framerate)) / 8 - 1), true);
+    }
+    slcd_set_frame_counter_enabled(0, true);
+
+
+    slcd_disable();
+    slcd_set_blink_enabled(false);
+    slcd_configure_blink(false, mask, 0, 0);
+    slcd_set_blink_enabled(true);
+    slcd_enable();
 }
 
 void watch_stop_blink(void) {
@@ -387,6 +399,9 @@ bool watch_sleep_animation_is_running(void) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         // COM3, SEG0 contains the half moon icon
         return SLCD->SDATAL3.bit.SDATA & 1;
+    } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
+        // COM0, SEG12 contains the sun icon
+        return SLCD->SDATAL0.bit.SDATA & (1 << 12);
     } else {
         // CSREN indicates that the tick/tick animation is running
         return SLCD->CTRLD.bit.CSREN;
@@ -407,4 +422,3 @@ void watch_stop_sleep_animation(void) {
         watch_display_character(' ', 8);
     }
 }
-

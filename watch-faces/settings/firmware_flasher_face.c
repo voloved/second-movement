@@ -360,8 +360,8 @@ bool firmware_flasher_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_ACTIVATE:
-            const watch_date_time_t distant_future = {.unit = {0, 0, 0, 1, 1, 63}};
-            movement_schedule_background_task(distant_future);
+            // Schedule a time way out there to avoid sleeping
+            movement_schedule_background_task((watch_date_time_t){.unit = {0, 0, 0, 1, 1, 63}});
             render_menu(state);
             break;
 

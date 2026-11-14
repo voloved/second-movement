@@ -57,13 +57,13 @@ static virtual_pet_phase_attribute_t virtual_pet_phase_attributes[] = {
         .phase_length = 120, // 2 hrs
         .time_hunger = 10, // 1 hrs
         .time_happiness = 8, // 48 mins
-        .time_needs = 6, // 36 mins
+        .time_needs = 4, // 36 mins
     },
     { // Child
         .phase_length = 20*60, // 20 hrs awake (~2 days total)
         .time_hunger = 25, // 2.5 hrs
         .time_happiness = 20, // 2 hrs
-        .time_needs = 12, // 1.2 hrs
+        .time_needs = 10, // 1 hrs
     },
     { // Adult (hunger and happiness determined by type, see below.)
     },
@@ -899,6 +899,19 @@ static void _draw_sickness(void *context) {
     );
 }
 
+static bool _should_show_title(void *context) {
+    virtual_pet_state_t *state = (virtual_pet_state_t *)context;
+    uint32_t now_ts = rtc_counter_to_seconds(watch_rtc_get_counter());
+    return (now_ts - state->show_title_ts) < 2;
+}
+static void _draw_title(void *context) {
+    virtual_pet_state_t *state = (virtual_pet_state_t *)context;
+    if (_should_show_title(state))
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "Pet", "PE");
+    else
+        watch_display_text_with_fallback(WATCH_POSITION_TOP_LEFT, "   ", "  ");
+}
+
 static void _draw_attention(void *context) {
     virtual_pet_state_t *state = (virtual_pet_state_t *)context;
     // don't draw while dead or while sleeping.
@@ -958,13 +971,14 @@ static void _draw_pet(void *context) {
 
     _draw_character(state);
     _draw_paused(state);
+    _draw_title(state);
     // only update when not eating for added gameplay
     if (state->phase > VIRTUAL_PET_PHASE_EGG && !state->is_eating) _draw_attention(state);
     _draw_buzzer_enabled(state);
     if (state->paused) return;
     if (state->phase > VIRTUAL_PET_PHASE_EGG && state->phase != VIRTUAL_PET_PHASE_DEAD) {
         _draw_poop(state);
-        _draw_sickness(state);
+        if (!_should_show_title(state)) _draw_sickness(state);
         if (state->is_eating) _draw_food(state);
     } else if (state->phase == VIRTUAL_PET_PHASE_DEAD) {
         _draw_little_ghost(state);
@@ -1250,9 +1264,10 @@ static bool _handle_action_menu_choice(void *context) {
         case VIRTUAL_PET_ACTION_MENU_ITEM_SNACK:
             if (state->sickness > 0) return false;
             if (state->happiness >= VIRTUAL_PET_MAX_HAPPINESS) {
+                if (state->overfed_snacks_today < VIRTUAL_PET_MAX_OVERFEED_SNACKS_DAILY) state->overfed_snacks_today++;
+
                 if (state->overfeed_counter < VIRTUAL_PET_OVERFEED_AMOUNT_SICKNESS) {
                     state->overfeed_counter++;
-                    if (state->overfed_snacks_today < VIRTUAL_PET_MAX_OVERFEED_SNACKS_DAILY && state->phase > VIRTUAL_PET_PHASE_BABY) state->overfed_snacks_today++;
                     // fall through
                 } else {
                     _make_pet_sick(state);
@@ -1861,6 +1876,7 @@ void virtual_pet_face_activate(void *context) {
     _exit_menu(state);
     state->face_active = true;
     _activate_ts(state);
+    state->show_title_ts = rtc_counter_to_seconds(watch_rtc_get_counter());
     if (state->paused && state->paused_automatically) _unpause(state);
     // Handle any tasks related to your watch face coming on screen.
 }

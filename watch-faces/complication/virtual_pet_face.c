@@ -551,6 +551,20 @@ static uint32_t rtc_counter_to_seconds(rtc_counter_t counter) {
     uint32_t freq = watch_rtc_get_frequency();
     return counter / freq;
 }
+static void _hatch_egg_if_ready(virtual_pet_state_t *state) {
+    if (state->phase != VIRTUAL_PET_PHASE_EGG || state->paused) return;
+    rtc_counter_t current_counter = watch_rtc_get_counter();
+    uint32_t elapsed_s = rtc_counter_to_seconds(current_counter - state->start_counter);
+    uint32_t hatch_s = (60*state->minutes_to_hatch);
+    if (elapsed_s < hatch_s) return;
+    state->phase = VIRTUAL_PET_PHASE_BABY;
+    state->birth_counter = current_counter;
+    state->awake_in_phase_counter = 0;
+    state->last_game_logic_loop_counter = current_counter;
+    state->paused_counter = 0;
+    state->time_alive = 0;
+}
+
 static uint32_t _get_time_alive(void *context, rtc_counter_t current_counter) {
     virtual_pet_state_t *state = (virtual_pet_state_t *)context;
     if (state->birth_counter == 0) return 0;
@@ -1854,6 +1868,7 @@ bool virtual_pet_face_loop(movement_event_t event, void *context) {
                 // set birth counter if not egg (otherwise only gets set when hatching, which doesn't happen when starting from baby or larger.)
                 if (state->phase > VIRTUAL_PET_PHASE_EGG && state->birth_counter == 0) state->birth_counter = state->start_counter;
             }
+            _hatch_egg_if_ready(state);
             break;
         default:
             break;

@@ -31,6 +31,9 @@
 #include "slcd.h"
 #include "tc.h"
 #include "adc.h"
+#if defined(_SAML22_)
+#include "dma.h"
+#endif
 
  //////////////////////////////////////////////////////////////////////////////////////////
 // Segmented Display
@@ -39,6 +42,91 @@ static uint16_t _slcd_framerate = 0;
 static uint16_t _slcd_fc_min_ms_bypass = 0;
 
 static watch_lcd_type_t _installed_display = WATCH_LCD_TYPE_UNKNOWN;
+
+#if defined(_SAML22_)
+#define COLON_ANIMATION_FRAME_COUNTER 2
+#define COLON_ANIMATION_ABM_WRITES_PER_STATE 2
+#define COLON_ANIMATION_DMA_TRANSFER_COUNT 4
+// At 1/4 duty, each COM row uses 6 bytes: COM2/SEG26 is byte 15, bit 2.
+#define COLON_ANIMATION_ISDATA_OFFSET (2U * 6U + 26U / 8U)
+// ISDATA mask bits select which display bits are updated.
+#define COLON_ANIMATION_ISDATA_MASK (1U << (26U % 8U))
+
+static gossamer_dma_job_t _colon_animation_dma_job;
+static uint32_t _colon_animation_dma_data[COLON_ANIMATION_DMA_TRANSFER_COUNT] __attribute__((aligned(4)));
+static bool _colon_animation_dma_ready;
+static bool _colon_animation_dma_attempted;
+static bool _colon_animation_active;
+
+static bool _setup_colon_animation_dma(void) {
+    if (_colon_animation_dma_ready) return true;
+    if (_colon_animation_dma_attempted) return false;
+    _colon_animation_dma_attempted = true;
+
+    dma_init();
+    if (!dma_configure(&_colon_animation_dma_job, SLCD_DMAC_ID_ABMDRDY, DMA_TRIGGER_ACTION_BEAT,
+                       DMA_CONFIG_LOOP | DMA_CONFIG_RUNSTDBY)) {
+        return false;
+    }
+
+    uint32_t isdata_base = (COLON_ANIMATION_ISDATA_OFFSET << SLCD_ISDATA_OFF_Pos) |
+                           (COLON_ANIMATION_ISDATA_MASK << SLCD_ISDATA_SDMASK_Pos);
+    uint32_t colon_bit = 1U << (26U % 8U);
+    for (uint8_t i = 0; i < COLON_ANIMATION_DMA_TRANSFER_COUNT; i++) {
+        bool colon_on = i < COLON_ANIMATION_DMA_TRANSFER_COUNT / 2;
+        _colon_animation_dma_data[i] = isdata_base | (colon_on ? colon_bit : 0U);
+    }
+
+    if (dma_add_descriptor(&_colon_animation_dma_job, _colon_animation_dma_data, (void *)&SLCD->ISDATA.reg,
+                           COLON_ANIMATION_DMA_TRANSFER_COUNT, DMA_BEAT_SIZE_WORD, DMA_INCREMENT_SOURCE,
+                           DMA_STEPSIZE_1, DMA_STEPSEL_SOURCE) == NULL) {
+        return false;
+    }
+    if (!dma_start_job(&_colon_animation_dma_job)) {
+        return false;
+    }
+
+    _colon_animation_dma_ready = true;
+    return true;
+}
+
+static bool _start_colon_animation(uint32_t duration) {
+    if (!_setup_colon_animation_dma()) return false;
+
+    SLCD->CTRLC.bit.ABMEN = 0;
+    slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, false);
+    slcd_disable();
+
+    uint32_t toggle_interval_ms = duration / 4U + (duration % 4U != 0);
+    if (toggle_interval_ms == 0) toggle_interval_ms = 1;
+    bool prescale = toggle_interval_ms > _slcd_fc_min_ms_bypass;
+    uint32_t prescaler = prescale ? 8U : 1U;
+    uint32_t frame_count = (toggle_interval_ms * _slcd_framerate + 500U * prescaler) /
+                           (1000U * prescaler);
+    if (frame_count == 0) frame_count = 1;
+    if (frame_count > 32) frame_count = 32;
+
+    slcd_configure_frame_counter(COLON_ANIMATION_FRAME_COUNTER, frame_count - 1U, prescale);
+    SLCD->ABMCFG.bit.FCS = COLON_ANIMATION_FRAME_COUNTER;
+    SLCD->ABMCFG.bit.SIZE = COLON_ANIMATION_ABM_WRITES_PER_STATE;
+    slcd_enable();
+
+    watch_set_colon();
+    _colon_animation_active = true;
+    SLCD->CTRLC.bit.ABMEN = 1;
+    slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, true);
+    return true;
+}
+
+static void _stop_colon_animation(bool leave_on) {
+    if (!_colon_animation_active) return;
+
+    SLCD->CTRLC.bit.ABMEN = 0;
+    slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, false);
+    _colon_animation_active = false;
+    if (leave_on) watch_set_colon();
+}
+#endif
 
 /// NOTE: The function below was commented out because LCD autodetection proved unreliable.
 /// While I would love to fix it, I can't figure it out in time for the product launch.
@@ -308,6 +396,13 @@ void watch_start_character_blink(char character, uint32_t duration) {
 }
 
 void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32_t duration) {
+#if defined(_SAML22_)
+    if (_installed_display == WATCH_LCD_TYPE_GSHOCK && indicator == WATCH_INDICATOR_COLON) {
+        _start_colon_animation(duration);
+        return;
+    }
+#endif
+
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         // Indicators can only blink on the custom LCD.
         uint8_t mask = 0;
@@ -346,6 +441,9 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
 }
 
 void watch_stop_blink(void) {
+#if defined(_SAML22_)
+    _stop_colon_animation(true);
+#endif
     slcd_set_frame_counter_enabled(0, false);
     slcd_set_blink_enabled(false);
 }
@@ -357,9 +455,13 @@ void watch_set_sleep_indicator_if_possible(void) {
 }
 
 void watch_start_sleep_animation(uint32_t duration) {
-    if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
-        // on pro LCD, we just show the sleep indicator
+    if (_installed_display == WATCH_LCD_TYPE_CUSTOM) {
         watch_set_indicator(WATCH_INDICATOR_SLEEP);
+    } else if (_installed_display == WATCH_LCD_TYPE_GSHOCK) {
+        watch_set_indicator(WATCH_INDICATOR_SLEEP);
+#if defined(_SAML22_)
+        _start_colon_animation(duration);
+#endif
     } else {
         // on classic LCD we do the "tick/tock" animation
         watch_display_character(' ', 8);
@@ -405,9 +507,11 @@ void watch_clear_sleep_indicator_if_possible(void) {
 void watch_stop_sleep_animation(void) {
     if (_installed_display == WATCH_LCD_TYPE_CUSTOM || _installed_display == WATCH_LCD_TYPE_GSHOCK) {
         watch_clear_indicator(WATCH_INDICATOR_SLEEP);
+#if defined(_SAML22_)
+        if (_installed_display == WATCH_LCD_TYPE_GSHOCK) _stop_colon_animation(false);
+#endif
     } else {
         slcd_set_circular_shift_animation_enabled(false);
         watch_display_character(' ', 8);
     }
 }
-

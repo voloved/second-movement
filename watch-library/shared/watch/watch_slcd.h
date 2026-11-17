@@ -272,8 +272,7 @@ void watch_start_character_blink(char character, uint32_t duration);
 
 /** @brief Blinks an indicator on the custom LCD.
   * @details You can blink the LAP, ARROWS, SLEEP and COLON indicators on the custom LCD.
-  *          The colon can also be blinked on the G-Shock LCD and 
-  *          the original F-91W LCD, using RTC compare interrupts.
+  *          Alas you cannot autonomously blink any indicators on the original F-91W LCD.
   * @param indicator The indicator you wish to blink.
   * @param duration The duration of the on/off cycle in milliseconds, from 50 to ~4250 ms.
   */

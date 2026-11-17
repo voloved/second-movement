@@ -28,8 +28,6 @@
 #include "pins.h"
 #include "watch_slcd.h"
 #include "watch_common_display.h"
-#include "watch_rtc.h"
-#include "movement.h"
 #include "slcd.h"
 #include "tc.h"
 #include "adc.h"
@@ -39,28 +37,8 @@
 
 static uint16_t _slcd_framerate = 0;
 static uint16_t _slcd_fc_min_ms_bypass = 0;
-static uint32_t _colon_blink_interval_ticks;
 
 static watch_lcd_type_t _installed_display = WATCH_LCD_TYPE_UNKNOWN;
-
-static void toggle_colon(void) {
-    #if defined(FORCE_CUSTOM_LCD_TYPE)
-    SLCD->SDATAL0.reg ^= (1u << 0);
-    return;
-    #elif defined(FORCE_GSHOCK_LCD_TYPE)
-    SLCD->SDATAL2.reg ^= (1u << 26);
-    return;
-    #elif defined(FORCE_CLASSIC_LCD_TYPE)
-    SLCD->SDATAL1.reg ^= (1u << 16);
-    return;
-    #endif
-}
-
-static void _colon_blink_callback(void) {
-    toggle_colon();
-    rtc_counter_t next_counter = watch_rtc_get_counter() + _colon_blink_interval_ticks;
-    watch_rtc_register_comp_callback_no_schedule(_colon_blink_callback, next_counter, COLON_BLINK_TIMEOUT);
-}
 
 /// NOTE: The function below was commented out because LCD autodetection proved unreliable.
 /// While I would love to fix it, I can't figure it out in time for the product launch.
@@ -365,19 +343,9 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
         slcd_set_blink_enabled(true);
         slcd_enable();
     }
-    else if (indicator == WATCH_INDICATOR_COLON) {
-        watch_rtc_disable_comp_callback(COLON_BLINK_TIMEOUT);
-        watch_set_colon();
-        _colon_blink_interval_ticks = (duration * watch_rtc_get_frequency() + 1000U) / 1000U;
-        if (_colon_blink_interval_ticks == 0) _colon_blink_interval_ticks = 1;
-        rtc_counter_t next_counter = watch_rtc_get_counter() + _colon_blink_interval_ticks;
-        watch_rtc_register_comp_callback(_colon_blink_callback, next_counter, COLON_BLINK_TIMEOUT);
-        return;
-    }
 }
 
 void watch_stop_blink(void) {
-    watch_rtc_disable_comp_callback(COLON_BLINK_TIMEOUT);
     slcd_set_frame_counter_enabled(0, false);
     slcd_set_blink_enabled(false);
 }

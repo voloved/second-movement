@@ -188,7 +188,6 @@ typedef enum {
     SLEEP_TIMEOUT,              // Low-energy begin timeout
     MINUTE_TIMEOUT,             // Top of the Minute timeout
     SINGLE_TAP_TIMEOUT,         // Single tap is seen and we're waiting to see if the double tap will occur
-    COLON_BLINK_TIMEOUT,
 } movement_timeout_index_t;
 
 typedef enum {

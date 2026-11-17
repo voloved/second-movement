@@ -39,7 +39,6 @@ static long tick_interval_id = -1;
 static uint8_t indicator_blink_com;
 static bool indicator_blink_state;
 static long indicator_blink_interval_id = -1;
-static long colon_blink_interval_id = -1;
 
 watch_lcd_type_t watch_get_lcd_type(void) {
 #if defined(FORCE_CUSTOM_LCD_TYPE)
@@ -104,20 +103,6 @@ void watch_clear_display(void) {
     });
 }
 
-static bool watch_is_pixel_on(uint8_t com, uint8_t seg) {
-    return EM_ASM_INT({
-        const elements = document.querySelectorAll(
-            "[data-com='" + $0 + "'][data-seg='" + $1 + "']"
-        );
-
-        if (elements.length === 0) return 0;
-
-        return Array.from(elements).some(
-            e => getComputedStyle(e).opacity !== "0"
-        ) ? 1 : 0;
-    }, com, seg);
-}
-
 static void watch_invoke_blink_callback(void *userData) {
     blink_state = !blink_state;
     watch_display_character(blink_state ? blink_character : ' ', 7);
@@ -144,60 +129,31 @@ static void watch_invoke_indicator_blink_callback(void *userData) {
     }
 }
 
-static void toggle_colon(void) {
-    uint8_t com;
-    uint8_t seg;
-    #if defined(FORCE_CUSTOM_LCD_TYPE)
-    com = 0;
-    seg = 0;
-    #elif defined(FORCE_GSHOCK_LCD_TYPE)
-    com = 2;
-    seg = 26;
-    #elif defined(FORCE_CLASSIC_LCD_TYPE)
-    com = 1;
-    seg = 16;
-    #else
-    return;
-    #endif
-    if (watch_is_pixel_on(com, seg)) {
-        watch_clear_pixel(com, seg);
-    } else {
-        watch_set_pixel(com, seg);
-    }
-}
-
-static void _colon_blink_callback(void *userData) {
-    toggle_colon();
-}
-
 void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32_t duration) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_CUSTOM) {
-        switch (indicator) {
-        case WATCH_INDICATOR_COLON:
-            indicator_blink_com = 0;
-            break;
-        case WATCH_INDICATOR_LAP:
-            indicator_blink_com = 1;
-            break;
-        case WATCH_INDICATOR_ARROWS:
-            indicator_blink_com = 2;
-            break;
-        case WATCH_INDICATOR_SLEEP:
-            indicator_blink_com = 3;
-            break;
-        default:
-            return;
-        }
+    // Indicators can only blink on the custom LCD.
+    if (watch_get_lcd_type() != WATCH_LCD_TYPE_CUSTOM) return;
 
-        if (indicator_blink_interval_id != -1) emscripten_clear_interval(indicator_blink_interval_id);
-        watch_set_pixel(indicator_blink_com, 0);
-        indicator_blink_state = true;
-        indicator_blink_interval_id = emscripten_set_interval(watch_invoke_indicator_blink_callback, (double)duration, NULL);
+    switch (indicator) {
+    case WATCH_INDICATOR_COLON:
+        indicator_blink_com = 0;
+        break;
+    case WATCH_INDICATOR_LAP:
+        indicator_blink_com = 1;
+        break;
+    case WATCH_INDICATOR_ARROWS:
+        indicator_blink_com = 2;
+        break;
+    case WATCH_INDICATOR_SLEEP:
+        indicator_blink_com = 3;
+        break;
+    default:
+        return;
     }
-    else if (indicator == WATCH_INDICATOR_COLON) {
-        if (colon_blink_interval_id != -1) emscripten_clear_interval(colon_blink_interval_id);
-        colon_blink_interval_id = emscripten_set_interval(_colon_blink_callback, (double)duration, NULL);
-    }
+
+    if (indicator_blink_interval_id != -1) emscripten_clear_interval(indicator_blink_interval_id);
+    watch_set_pixel(indicator_blink_com, 0);
+    indicator_blink_state = true;
+    indicator_blink_interval_id = emscripten_set_interval(watch_invoke_indicator_blink_callback, (double)duration, NULL);
 }
 
 void watch_set_sleep_indicator_if_possible(void) {
@@ -216,10 +172,6 @@ void watch_stop_blink(void) {
         indicator_blink_interval_id = -1;
         // the segment stays set after blinking stops, like on hardware
         watch_set_pixel(indicator_blink_com, 0);
-    }
-    if (colon_blink_interval_id != -1) {
-        emscripten_clear_interval(colon_blink_interval_id);
-        colon_blink_interval_id = -1;
     }
     indicator_blink_state = false;
 }

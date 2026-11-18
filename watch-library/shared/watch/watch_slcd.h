@@ -319,3 +319,7 @@ void watch_clear_sleep_indicator_if_possible(void);
   */
 void watch_stop_sleep_animation(void);
 /// @}
+
+
+void test_pixel_write(void);
+void sum_init_bs(void);

@@ -349,7 +349,7 @@ static inline void _movement_reset_inactivity_countdown(void) {
     } else {
         watch_rtc_register_comp_callback_no_schedule(
             cb_sleep_timeout_interrupt,
-            counter + movement_le_inactivity_deadlines[1] * freq,
+            counter + movement_le_inactivity_deadlines[movement_state.settings.le_interval] * freq,
             SLEEP_TIMEOUT
         );
     }

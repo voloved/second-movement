@@ -47,10 +47,10 @@ static watch_lcd_type_t _installed_display = WATCH_LCD_TYPE_UNKNOWN;
 #define COLON_ANIMATION_FRAME_COUNTER 2
 #define COLON_ANIMATION_ABM_WRITES_PER_STATE 2
 #define COLON_ANIMATION_DMA_TRANSFER_COUNT 4
-// At 1/4 duty, each COM row uses 6 bytes: COM2/SEG26 is byte 15, bit 2.
-#define COLON_ANIMATION_ISDATA_OFFSET (2U * 6U + 26U / 8U)
-// ISDATA mask bits select which display bits are updated.
-#define COLON_ANIMATION_ISDATA_MASK (1U << (26U % 8U))
+#define COLON_ANIMATION_ISDATA_OFFSET 15u
+#define COLON_ANIMATION_COLON_BIT 2u
+// Keep the tested direct-write mask: set mask bits preserve all other segments.
+#define COLON_ANIMATION_ISDATA_MASK ((uint8_t)~(1U << COLON_ANIMATION_COLON_BIT))
 
 static gossamer_dma_job_t _colon_animation_dma_job;
 static uint32_t _colon_animation_dma_data[COLON_ANIMATION_DMA_TRANSFER_COUNT] __attribute__((aligned(4)));
@@ -71,7 +71,7 @@ static bool _setup_colon_animation_dma(void) {
 
     uint32_t isdata_base = (COLON_ANIMATION_ISDATA_OFFSET << SLCD_ISDATA_OFF_Pos) |
                            (COLON_ANIMATION_ISDATA_MASK << SLCD_ISDATA_SDMASK_Pos);
-    uint32_t colon_bit = 1U << (26U % 8U);
+    uint32_t colon_bit = 1U << COLON_ANIMATION_COLON_BIT;
     for (uint8_t i = 0; i < COLON_ANIMATION_DMA_TRANSFER_COUNT; i++) {
         bool colon_on = i < COLON_ANIMATION_DMA_TRANSFER_COUNT / 2;
         _colon_animation_dma_data[i] = isdata_base | (colon_on ? colon_bit : 0U);
@@ -113,8 +113,8 @@ static bool _start_colon_animation(uint32_t duration) {
 
     watch_set_colon();
     _colon_animation_active = true;
-    SLCD->CTRLC.bit.ABMEN = 1;
     slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, true);
+    SLCD->CTRLC.bit.ABMEN = 1;
     return true;
 }
 
@@ -127,6 +127,38 @@ static void _stop_colon_animation(bool leave_on) {
     if (leave_on) watch_set_colon();
 }
 #endif
+
+
+
+
+#define TEST_PIXEL_OFF       15u
+#define TEST_PIXEL_BIT       2u
+#define TEST_PIXEL_BITMASK   (1u << TEST_PIXEL_BIT)
+static bool joop = false;
+
+/*
+ * This assumes SDMASK bit 1 means "mask/preserve" and bit 0 means
+ * "allow update". Confirm this polarity in the ISDATA register description.
+ */
+#define TEST_PIXEL_SDMASK    ((uint8_t)~TEST_PIXEL_BITMASK)
+
+static uint32_t test_pixel_word(bool on)
+{
+    return SLCD_ISDATA_OFF(TEST_PIXEL_OFF) |
+           SLCD_ISDATA_SDMASK(TEST_PIXEL_SDMASK) |
+           SLCD_ISDATA_SDATA(on ? TEST_PIXEL_BITMASK : 0u);
+}
+
+void test_pixel_write(void)
+{
+    REG_SLCD_ISDATA = test_pixel_word(joop);
+    joop = !joop;
+}
+
+void sum_init_bs(void) {
+    SLCD->CTRLC.bit.ABMEN = 0;
+    slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, false);
+}
 
 /// NOTE: The function below was commented out because LCD autodetection proved unreliable.
 /// While I would love to fix it, I can't figure it out in time for the product launch.

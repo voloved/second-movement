@@ -552,7 +552,7 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time, bool update
 }
 
 static void clock_start_tick_tock_animation(void) {
-    if (!watch_sleep_animation_is_running()) {
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK || !watch_sleep_animation_is_running()) {
         watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
     }
 }
@@ -614,6 +614,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_display_low_energy(movement_get_local_date_time());
             break;
         case EVENT_ACTIVATE:
+            sum_init_bs();
             if (state->showing_steps) {
                 if (!can_show_steps()) {
                     state->showing_steps = false;
@@ -639,6 +640,8 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_check_battery_periodically(state, current);
 
             state->date_time.previous = current;
+
+            test_pixel_write();
 
             break;
         case EVENT_ALARM_REALLY_LONG_PRESS:

@@ -45,20 +45,25 @@ static watch_lcd_type_t _installed_display = WATCH_LCD_TYPE_UNKNOWN;
 
 #if defined(_SAML22_)
 #define COLON_ANIMATION_FRAME_COUNTER 2
-#define COLON_ANIMATION_ABM_WRITES_PER_STATE 2
-#define COLON_ANIMATION_DMA_TRANSFER_COUNT 4
+#define COLON_ANIMATION_ABM_WRITES_PER_STATE 1
+#define COLON_ANIMATION_DMA_TRANSFER_COUNT 2
 #define COLON_ANIMATION_ISDATA_OFFSET 15u
 #define COLON_ANIMATION_COLON_BIT 2u
-// Keep the tested direct-write mask: set mask bits preserve all other segments.
-#define COLON_ANIMATION_ISDATA_MASK ((uint8_t)~(1U << COLON_ANIMATION_COLON_BIT))
 
 static gossamer_dma_job_t _colon_animation_dma_job;
 static uint32_t _colon_animation_dma_data[COLON_ANIMATION_DMA_TRANSFER_COUNT] __attribute__((aligned(4)));
 static bool _colon_animation_dma_ready;
 static bool _colon_animation_dma_attempted;
+static bool _colon_animation_dma_started;
 static bool _colon_animation_active;
 
-static bool _setup_colon_animation_dma(void) {
+static bool _setup_abm_dma(uint8_t isdata_offset, uint8_t segment_bit) {
+    uint8_t segment_mask = 1U << segment_bit;
+    uint32_t isdata_base = (isdata_offset << SLCD_ISDATA_OFF_Pos) |
+                           (((uint8_t)~segment_mask) << SLCD_ISDATA_SDMASK_Pos);
+    _colon_animation_dma_data[0] = isdata_base | segment_mask;
+    _colon_animation_dma_data[1] = isdata_base;
+
     if (_colon_animation_dma_ready) return true;
     if (_colon_animation_dma_attempted) return false;
     _colon_animation_dma_attempted = true;
@@ -69,35 +74,26 @@ static bool _setup_colon_animation_dma(void) {
         return false;
     }
 
-    uint32_t isdata_base = (COLON_ANIMATION_ISDATA_OFFSET << SLCD_ISDATA_OFF_Pos) |
-                           (COLON_ANIMATION_ISDATA_MASK << SLCD_ISDATA_SDMASK_Pos);
-    uint32_t colon_bit = 1U << COLON_ANIMATION_COLON_BIT;
-    for (uint8_t i = 0; i < COLON_ANIMATION_DMA_TRANSFER_COUNT; i++) {
-        bool colon_on = i < COLON_ANIMATION_DMA_TRANSFER_COUNT / 2;
-        _colon_animation_dma_data[i] = isdata_base | (colon_on ? colon_bit : 0U);
+    for (uint8_t state = 0; state < COLON_ANIMATION_DMA_TRANSFER_COUNT; state++) {
+        if (dma_add_descriptor(&_colon_animation_dma_job, &_colon_animation_dma_data[state],
+                               (void *)&SLCD->ISDATA.reg, COLON_ANIMATION_ABM_WRITES_PER_STATE,
+                               DMA_BEAT_SIZE_WORD, DMA_INCREMENT_SOURCE, DMA_STEPSIZE_1,
+                               DMA_STEPSEL_SOURCE, DMA_BLOCK_ACTION_NONE) == NULL) {
+            return false;
+        }
     }
-
-    if (dma_add_descriptor(&_colon_animation_dma_job, _colon_animation_dma_data, (void *)&SLCD->ISDATA.reg,
-                           COLON_ANIMATION_DMA_TRANSFER_COUNT, DMA_BEAT_SIZE_WORD, DMA_INCREMENT_SOURCE,
-                           DMA_STEPSIZE_1, DMA_STEPSEL_SOURCE) == NULL) {
-        return false;
-    }
-    if (!dma_start_job(&_colon_animation_dma_job)) {
-        return false;
-    }
-
     _colon_animation_dma_ready = true;
     return true;
 }
 
 static bool _start_colon_animation(uint32_t duration) {
-    if (!_setup_colon_animation_dma()) return false;
-
     SLCD->CTRLC.bit.ABMEN = 0;
+    SLCD->CTRLC.bit.ACMEN = 0;
     slcd_set_frame_counter_enabled(COLON_ANIMATION_FRAME_COUNTER, false);
+    if (!_setup_abm_dma(COLON_ANIMATION_ISDATA_OFFSET, COLON_ANIMATION_COLON_BIT)) return false;
     slcd_disable();
 
-    uint32_t toggle_interval_ms = duration / 4U + (duration % 4U != 0);
+    uint32_t toggle_interval_ms = duration / 2U + (duration % 2U != 0);
     if (toggle_interval_ms == 0) toggle_interval_ms = 1;
     bool prescale = toggle_interval_ms > _slcd_fc_min_ms_bypass;
     uint32_t prescaler = prescale ? 8U : 1U;
@@ -110,6 +106,11 @@ static bool _start_colon_animation(uint32_t duration) {
     SLCD->ABMCFG.bit.FCS = COLON_ANIMATION_FRAME_COUNTER;
     SLCD->ABMCFG.bit.SIZE = COLON_ANIMATION_ABM_WRITES_PER_STATE;
     slcd_enable();
+
+    if (!_colon_animation_dma_started) {
+        if (!dma_start_job(&_colon_animation_dma_job)) return false;
+        _colon_animation_dma_started = true;
+    }
 
     watch_set_colon();
     _colon_animation_active = true;
@@ -126,6 +127,7 @@ static void _stop_colon_animation(bool leave_on) {
     _colon_animation_active = false;
     if (leave_on) watch_set_colon();
 }
+
 #endif
 
 

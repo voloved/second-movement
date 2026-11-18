@@ -29,6 +29,9 @@
 
 const watch_face_t watch_faces[] = {
     clock_face,
+#ifdef HAS_IR_SENSOR
+    firmware_flasher_face,
+#endif
     fast_stopwatch_face,
     countdown_face,
 #ifdef I2C_SERCOM

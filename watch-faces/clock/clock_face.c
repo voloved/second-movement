@@ -155,6 +155,7 @@ static int8_t _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *ris
 }
 
 static void clock_indicate(watch_indicator_t indicator, bool on) {
+    return;
     if (on) {
         watch_set_indicator(indicator);
     } else {
@@ -552,12 +553,24 @@ static void clock_toggle_mode_displayed(watch_date_time_t date_time, bool update
 }
 
 static void clock_start_tick_tock_animation(void) {
-    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK || !watch_sleep_animation_is_running()) {
+#if defined(_SAML22_)
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
+        return;
+    }
+#endif
+    if (!watch_sleep_animation_is_running()) {
         watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
     }
 }
 
 static void clock_stop_tick_tock_animation(void) {
+#if defined(_SAML22_)
+    if (watch_get_lcd_type() == WATCH_LCD_TYPE_GSHOCK) {
+        watch_stop_blink();
+        return;
+    }
+#endif
     if (watch_sleep_animation_is_running()) {
         watch_stop_blink();
     }
@@ -592,6 +605,7 @@ void clock_face_activate(void *context) {
     clock_indicate_24h();
 
     watch_set_colon();
+    clock_start_tick_tock_animation();
     clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
 
     // this ensures that none of the timestamp fields will match, so we can re-render them all.
@@ -609,12 +623,12 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
     switch (event.event_type) {
         case EVENT_LOW_ENERGY_UPDATE:
-            clock_start_tick_tock_animation();
             // We don't show steps in sleep mode because they can't update in sleep mode. We show the date instead.
             clock_display_low_energy(movement_get_local_date_time());
+            clock_start_tick_tock_animation();
             break;
         case EVENT_ACTIVATE:
-            sum_init_bs();
+            //sum_init_bs();
             if (state->showing_steps) {
                 if (!can_show_steps()) {
                     state->showing_steps = false;
@@ -641,7 +655,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
             state->date_time.previous = current;
 
-            test_pixel_write();
+            //test_pixel_write();
 
             break;
         case EVENT_ALARM_REALLY_LONG_PRESS:
@@ -695,6 +709,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
 
 void clock_face_resign(void *context) {
     (void) context;
+    clock_stop_tick_tock_animation();
 }
 
 movement_watch_face_advisory_t clock_face_advise(void *context) {

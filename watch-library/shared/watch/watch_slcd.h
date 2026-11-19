@@ -319,6 +319,6 @@ void watch_clear_sleep_indicator_if_possible(void);
   */
 void watch_stop_sleep_animation(void);
 
-void configure_dma_abm(void);
+bool configure_dma_abm(void);
 void use_dma_abm(uint32_t duration);
 /// @}

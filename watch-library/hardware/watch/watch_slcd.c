@@ -117,6 +117,7 @@ COMPILER_ALIGNED(16)
 DmacDescriptor example_descriptor_abm2;
 COMPILER_ALIGNED(16)
 DmacDescriptor example_descriptor_abm3;
+static bool dma_abm_configured = false;
 
 /* Automated Bit Mapping
  Format: [00,offset,data mask,data]
@@ -173,9 +174,9 @@ const uint32_t abm_matrix_string3[16] = {
 
 #define ABM_MATRIX_SIZE (sizeof(abm_matrix_string0)/sizeof(uint32_t))
 
-void configure_dma_abm(void)
+bool configure_dma_abm(void)
 {
-
+	if (dma_abm_configured) return true;
 	struct dma_resource_config abm_config;
 	dma_get_config_defaults(&abm_config);
 	abm_config.peripheral_trigger = SLCD_DMAC_ID_ABMDRDY;
@@ -214,32 +215,38 @@ void configure_dma_abm(void)
 	abm_descriptor_config.next_descriptor_address =  (uint32_t)&example_descriptor_abm;
 	dma_descriptor_create(&example_descriptor_abm3, &abm_descriptor_config);
 
-	dma_add_descriptor(&example_resource_abm, &example_descriptor_abm);
-	dma_start_transfer_job(&example_resource_abm);
+	if( STATUS_OK != dma_add_descriptor(&example_resource_abm, &example_descriptor_abm)) {
+        return false;
+    }
+	if( STATUS_OK != dma_start_transfer_job(&example_resource_abm)) {
+        return false;
+    }
+	dma_abm_configured = true;
+    watch_set_indicator(WATCH_INDICATOR_LAP);
+    return true;
 }
 
-#define fc_guy 0
 void use_dma_abm(uint32_t duration)
 {
+    const enum slcd_frame_counter fc = SLCD_FRAME_COUNTER_0;
 	slcd_disable();
 	slcd_disable_automated_character();
 	SLCD->CTRLC.reg |= SLCD_CTRLC_CLEAR; //slcd_clear_display_memory();
 	//slcd_disable_frame_counter(SLCD_FRAME_COUNTER_2);
-    slcd_set_frame_counter_enabled(fc_guy, false);
-	slcd_set_automated_bit(ABM_MATRIX_SIZE,fc_guy);
+    slcd_set_frame_counter_enabled(fc, false);
+	slcd_set_automated_bit(ABM_MATRIX_SIZE,fc);
 
     if (duration <= _slcd_fc_min_ms_bypass) {
-        slcd_configure_frame_counter(fc_guy, (duration / (1000 / _slcd_framerate)) - 1, false);
+        slcd_configure_frame_counter(fc, (duration / (1000 / _slcd_framerate)) - 1, false);
     } else {
-        slcd_configure_frame_counter(fc_guy, ((duration / (1000 / _slcd_framerate)) / 8 - 1), true);
+        slcd_configure_frame_counter(fc, ((duration / (1000 / _slcd_framerate)) / 8 - 1), true);
     }
-    slcd_set_frame_counter_enabled(fc_guy, true);
+    slcd_set_frame_counter_enabled(fc, true);
 	//slcd_set_frame_counter(SLCD_FRAME_COUNTER_2,true,0x03);
 	//slcd_enable_frame_counter(SLCD_FRAME_COUNTER_2);
 	slcd_enable_automated_bit();
 	slcd_enable();
 }
-
 /*
 void watch_discover_lcd_type(void) {
     #if defined(FORCE_CUSTOM_LCD_TYPE)
@@ -411,6 +418,11 @@ void watch_enable_display(void) {
     } else {
         slcd_set_contrast(9);
     }
+    bool okay = false;
+    while (!okay) {
+        okay = configure_dma_abm();
+    }
+    
 
     slcd_enable();
 }

@@ -606,6 +606,8 @@ void clock_face_activate(void *context) {
     watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
 }
 
+static uint8_t joop = 0;
+
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
     watch_date_time_t current;
@@ -617,6 +619,7 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_display_low_energy(movement_get_local_date_time());
             break;
         case EVENT_ACTIVATE:
+            joop = 0;
             if (state->showing_steps) {
                 if (!can_show_steps()) {
                     state->showing_steps = false;
@@ -629,6 +632,11 @@ bool clock_face_loop(movement_event_t event, void *context) {
             }
             // fall-through
         case EVENT_TICK:
+            if (joop < 4) {
+                joop++;
+                watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
+            }
+            //break;
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
 

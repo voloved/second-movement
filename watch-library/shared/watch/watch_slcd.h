@@ -318,4 +318,7 @@ void watch_clear_sleep_indicator_if_possible(void);
   *          On the custom LCD, it will turn off the crescent moon indicator.
   */
 void watch_stop_sleep_animation(void);
+
+void configure_dma_abm(void);
+void use_dma_abm(uint32_t duration);
 /// @}

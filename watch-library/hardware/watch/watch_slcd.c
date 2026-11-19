@@ -124,43 +124,63 @@ DmacDescriptor example_descriptor_abm3;
  data mask:[15-8]
  offset:[21-16]
 */
-const uint32_t abm_matrix_string0[] = {
-	0x00002f10,0x00012211,0x00022211, /* COM0  */
-	0x00060f00,0x00070000,0x00080000, /* COM1  */
-	0x000c0f80,0x000d0088,0x000e0088, /* COM2 */
-	0x00124f10,0x00134411,0x00144411  /* COM3 */
- };
+/* Existing words 0–11 remain unchanged.
+ * Add the actual words 12–15 from the ABM layout.
+ */
+const uint32_t abm_matrix_string0[16] = {
+    0x00002f10, 0x00012211, 0x00022211,
+    0x00060f00, 0x00070000, 0x00080000,
+    0x000c0f80, 0x000d0088, 0x000e0088,
+    0x00124f10, 0x00134411, 0x00144411,
+    /* words 12–14: existing ABM data required */
+    0x00000000, 0x00000000, 0x00000000,
+    /* word 15: bit 2 off */
+    0x00000000
+};
 
-const uint32_t abm_matrix_string1[] = {
-	0x00002f10,0x00012211,0x00022211, /* COM0  */
-	0x00060f80,0x00070088,0x00080088, /* COM1  */
-	0x000c0f90,0x000d0099,0x000e0099, /* COM2  */
-	0x00124f10,0x00134411,0x00144411  /* COM3  */
- };
+const uint32_t abm_matrix_string1[16] = {
+    0x00002f10, 0x00012211, 0x00022211,
+    0x00060f80, 0x00070088, 0x00080088,
+    0x000c0f90, 0x000d0099, 0x000e0099,
+    0x00124f10, 0x00134411, 0x00144411,
+    /* words 12–14: existing ABM data required */
+    0x00000000, 0x00000000, 0x00000000,
+    /* word 15: bit 2 on */
+    0x00000004
+};
 
-const uint32_t abm_matrix_string2[] = {
-	0x00002f90,0x00012299,0x00022299, /* COM0  */
-	0x00060f10,0x00070011,0x00080011, /* COM1  */
-	0x000c0f80,0x000d0088,0x000e0088, /* COM2  */
-	0x00124f10,0x00134411,0x00144411  /* COM3  */
- };
+const uint32_t abm_matrix_string2[16] = {
+    0x00002f90, 0x00012299, 0x00022299,
+    0x00060f10, 0x00070011, 0x00080011,
+    0x000c0f80, 0x000d0088, 0x000e0088,
+    0x00124f10, 0x00134411, 0x00144411,
+    /* words 12–14: existing ABM data required */
+    0x00000000, 0x00000000, 0x00000000,
+    /* word 15: bit 2 off */
+    0x00000000
+};
 
-const uint32_t abm_matrix_string3[] = {
-	0x00002f10,0x00012211,0x00022211, /* COM0  */
-	0x00060f00,0x00070000,0x00080000, /* COM1  */
-	0x000c0f00,0x000d0000,0x000e0000, /* COM2  */
-	0x00124f80,0x00134488,0x00144488  /* COM3  */
- };
+const uint32_t abm_matrix_string3[16] = {
+    0x00002f10, 0x00012211, 0x00022211,
+    0x00060f00, 0x00070000, 0x00080000,
+    0x000c0f00, 0x000d0000, 0x000e0000,
+    0x00124f80, 0x00134488, 0x00144488,
+    /* words 12–14: existing ABM data required */
+    0x00000000, 0x00000000, 0x00000000,
+    /* word 15: bit 2 on */
+    0x00000004
+};
 
 #define ABM_MATRIX_SIZE (sizeof(abm_matrix_string0)/sizeof(uint32_t))
 
-static void configure_dma_abm(void)
+void configure_dma_abm(void)
 {
 
 	struct dma_resource_config abm_config;
 	dma_get_config_defaults(&abm_config);
 	abm_config.peripheral_trigger = SLCD_DMAC_ID_ABMDRDY;
 	abm_config.trigger_action = DMA_TRIGGER_ACTION_BEAT;
+	abm_config.run_in_standby = true;
 
 	dma_allocate(&example_resource_abm, &abm_config);
 
@@ -198,15 +218,24 @@ static void configure_dma_abm(void)
 	dma_start_transfer_job(&example_resource_abm);
 }
 
-static void use_dma_abm(void)
+#define fc_guy 0
+void use_dma_abm(uint32_t duration)
 {
 	slcd_disable();
 	slcd_disable_automated_character();
 	SLCD->CTRLC.reg |= SLCD_CTRLC_CLEAR; //slcd_clear_display_memory();
-	slcd_disable_frame_counter(SLCD_FRAME_COUNTER_2);
-	slcd_set_automated_bit(ABM_MATRIX_SIZE,SLCD_FRAME_COUNTER_2);
-	slcd_set_frame_counter(SLCD_FRAME_COUNTER_2,true,0x1F);
-	slcd_enable_frame_counter(SLCD_FRAME_COUNTER_2);
+	//slcd_disable_frame_counter(SLCD_FRAME_COUNTER_2);
+    slcd_set_frame_counter_enabled(fc_guy, false);
+	slcd_set_automated_bit(ABM_MATRIX_SIZE,fc_guy);
+
+    if (duration <= _slcd_fc_min_ms_bypass) {
+        slcd_configure_frame_counter(fc_guy, (duration / (1000 / _slcd_framerate)) - 1, false);
+    } else {
+        slcd_configure_frame_counter(fc_guy, ((duration / (1000 / _slcd_framerate)) / 8 - 1), true);
+    }
+    slcd_set_frame_counter_enabled(fc_guy, true);
+	//slcd_set_frame_counter(SLCD_FRAME_COUNTER_2,true,0x03);
+	//slcd_enable_frame_counter(SLCD_FRAME_COUNTER_2);
 	slcd_enable_automated_bit();
 	slcd_enable();
 }
@@ -460,7 +489,7 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
     }
     else {
         configure_dma_abm();
-        use_dma_abm();
+        use_dma_abm(duration);
     }
 }
 
@@ -529,4 +558,3 @@ void watch_stop_sleep_animation(void) {
         watch_display_character(' ', 8);
     }
 }
-

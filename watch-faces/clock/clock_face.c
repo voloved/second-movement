@@ -155,6 +155,7 @@ static int8_t _get_if_daytime(watch_date_time_t date_time, clock_rise_set_t *ris
 }
 
 static void clock_indicate(watch_indicator_t indicator, bool on) {
+    return;
     if (on) {
         watch_set_indicator(indicator);
     } else {
@@ -585,13 +586,13 @@ void clock_face_setup(uint8_t watch_face_index, void ** context_ptr) {
 void clock_face_activate(void *context) {
     clock_state_t *state = (clock_state_t *) context;
 
-    clock_stop_tick_tock_animation();
+    //clock_stop_tick_tock_animation();
 
     clock_indicate_time_signal(state);
     clock_indicate_alarm();
     clock_indicate_24h();
 
-    watch_set_colon();
+    //watch_set_colon();
     clock_indicate(WATCH_INDICATOR_BOX_DASH, false);
 
     // this ensures that none of the timestamp fields will match, so we can re-render them all.
@@ -601,6 +602,8 @@ void clock_face_activate(void *context) {
         movement_location_t movement_location = load_location_from_filesystem();
         state->rise_set_info.location.reg = movement_location.reg;
     }
+
+    watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
 }
 
 bool clock_face_loop(movement_event_t event, void *context) {

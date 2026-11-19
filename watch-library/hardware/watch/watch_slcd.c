@@ -29,6 +29,7 @@
 #include "watch_slcd.h"
 #include "watch_common_display.h"
 #include "slcd.h"
+#include "dma.h"
 #include "tc.h"
 #include "adc.h"
 
@@ -94,6 +95,120 @@ void watch_discover_lcd_type(void) {
 
     // Update indicator segment mapping based on the detected display (they are v different).
     _watch_update_indicator_segments();
+}
+
+/**
+ * \brief Set aligned boundary.
+ */
+#if (defined __GNUC__) || (defined __CC_ARM)
+#   define COMPILER_ALIGNED(a)        __attribute__((__aligned__(a)))
+#elif (defined __ICCARM__)
+#   define COMPILER_ALIGNED(a)        COMPILER_PRAGMA(data_alignment = a)
+#endif
+
+
+//! [slcd_var]
+struct dma_resource example_resource_abm;
+COMPILER_ALIGNED(16)
+DmacDescriptor example_descriptor_abm;
+COMPILER_ALIGNED(16)
+DmacDescriptor example_descriptor_abm1;
+COMPILER_ALIGNED(16)
+DmacDescriptor example_descriptor_abm2;
+COMPILER_ALIGNED(16)
+DmacDescriptor example_descriptor_abm3;
+
+/* Automated Bit Mapping
+ Format: [00,offset,data mask,data]
+ data:[7-0]
+ data mask:[15-8]
+ offset:[21-16]
+*/
+const uint32_t abm_matrix_string0[] = {
+	0x00002f10,0x00012211,0x00022211, /* COM0  */
+	0x00060f00,0x00070000,0x00080000, /* COM1  */
+	0x000c0f80,0x000d0088,0x000e0088, /* COM2 */
+	0x00124f10,0x00134411,0x00144411  /* COM3 */
+ };
+
+const uint32_t abm_matrix_string1[] = {
+	0x00002f10,0x00012211,0x00022211, /* COM0  */
+	0x00060f80,0x00070088,0x00080088, /* COM1  */
+	0x000c0f90,0x000d0099,0x000e0099, /* COM2  */
+	0x00124f10,0x00134411,0x00144411  /* COM3  */
+ };
+
+const uint32_t abm_matrix_string2[] = {
+	0x00002f90,0x00012299,0x00022299, /* COM0  */
+	0x00060f10,0x00070011,0x00080011, /* COM1  */
+	0x000c0f80,0x000d0088,0x000e0088, /* COM2  */
+	0x00124f10,0x00134411,0x00144411  /* COM3  */
+ };
+
+const uint32_t abm_matrix_string3[] = {
+	0x00002f10,0x00012211,0x00022211, /* COM0  */
+	0x00060f00,0x00070000,0x00080000, /* COM1  */
+	0x000c0f00,0x000d0000,0x000e0000, /* COM2  */
+	0x00124f80,0x00134488,0x00144488  /* COM3  */
+ };
+
+#define ABM_MATRIX_SIZE (sizeof(abm_matrix_string0)/sizeof(uint32_t))
+
+static void configure_dma_abm(void)
+{
+
+	struct dma_resource_config abm_config;
+	dma_get_config_defaults(&abm_config);
+	abm_config.peripheral_trigger = SLCD_DMAC_ID_ABMDRDY;
+	abm_config.trigger_action = DMA_TRIGGER_ACTION_BEAT;
+
+	dma_allocate(&example_resource_abm, &abm_config);
+
+	struct dma_descriptor_config abm_descriptor_config;
+	dma_descriptor_get_config_defaults(&abm_descriptor_config);
+
+	abm_descriptor_config.beat_size = DMA_BEAT_SIZE_WORD;
+	abm_descriptor_config.src_increment_enable = true;
+	abm_descriptor_config.step_selection = DMA_STEPSEL_SRC;
+	abm_descriptor_config.dst_increment_enable = false;
+	abm_descriptor_config.block_transfer_count = ABM_MATRIX_SIZE;
+	abm_descriptor_config.source_address = (uint32_t)abm_matrix_string0
+											+ sizeof(abm_matrix_string0);
+	abm_descriptor_config.destination_address = (uint32_t)&SLCD->ISDATA.reg;
+	abm_descriptor_config.next_descriptor_address =  (uint32_t)&example_descriptor_abm1;
+
+	dma_descriptor_create(&example_descriptor_abm, &abm_descriptor_config);
+
+	abm_descriptor_config.source_address = (uint32_t)abm_matrix_string1
+											+ sizeof(abm_matrix_string1);
+	abm_descriptor_config.next_descriptor_address =  (uint32_t)&example_descriptor_abm2;
+	dma_descriptor_create(&example_descriptor_abm1, &abm_descriptor_config);
+
+	abm_descriptor_config.source_address = (uint32_t)abm_matrix_string2
+											+ sizeof(abm_matrix_string2);
+	abm_descriptor_config.next_descriptor_address =  (uint32_t)&example_descriptor_abm3;
+	dma_descriptor_create(&example_descriptor_abm2, &abm_descriptor_config);
+
+	abm_descriptor_config.source_address = (uint32_t)abm_matrix_string3
+											+ sizeof(abm_matrix_string3);
+	abm_descriptor_config.next_descriptor_address =  (uint32_t)&example_descriptor_abm;
+	dma_descriptor_create(&example_descriptor_abm3, &abm_descriptor_config);
+
+	dma_add_descriptor(&example_resource_abm, &example_descriptor_abm);
+	dma_start_transfer_job(&example_resource_abm);
+}
+
+static void use_dma_abm(void)
+{
+	slcd_disable();
+	slcd_disable_automated_character();
+	SLCD->CTRLC.reg |= SLCD_CTRLC_CLEAR; //slcd_clear_display_memory();
+	slcd_disable_frame_counter(SLCD_FRAME_COUNTER_2);
+	slcd_set_automated_bit(ABM_MATRIX_SIZE,SLCD_FRAME_COUNTER_2);
+	slcd_set_frame_counter(SLCD_FRAME_COUNTER_2,true,0x1F);
+	slcd_enable_frame_counter(SLCD_FRAME_COUNTER_2);
+	slcd_enable_automated_bit();
+	slcd_enable();
 }
 
 /*
@@ -342,6 +457,10 @@ void watch_start_indicator_blink_if_possible(watch_indicator_t indicator, uint32
         slcd_configure_blink(false, mask, 0, 0);
         slcd_set_blink_enabled(true);
         slcd_enable();
+    }
+    else {
+        configure_dma_abm();
+        use_dma_abm();
     }
 }
 

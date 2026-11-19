@@ -225,6 +225,13 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
             if(displaying_curr_step_count) {
                 watch_display_text(WATCH_POSITION_BOTTOM, "SLEEP ");
             }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+            // fall through
+        case EVENT_MINUTE:
+            if (displaying_curr_step_count) {
+                gshock_display_current_time_top_right();
+            }
+#endif
             break;
         case EVENT_TICK:
             // This makes it so if the we're just scrolling through faces, we don't immedietly turn
@@ -253,13 +260,6 @@ bool step_counter_face_loop(movement_event_t event, void *context) {
                 allow_sleeping(true, logger_state);
             }
             break;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-        case EVENT_MINUTE:
-            if (displaying_curr_step_count) {
-                gshock_display_current_time_top_right();
-            }
-            break;
-#endif
         case EVENT_BACKGROUND_TASK:
             step_count = get_step_count();
             if (STEP_COUNTER_DISPLAY_NO_STEP_DAYS || step_count != 0) {

@@ -279,11 +279,6 @@ bool countdown_face_loop(movement_event_t event, void *context) {
 
             draw(state, event.subsecond);
             break;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-        case EVENT_MINUTE:
-            gshock_display_current_time_top_right();
-            break;
-#endif
         case EVENT_MODE_BUTTON_UP:
             abort_quick_ticks(state);
             movement_move_to_next_face();
@@ -449,6 +444,11 @@ bool countdown_face_loop(movement_event_t event, void *context) {
                 // clear out the last two digits and replace them with the sleep mode indicator
                 watch_display_text(WATCH_POSITION_SECONDS, "  ");
             }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+            // intentional fallthrough
+        case EVENT_MINUTE:
+            gshock_display_current_time_top_right();
+#endif
             break;
         case EVENT_LIGHT_BUTTON_DOWN:
             // intentionally squelch the light default event; we only show the light when cd is running or reset

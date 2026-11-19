@@ -172,15 +172,15 @@ bool stopwatch_face_loop(movement_event_t event, void *context) {
                 _stopwatch_face_update_display(stopwatch_state, false);
                 watch_set_indicator(WATCH_INDICATOR_BELL);
             }
-            break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
+            // fall through
         case EVENT_MINUTE:
             // If we're not supposed to be displaying the day, display the time.
             if (stopwatch_state->seconds_counted < 86400) {
                 gshock_display_current_time_top_right();
             }
-            break;
 #endif
+            break;
         default:
             return movement_default_loop_handler(event);
     }

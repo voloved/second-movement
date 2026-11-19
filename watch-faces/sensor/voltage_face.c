@@ -197,6 +197,7 @@ bool voltage_face_loop(movement_event_t event, void *context) {
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_MINUTE:
+        case EVENT_LOW_ENERGY_UPDATE:
             if(displaying_curr_volt) {
                 gshock_display_current_time_top_right();
             }

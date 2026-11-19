@@ -78,17 +78,17 @@ bool temperature_display_face_loop(movement_event_t event, void *context) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
             }
             break;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-        case EVENT_MINUTE:
-            gshock_display_current_time_top_right();
-            break;
-#endif
         case EVENT_LOW_ENERGY_UPDATE:
             // update every 5 minutes
             if (date_time.unit.minute % 5 == 0) {
                 watch_clear_indicator(WATCH_INDICATOR_SIGNAL);
                 _temperature_display_face_update_display(movement_use_imperial_units());
             }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+            // fall through
+        case EVENT_MINUTE:
+            gshock_display_current_time_top_right();
+#endif
             break;
         default:
             movement_default_loop_handler(event);

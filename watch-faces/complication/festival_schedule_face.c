@@ -608,6 +608,14 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                     _display_screen(state);
                 }
             }
+#ifdef FORCE_GSHOCK_LCD_TYPE
+            // fall through
+        case EVENT_MINUTE:
+            if (!state->cyc_through_all_acts &&
+                (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE)) {
+                gshock_display_current_time_top_right();
+            }
+#endif
             break;
         case EVENT_LIGHT_BUTTON_UP:
             _handle_btn_up(state, true);
@@ -666,15 +674,6 @@ bool festival_schedule_face_loop(movement_event_t event, void *context) {
                 _display_screen(state);
             }
             break;
-#ifdef FORCE_GSHOCK_LCD_TYPE
-        case EVENT_MINUTE:
-            if (!state->cyc_through_all_acts && 
-                (state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_ACT || 
-                state->curr_screen == FESTIVAL_SCHEDULE_SCREEN_TITLE)) {
-                gshock_display_current_time_top_right();
-            }
-            break;
-#endif
         case EVENT_TIMEOUT:
             if (state->cyc_through_all_acts){
                 state->cyc_through_all_acts = false;

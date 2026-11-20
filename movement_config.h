@@ -36,7 +36,6 @@ const watch_face_t watch_faces[] = {
 #endif
 #if !BUILD_TO_SHARE
     cyclic_countdown_face,
-    voltage_face,
 #endif
     advanced_alarm_face,
     sunrise_sunset_face,
@@ -49,7 +48,9 @@ const watch_face_t watch_faces[] = {
     voltage_face,
     temperature_logging_face,
 #ifdef HAS_IR_SENSOR
+#if BUILD_TO_SHARE
     light_sensor_face,
+#endif
     firmware_flasher_face,
 #endif
 // Start of Teriary Faces
@@ -87,7 +88,11 @@ const watch_face_t watch_faces[] = {
 #endif
 
 #ifdef HAS_IR_SENSOR
+#if BUILD_TO_SHARE
 #define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 6) // or (0)
+#else
+#define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 5) // or (0)
+#endif
 #else
 #define MOVEMENT_SECONDARY_FACE_INDEX (MOVEMENT_TERIARY_FACE_INDEX - 4) // or (0)
 #endif

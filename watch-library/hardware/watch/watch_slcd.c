@@ -182,8 +182,9 @@ bool configure_dma_abm(void)
 	abm_config.peripheral_trigger = SLCD_DMAC_ID_ABMDRDY;
 	abm_config.trigger_action = DMA_TRIGGER_ACTION_BEAT;
 	abm_config.run_in_standby = true;
-
-	dma_allocate(&example_resource_abm, &abm_config);
+	if( STATUS_OK != dma_allocate(&example_resource_abm, &abm_config)) {
+        return false;
+    }
 
 	struct dma_descriptor_config abm_descriptor_config;
 	dma_descriptor_get_config_defaults(&abm_descriptor_config);
@@ -222,7 +223,6 @@ bool configure_dma_abm(void)
         return false;
     }
 	dma_abm_configured = true;
-    watch_set_indicator(WATCH_INDICATOR_LAP);
     return true;
 }
 
@@ -418,11 +418,6 @@ void watch_enable_display(void) {
     } else {
         slcd_set_contrast(9);
     }
-    bool okay = false;
-    while (!okay) {
-        okay = configure_dma_abm();
-    }
-    
 
     slcd_enable();
 }

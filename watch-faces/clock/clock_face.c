@@ -602,11 +602,7 @@ void clock_face_activate(void *context) {
         movement_location_t movement_location = load_location_from_filesystem();
         state->rise_set_info.location.reg = movement_location.reg;
     }
-
-    watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
 }
-
-static uint8_t joop = 0;
 
 bool clock_face_loop(movement_event_t event, void *context) {
     clock_state_t *state = (clock_state_t *) context;
@@ -619,7 +615,6 @@ bool clock_face_loop(movement_event_t event, void *context) {
             clock_display_low_energy(movement_get_local_date_time());
             break;
         case EVENT_ACTIVATE:
-            joop = 0;
             if (state->showing_steps) {
                 if (!can_show_steps()) {
                     state->showing_steps = false;
@@ -630,13 +625,12 @@ bool clock_face_loop(movement_event_t event, void *context) {
                     }
                 }
             }
+            bool config_worked = configure_dma_abm();
+            use_dma_abm(500);
+            // If config worked, SPLIT will be on
+            if (config_worked) watch_set_indicator(WATCH_INDICATOR_LAP);
             // fall-through
         case EVENT_TICK:
-            if (joop < 4) {
-                joop++;
-                watch_start_indicator_blink_if_possible(WATCH_INDICATOR_COLON, 500);
-            }
-            //break;
             current = movement_get_local_date_time();
             print_time_debug(current, "Now");
 

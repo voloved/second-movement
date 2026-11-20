@@ -55,9 +55,9 @@ static virtual_pet_phase_attribute_t virtual_pet_phase_attributes[] = {
     },
     { // Baby
         .phase_length = 120, // 2 hrs
-        .time_hunger = 10, // 1 hrs
-        .time_happiness = 8, // 48 mins
-        .time_needs = 4, // 36 mins
+        .time_hunger = 7, // 42 mins
+        .time_happiness = 5, // 30 mins
+        .time_needs = 4, // 24 mins
     },
     { // Child
         .phase_length = 20*60, // 20 hrs awake (~2 days total)
@@ -759,6 +759,8 @@ static void _set_is_sleeping(virtual_pet_state_t *state, watch_date_time_t curre
                 }
             }
             //ask for attention once the pet wakes up and it already needs attention
+            //set needs_attention before, so that non-updated UI does not create a false positive
+            _set_needs_attention(state);
             if (state->needs_attention) {
                 _ask_for_attention(state, true);
             }
@@ -962,10 +964,10 @@ static void _draw_pet(virtual_pet_state_t *state) {
     if (state->paused) return;
     if (state->phase > VIRTUAL_PET_PHASE_EGG && state->phase != VIRTUAL_PET_PHASE_DEAD) {
         _draw_poop(state);
-        if (state->show_title_ticks <= 0) _draw_sickness(state);
+        if (state->show_title_ticks < 0) _draw_sickness(state);
         if (state->is_eating) _draw_food(state);
     } else if (state->phase == VIRTUAL_PET_PHASE_DEAD) {
-        if (state->show_title_ticks <= 0) _draw_little_ghost(state);
+        if (state->show_title_ticks < 0) _draw_little_ghost(state);
     }
     if (state->is_sleeping) {
         switch (state->current_sleeping_animation_frame) {
@@ -1081,8 +1083,6 @@ static bool _should_evolve(virtual_pet_state_t *state) {
     uint32_t awake_s;
     uint32_t evolve_s;
 
-    if (state->phase > VIRTUAL_PET_PHASE_EGG && state->sickness > 0) return false;
-
     switch(state->phase) {
         case VIRTUAL_PET_PHASE_DEAD:
         case VIRTUAL_PET_PHASE_ADULT:
@@ -1092,6 +1092,7 @@ static bool _should_evolve(virtual_pet_state_t *state) {
             evolve_s = (60*state->minutes_to_hatch);
             return awake_s >= evolve_s;
         default:
+            if (state->sickness > 0 || state->hunger < 1 || state->happiness < 1 || state->is_eating) return false;
             awake_s = rtc_counter_to_seconds(state->awake_in_phase_counter);
             evolve_s = (60*virtual_pet_phase_attributes[state->phase].phase_length);
             return awake_s >= evolve_s;
@@ -1149,6 +1150,7 @@ static bool _pet_loop(movement_event_t event, virtual_pet_state_t *state) {
                 case VIRTUAL_PET_PHASE_DEAD:
                     break;
                 default:
+                    state->show_title_ticks = -1;
                     state->display_mode = VIRTUAL_PET_DISPLAY_MODE_STATUS_MENU;
                     clear_display();
                     _draw_status_menu(state);
@@ -1178,6 +1180,7 @@ static bool _pet_loop(movement_event_t event, virtual_pet_state_t *state) {
                     }
                     return true;
                 default:
+                    state->show_title_ticks = -1;
                     state->display_mode = VIRTUAL_PET_DISPLAY_MODE_ACTION_MENU;
                     clear_display();
                     _draw_action_menu(state);
@@ -1789,7 +1792,7 @@ static void _game_logic_loop(virtual_pet_state_t *state) {
         if (state->time_alive % 1440 == 0 && state->phase == VIRTUAL_PET_PHASE_ADULT) {
             if (!playing_game) _make_pet_sick_with_chance(state, VIRTUAL_PET_ADULT_RANDOM_SICKNESS_CHANCE);
         }
-        if (state->time_alive == 15 && state->phase == VIRTUAL_PET_PHASE_BABY) {
+        if (state->time_alive == virtual_pet_phase_attributes[VIRTUAL_PET_PHASE_BABY].time_happiness * 3 && state->phase == VIRTUAL_PET_PHASE_BABY) {
             if (!playing_game) _make_pet_sick_with_chance(state, 9);
         }
 

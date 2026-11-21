@@ -2302,6 +2302,7 @@ static bool _switch_face(void) {
 }
 
 bool app_loop(void) {
+    use_dma_abm(500);
     return 0;
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
 

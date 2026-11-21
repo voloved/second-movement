@@ -61,6 +61,11 @@ include $(GOSSAMER_PATH)/make.mk
 # Don't add gossamer's rtc.c since we are using our own rtc32.c
 SRCS := $(filter-out $(GOSSAMER_PATH)/peripherals/rtc.c,$(SRCS))
 
+# Use the second-movement DMA and SLCD copies of Gossamer ABM-testing differences.
+SRCS := $(patsubst $(GOSSAMER_PATH)/peripherals/dma.c,./ABM-Libraries/dma.c,$(SRCS))
+SRCS := $(patsubst $(GOSSAMER_PATH)/peripherals/slcd.c,./ABM-Libraries/slcd.c,$(SRCS))
+INCLUDES := -I./ABM-Libraries $(INCLUDES)
+
 CFLAGS+=-D_POSIX_C_SOURCE=200112L
 
 # Firmware-flasher build configuration (patch-backend selection, RAM overlay

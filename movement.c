@@ -2051,13 +2051,6 @@ void app_wake_from_backup(void) {
 }
 
 void app_setup(void) {
-    watch_enable_display();
-    bool config_worked = configure_dma_abm();
-    use_dma_abm(500);
-    // If config worked, SPLIT will be on
-    if (config_worked) watch_set_indicator(WATCH_INDICATOR_LAP);
-    return;
-
     static bool is_first_launch = true;
 
     if (is_first_launch) {
@@ -2302,8 +2295,6 @@ static bool _switch_face(void) {
 }
 
 bool app_loop(void) {
-    use_dma_abm(500);
-    return 0;
     const watch_face_t *wf = &watch_faces[movement_state.current_face_idx];
 
     // default to being allowed to sleep by the face.

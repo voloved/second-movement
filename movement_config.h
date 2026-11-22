@@ -223,7 +223,7 @@ const watch_face_t watch_faces[] = {
 #define MOVEMENT_TEMPERATURE_ASSUME_WEARING 27 //C
 #define MOVEMENT_HOURS_BEFORE_DEEPSLEEP 5
 
-#if BUILD_TO_SHARE
+#if defined(BUILD_TO_SHARE) || !defined(I2C_SERCOM)
 #define MOVEMENT_WAKE_ON_MOTION false
 #else
 #define MOVEMENT_WAKE_ON_MOTION true

@@ -2447,14 +2447,17 @@ bool app_loop(void) {
     }
 
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
+#ifdef I2C_SERCOM
     // Wake-on-motion: if the countdown expired but the accelerometer still reports
     // motion, restart the countdown and stay awake instead of sleeping.
-    if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing
-        && _movement_accelerometer_in_motion()) {
+    // Also stay awake if we are currently counting steps.
+    if (movement_volatile_state.enter_sleep_mode &&
+        (_movement_accelerometer_in_motion() || _awake_state_lis2dw == MOVEMENT_AWAKE_LIS2DW_COUNTING)) {
         movement_volatile_state.enter_sleep_mode = false;
         movement_volatile_state.enter_deep_sleep_mode = false;
         _movement_reset_inactivity_countdown();
     }
+#endif
     if (movement_volatile_state.enter_deep_sleep_mode) {
         movement_volatile_state.enter_deep_sleep_mode = false;
         movement_begin_deep_sleep();

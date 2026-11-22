@@ -2257,8 +2257,10 @@ static void _sleep_mode_app_loop(void) {
 #endif
 
 // True if wake-on-motion is active and the accelerometer currently reports motion.
-static bool _movement_accelerometer_in_motion(void) {
+static inline bool _movement_accelerometer_in_motion(void) {
+    if (!MOVEMENT_WAKE_ON_MOTION) return false;
     if (!movement_state.has_lis2dw) return false;
+    if (!movement_get_wake_on_motion()) return false;
     if (movement_state.accelerometer_background_rate == LIS2DW_DATA_RATE_POWERDOWN) return false;
     return !(HAL_GPIO_A4_read());  // Alternatively, you can use lis2dw_get_wakeup_source() & LIS2DW_WAKEUP_SRC_SLEEP_STATE, but a digital read is cheaper than a serial call.
 }
@@ -2447,8 +2449,8 @@ bool app_loop(void) {
 #ifndef MOVEMENT_LOW_ENERGY_MODE_FORBIDDEN
     // Wake-on-motion: if the countdown expired but the accelerometer still reports
     // motion, restart the countdown and stay awake instead of sleeping.
-    if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing &&
-        (movement_get_wake_on_motion() || movement_state.counting_steps) && _movement_accelerometer_in_motion()) {
+    if (movement_volatile_state.enter_sleep_mode && !movement_volatile_state.is_buzzing
+        && _movement_accelerometer_in_motion()) {
         movement_volatile_state.enter_sleep_mode = false;
         movement_volatile_state.enter_deep_sleep_mode = false;
         _movement_reset_inactivity_countdown();

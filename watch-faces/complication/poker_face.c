@@ -83,6 +83,7 @@ typedef enum {
 } button_options_t;
 
 static game_state_t game_state;
+static bool displaying_opponent;
 static uint8_t deck[DECK_SIZE] = {0};
 static uint8_t current_card = 0;
 static poker_face_state_t *g_state = NULL;
@@ -248,6 +249,13 @@ static void give_hand(hand_info_t *hand_info) {
     for (uint8_t i=0; i < POKER_HAND_SIZE; i++) {
         hand_info->hand[i] = get_next_card();
     }
+/*
+    hand_info->hand[0] = 7;
+    hand_info->hand[1] = 7;
+    hand_info->hand[2] = 9;
+    hand_info->hand[3] = 9;
+    hand_info->hand[4] = 9;
+*/
     sort_cards(hand_info->hand);
     get_hand_rank(hand_info);
 }
@@ -403,14 +411,16 @@ static void display_win_ratio(poker_face_state_t *state) {
     if (state->games_played > 0) {  // Avoid dividing by zero
         win_ratio = (uint8_t)((100 * state->games_won) / state->games_played);
     }
-    watch_display_text(WATCH_POSITION_TOP_RIGHT, "PO");
+    watch_display_text(WATCH_POSITION_TOP_RIGHT, "  ");
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP, "WR   ", "WINS  ", "WR");
     sprintf(buf, "%3dPct", win_ratio);
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
 static void begin_playing(void) {
+    movement_request_tick_frequency(2);
     game_state = PO_PLAYING;
+    displaying_opponent = false;
     reset_hands();
     // Give player their first 2 cards
     give_hand(&player);
@@ -460,24 +470,25 @@ static bool swap_cards(hand_info_t *hand_info) {
 
 static inline void display_win(void) {
     add_to_game_scores(true);
-    watch_display_text(WATCH_POSITION_TOP_LEFT, "WI");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "W ", "WI", "WI");
     display_opponent_rank();
 }
 
 static inline void display_lose(void) {
     add_to_game_scores(false);
-    watch_display_text(WATCH_POSITION_TOP_LEFT, "LO");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "L ", "LO", "LO");
     display_opponent_rank();
 }
 
 static inline void display_tie(void) {
     // Don't record ties to the win ratio
-    watch_display_text(WATCH_POSITION_TOP_LEFT, "TI");
+    watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "T ", "TI", "TI");
     display_opponent_rank();
 }
 
 static void get_result(void) {
     game_state = PO_RESULT;
+    watch_display_character(' ', 9);
     if (player.hand_rank == opponent.hand_rank) {
         // If both players have the same rank, take the highest card that makes the rank of either.
         // This has a bug, where if there's a 3 of a kind that's 2s for one and 3s for the other and they both have a pair of 4s,
@@ -628,11 +639,10 @@ void poker_face_setup(uint8_t watch_face_index, void **context_ptr) {
 void poker_face_activate(void *context) {
     poker_face_state_t *state = (poker_face_state_t *) context;
     (void) state;
+    displaying_opponent = false;
     display_title();
     stack_deck();
 }
-
-static bool toggle_flash = false;
 
 bool poker_face_loop(movement_event_t event, void *context) {
     poker_face_state_t *state = (poker_face_state_t *) context;
@@ -641,8 +651,7 @@ bool poker_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_TICK:
             if (game_state == PO_PLAYING) {
-                toggle_flash = !toggle_flash;
-                blink_selected_card(toggle_flash);
+                blink_selected_card(event.subsecond);
             }
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
@@ -694,6 +703,20 @@ bool poker_face_loop(movement_event_t event, void *context) {
                     player.selected_pos = POKER_HAND_SIZE;
                 }
                 handle_button_presses(PO_SELECT);
+            } else if (game_state == PO_TITLE_SCREEN) {
+                display_win_ratio(state);
+            } else if (game_state == PO_RESULT) {
+                if (displaying_opponent) {
+                    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+                    display_player_hand();
+                    display_rank(player.hand_rank);
+                } else {
+                    display_opponent_hand();
+                    display_opponent_rank();
+                }
+                displaying_opponent = !displaying_opponent;
             }
             break;
         case EVENT_TIMEOUT:

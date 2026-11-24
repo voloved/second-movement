@@ -57,17 +57,25 @@ typedef enum {
     PO_THREE_OF_A_KIND,
     PO_STRAIGHT,
     //PO_FLUSH, // We have no suits in this version, so this is not possible.
-    PO_FLUSH,
     PO_FULL_HOUSE,
     PO_FOUR_OF_A_KIND,
 } hand_ranks_t;
+
+typedef enum {
+    PO_HC_FOUR_OF_A_KIND,
+    PO_HC_THREE_OF_A_KIND,
+    PO_HC_PAIR_1,
+    PO_HC_PAIR_2,
+    PO_HC_HIGH_CARD,  // Also used for straight.
+    PO_HC_COUNT,
+} highest_card_t;
 
 typedef struct {
     hand_ranks_t hand_rank;
     bool hand_rank_cards[POKER_HAND_SIZE];  // map of the cards that were used in getting the rank
     bool cards_to_swap[POKER_HAND_SIZE];
     uint8_t hand[POKER_HAND_SIZE];  // Hand will be sorted
-    uint8_t highest_card;  // The card that is in the highest rank
+    uint8_t highest_card[PO_HC_COUNT];  // The card that is in the highest rank, in order: [from 3K, from pair 1, from pair 2, from high card]
     uint8_t selected_pos;  // 0 = select left most, POKER_HAND_SIZE = submit hand
 } hand_info_t;
 
@@ -149,7 +157,9 @@ static void reset_hands(void) {
 }
 
 static inline void reset_hand_rank_info(hand_info_t *hand_info) {
-    hand_info->highest_card = 0;
+    for (uint8_t i = 0; i < PO_HC_COUNT; i++) {
+        hand_info->highest_card[i] = 0;
+    }
     hand_info->hand_rank = PO_HIGH_CARD;
     for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
         hand_info->hand_rank_cards[i] = false;
@@ -160,6 +170,20 @@ static inline void set_hand_rank_cards(hand_info_t *hand_info, uint8_t card) {
     for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
         if (hand_info->hand[i] == card) {
             hand_info->hand_rank_cards[i] = true;
+        }
+    }
+}
+
+static inline void set_high_card(hand_info_t *hand_info, bool use_non_ranked_cards_only) {
+#if SORT_LOW_TO_HIGH
+    for (uint8_t i = POKER_HAND_SIZE; i-- > 0;)
+#else
+    for (uint8_t i = 0; i < POKER_HAND_SIZE; i++)
+#endif
+    {
+        if (!use_non_ranked_cards_only || !hand_info->hand_rank_cards[i]) {
+            hand_info->highest_card[PO_HC_HIGH_CARD] = hand_info->hand[i];
+            return;
         }
     }
 }
@@ -186,22 +210,19 @@ static void get_hand_rank(hand_info_t *hand_info) {
         for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
             hand_info->hand_rank_cards[i] = true;
         }
-#if SORT_LOW_TO_HIGH
-        hand_info->highest_card = hand_info->hand[POKER_HAND_SIZE - 1];
-#else
-        hand_info->highest_card = hand_info->hand[0];
-#endif
+        set_high_card(hand_info, false);
         return;
     }
     for (uint8_t i = MIN_CARD_VALUE; i <= MAX_CARD_VALUE; i++) {
         if (duplicate_counts[i] == 4) {
             hand_info->hand_rank = PO_FOUR_OF_A_KIND;
             set_hand_rank_cards(hand_info, i);
-            hand_info->highest_card = i;
+            hand_info->highest_card[PO_HC_FOUR_OF_A_KIND] = i;
+            set_high_card(hand_info, true);
             return;  
         } else if (duplicate_counts[i] == 3) {
             set_hand_rank_cards(hand_info, i);
-            hand_info->highest_card = i;
+            hand_info->highest_card[PO_HC_THREE_OF_A_KIND] = i;
             if (hand_info->hand_rank == PO_ONE_PAIR) {
                 hand_info->hand_rank = PO_FULL_HOUSE;
                 return;
@@ -211,27 +232,34 @@ static void get_hand_rank(hand_info_t *hand_info) {
             set_hand_rank_cards(hand_info, i);
             if (hand_info->hand_rank == PO_THREE_OF_A_KIND) {
                 hand_info->hand_rank = PO_FULL_HOUSE;
+                hand_info->highest_card[PO_HC_PAIR_1] = i;
                 return;
-            }
-            if (hand_info->hand_rank == PO_ONE_PAIR) {
+            } else if (hand_info->hand_rank == PO_ONE_PAIR) {
                 hand_info->hand_rank = PO_TWO_PAIR;
-                if (i > hand_info->highest_card) {
-                    hand_info->highest_card = i;
+                if (i > hand_info->highest_card[PO_HC_PAIR_1]) {
+                    hand_info->highest_card[PO_HC_PAIR_2] = hand_info->highest_card[PO_HC_PAIR_1];
+                    hand_info->highest_card[PO_HC_PAIR_1] = i;
+                } else {
+                    hand_info->highest_card[PO_HC_PAIR_2] = i;
                 }
+                set_high_card(hand_info, true);
                 return;
+            } else {
+                hand_info->highest_card[PO_HC_PAIR_1] = i;
+                hand_info->hand_rank = PO_ONE_PAIR;
             }
-            hand_info->highest_card = i;
-            hand_info->hand_rank = PO_ONE_PAIR;
         }
     }
     if (hand_info->hand_rank == PO_HIGH_CARD) {
 #if SORT_LOW_TO_HIGH
         hand_info->hand_rank_cards[POKER_HAND_SIZE - 1] = true;
-        hand_info->highest_card = hand_info->hand[POKER_HAND_SIZE - 1];
 #else
         hand_info->hand_rank_cards[0] = true;
-        hand_info->highest_card = hand_info->hand[0];
 #endif
+        set_high_card(hand_info, false);
+    } else {
+        set_high_card(hand_info, true);
+
     }
 }
 
@@ -540,21 +568,34 @@ static inline void display_tie(void) {
     display_opponent_rank();
 }
 
+static inline uint8_t get_top_rank_card(const hand_info_t *hand_info) {
+    for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
+        if (hand_info->hand_rank_cards[i])
+            return hand_info->hand[i];
+    }
+    return 0;
+}
+
 static void get_result(void) {
     game_state = PO_RESULT;
     watch_display_character(' ', 9);
     if (player.hand_rank == opponent.hand_rank) {
-        // If both players have the same rank, take the highest card that makes the rank of either.
-        // This has a bug, where if there's a 3 of a kind that's 2s for one and 3s for the other and they both have a pair of 4s,
-        // the 4s are the highest cards. So this is imperfect, but good enough since we won't be sharing the opponent's cards.
-        uint8_t top_card_player = player.highest_card;
-        uint8_t top_card_opponent = opponent.highest_card;
-        if (top_card_player == top_card_opponent) {
+        bool is_tying = true;
+        for (uint8_t i = 0; i < PO_HC_COUNT; i++) {
+            if (player.highest_card[i] == opponent.highest_card[i]) {
+                continue;
+            } else if (player.highest_card[i] > opponent.highest_card[i]) {
+                is_tying = false;
+                display_win();
+                break;
+            } else {
+                is_tying = false;
+                display_lose();
+                break;
+            }
+        }
+        if (is_tying) {
             display_tie();
-        } else if (top_card_player > top_card_opponent) {
-            display_win();
-        } else {
-            display_lose();
         }
     } else if (player.hand_rank > opponent.hand_rank) {
         display_win();
@@ -570,6 +611,11 @@ static void get_result(void) {
             + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
             player.hand_rank_cards[0], player.hand_rank_cards[1], player.hand_rank_cards[2],
             player.hand_rank_cards[3], player.hand_rank_cards[4]);
+    EM_ASM({ console.log('player highest_card   : [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            player.highest_card[PO_HC_FOUR_OF_A_KIND], player.highest_card[PO_HC_THREE_OF_A_KIND],
+            player.highest_card[PO_HC_PAIR_1], player.highest_card[PO_HC_PAIR_2],
+            player.highest_card[PO_HC_HIGH_CARD]);
 
     EM_ASM({ console.log('opponent hand           : [' + $0 + ', ' + $1 + ', '
             + $2 + ', ' + $3 + ', ' + $4 + '] = ' + $5); }, 
@@ -579,6 +625,11 @@ static void get_result(void) {
             + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
             opponent.hand_rank_cards[0], opponent.hand_rank_cards[1], opponent.hand_rank_cards[2],
             opponent.hand_rank_cards[3], opponent.hand_rank_cards[4]);
+    EM_ASM({ console.log('opponent highest_card   : [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            opponent.highest_card[PO_HC_FOUR_OF_A_KIND], opponent.highest_card[PO_HC_THREE_OF_A_KIND],
+            opponent.highest_card[PO_HC_PAIR_1], opponent.highest_card[PO_HC_PAIR_2],
+            opponent.highest_card[PO_HC_HIGH_CARD]);
 #endif
 }
 
@@ -653,7 +704,7 @@ static void make_decision(void) {
             // Even though we're good with our cards, the opponent gets to keep swapping until they're out of rounds.
             while (opponent_swapped && betting_round <= BETTING_ROUNDS) {
                 opponent_decisions(&opponent);
-                bool opponent_swapped = swap_cards(&opponent);
+                opponent_swapped = swap_cards(&opponent);
                 betting_round++;
             }
             get_result();

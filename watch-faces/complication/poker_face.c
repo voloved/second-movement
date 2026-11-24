@@ -41,7 +41,8 @@
 
 #define POKER_HAND_SIZE 5
 #define BOARD_DISPLAY_START 4
-#define AI_MIN_CARD_KEEP 8 
+#define AI_MIN_CARD_KEEP 8
+#define SORT_LOW_TO_HIGH true
 
 typedef enum {
     PO_HIGH_CARD,
@@ -59,7 +60,8 @@ typedef struct {
     hand_ranks_t hand_rank;
     bool hand_rank_cards[POKER_HAND_SIZE];  // map of the cards that were used in getting the rank
     bool cards_to_swap[POKER_HAND_SIZE];
-    uint8_t hand[POKER_HAND_SIZE];  // Hand will be sorted largest card to smallest
+    uint8_t hand[POKER_HAND_SIZE];  // Hand will be sorted
+    uint8_t highest_card;  // The card that is in the highest rank
     uint8_t selected_pos;  // 0 = select left most, POKER_HAND_SIZE = submit hand
 } hand_info_t;
 
@@ -133,7 +135,7 @@ static void reset_hands(void) {
     memset(&opponent, 0, sizeof(opponent));
     player.hand_rank = PO_HIGH_CARD;
     player.selected_pos = POKER_HAND_SIZE;
-    watch_display_character('o', 9); // o on the final position means we want to submit our hand.
+    watch_display_character('-', 9); // - on the final position means we want to submit our hand.
     opponent.hand_rank = PO_HIGH_CARD;
     reset_deck();
 }
@@ -153,7 +155,12 @@ static void get_hand_rank(hand_info_t *hand_info) {
     duplicate_counts[hand_info->hand[0]]++;
     for (uint8_t i = 1; i < POKER_HAND_SIZE; i++) {
         duplicate_counts[hand_info->hand[i]]++;
-        if (hand_info->hand[i] != hand_info->hand[i-1] - 1) {
+#if SORT_LOW_TO_HIGH
+        if (hand_info->hand[i] != hand_info->hand[i-1] + 1)
+#else
+        if (hand_info->hand[i] != hand_info->hand[i-1] - 1)
+#endif
+        {
             is_straight = false;
         }
     }
@@ -162,15 +169,22 @@ static void get_hand_rank(hand_info_t *hand_info) {
         for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
             hand_info->hand_rank_cards[i] = true;
         }
+#if SORT_LOW_TO_HIGH
+        hand_info->highest_card = hand_info->hand[POKER_HAND_SIZE - 1];
+#else
+        hand_info->highest_card = hand_info->hand[0];
+#endif
         return;
     }
     for (uint8_t i = MIN_CARD_VALUE; i <= MAX_CARD_VALUE; i++) {
         if (duplicate_counts[i] == 4) {
             hand_info->hand_rank = PO_FOUR_OF_A_KIND;
             set_hand_rank_cards(hand_info, i);
+            hand_info->highest_card = i;
             return;  
         } else if (duplicate_counts[i] == 3) {
             set_hand_rank_cards(hand_info, i);
+            hand_info->highest_card = i;
             if (hand_info->hand_rank == PO_ONE_PAIR) {
                 hand_info->hand_rank = PO_FULL_HOUSE;
                 return;
@@ -184,13 +198,23 @@ static void get_hand_rank(hand_info_t *hand_info) {
             }
             if (hand_info->hand_rank == PO_ONE_PAIR) {
                 hand_info->hand_rank = PO_TWO_PAIR;
+                if (i > hand_info->highest_card) {
+                    hand_info->highest_card = i;
+                }
                 return;
             }
+            hand_info->highest_card = i;
             hand_info->hand_rank = PO_ONE_PAIR;
         }
     }
     if (hand_info->hand_rank == PO_HIGH_CARD) {
-        hand_info->hand_rank_cards[0] = true;  // Cards already sorted largest to smallest
+#if SORT_LOW_TO_HIGH
+        hand_info->hand_rank_cards[POKER_HAND_SIZE - 1] = true;
+        hand_info->highest_card = hand_info->hand[POKER_HAND_SIZE - 1];
+#else
+        hand_info->hand_rank_cards[0] = true;
+        hand_info->highest_card = hand_info->hand[0];
+#endif
     }
 }
 
@@ -199,7 +223,11 @@ static inline void sort_cards(uint8_t cards[POKER_HAND_SIZE]) {
         uint8_t key = cards[i];
         uint8_t j;
         for (j = i; j > 0; j--) {
+#if SORT_LOW_TO_HIGH
+            if (cards[j-1] <= key)
+#else
             if (cards[j-1] >= key)
+#endif
                 break;
             cards[j] = cards[j-1];
         }
@@ -245,7 +273,7 @@ static void display_rank(hand_ranks_t rank) {
             watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "3K", " 3");
             break;
         case PO_STRAIGHT:
-            watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, " S", " S");
+            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "ST", " S", " S");
             break;
         case PO_FULL_HOUSE:
             watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "FH", " F");
@@ -436,22 +464,14 @@ static inline void display_tie(void) {
     display_opponent_rank();
 }
 
-static inline uint8_t get_top_rank_card(const hand_info_t *hand_info) {
-    for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
-        if (hand_info->hand_rank_cards[i])
-            return hand_info->hand[i];
-    }
-    return 0;
-}
-
 static void get_result(void) {
     game_state = PO_RESULT;
     if (player.hand_rank == opponent.hand_rank) {
         // If both players have the same rank, take the highest card that makes the rank of either.
         // This has a bug, where if there's a 3 of a kind that's 2s for one and 3s for the other and they both have a pair of 4s,
         // the 4s are the highest cards. So this is imperfect, but good enough since we won't be sharing the opponent's cards.
-        uint8_t top_card_player = get_top_rank_card(&player);
-        uint8_t top_card_opponent = get_top_rank_card(&opponent);
+        uint8_t top_card_player = player.highest_card;
+        uint8_t top_card_opponent = opponent.highest_card;
         if (top_card_player == top_card_opponent) {
             display_tie();
         } else if (top_card_player > top_card_opponent) {
@@ -495,7 +515,7 @@ static void move_left(void) {
     display_player_card_or_lifted(); // In case blink_selected_card left that card blank
     if (player.selected_pos == 0) {
         player.selected_pos = POKER_HAND_SIZE;
-        watch_display_character('o', 9);
+        watch_display_character('-', 9);
     } else {
         if (player.selected_pos == POKER_HAND_SIZE) {
             watch_display_character(' ', 9);
@@ -513,7 +533,7 @@ static void move_right(void) {
     } else {
         player.selected_pos++;
         if (player.selected_pos == POKER_HAND_SIZE) {
-            watch_display_character('o', 9);
+            watch_display_character('-', 9);
             return;
         }
         underscore_selected(false);

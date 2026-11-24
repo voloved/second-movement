@@ -65,18 +65,22 @@ static EM_BOOL watch_invoke_key_callback(int eventType, const EmscriptenKeyboard
 #if defined(FORCE_GSHOCK_LCD_TYPE)
             case 'A':
             case 'a':
+            case '4':
                 button_id = BTN_ID_START;
                 break;
             case 'L':
             case 'l':
+            case '2':
                 button_id = BTN_ID_ALARM;
                 break;
             case 'M':
             case 'm':
+            case '1':
                 button_id = BTN_ID_MODE;
                 break;
             case 'S':
             case 's':
+            case '5':
                 button_id = BTN_ID_LIGHT;
                 break;
 #else

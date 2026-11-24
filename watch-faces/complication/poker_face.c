@@ -140,6 +140,14 @@ static void reset_hands(void) {
     reset_deck();
 }
 
+static inline void reset_hand_rank_info(hand_info_t *hand_info) {
+    hand_info->highest_card = 0;
+    hand_info->hand_rank = PO_HIGH_CARD;
+    for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
+        hand_info->hand_rank_cards[i] = false;
+    }
+}
+
 static inline void set_hand_rank_cards(hand_info_t *hand_info, uint8_t card) {
     for (uint8_t i = 0; i < POKER_HAND_SIZE; i++) {
         if (hand_info->hand[i] == card) {
@@ -151,6 +159,7 @@ static inline void set_hand_rank_cards(hand_info_t *hand_info, uint8_t card) {
 static void get_hand_rank(hand_info_t *hand_info) {
     // We first check if it's a straight
     bool is_straight = true;
+    reset_hand_rank_info(hand_info);
     uint8_t duplicate_counts[MAX_CARD_VALUE + 1] = {0};
     duplicate_counts[hand_info->hand[0]]++;
     for (uint8_t i = 1; i < POKER_HAND_SIZE; i++) {
@@ -296,13 +305,17 @@ static void display_opponent_rank(void) {
 }
 
 static void display_lifted_card_at_position(uint8_t card, uint8_t display_position) {
+    bool indicate_top = false;  // Only on G-Shock and Custom because Classic indicates top and bottom.
     switch (card) {
-        case 1:
         case 4:
+            indicate_top = true;
+            // fall-through
+        case 1:
         case 7:
             watch_display_character('`', display_position);
             break;
         case 2:
+            indicate_top = true;
             watch_display_character(' ', display_position);
             set_segment_at_position(F, display_position);
             set_segment_at_position(G, display_position);
@@ -310,6 +323,7 @@ static void display_lifted_card_at_position(uint8_t card, uint8_t display_positi
         case 3:
         case 5:
         case 9:
+            indicate_top = true;
             watch_display_character(' ', display_position);
             set_segment_at_position(B, display_position);
             set_segment_at_position(G, display_position);
@@ -317,6 +331,7 @@ static void display_lifted_card_at_position(uint8_t card, uint8_t display_positi
 
         case 6:
         case 8:
+            indicate_top = true;
             watch_display_character(' ', display_position);
             set_segment_at_position(B, display_position);
             set_segment_at_position(F, display_position);
@@ -326,6 +341,9 @@ static void display_lifted_card_at_position(uint8_t card, uint8_t display_positi
             watch_display_character(' ', display_position);
             break;
         }
+    }
+    if (indicate_top && watch_get_lcd_type() != WATCH_LCD_TYPE_CLASSIC) {
+        set_segment_at_position(A, display_position);
     }
 }
 
@@ -339,22 +357,16 @@ static void display_card_at_position(uint8_t card, uint8_t display_position) {
     }
 }
 
-static void display_player_hand(bool display_all) {
+static void display_player_hand(void) {
     for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
-        if (display_all || player.cards_to_swap[i]) {
-            display_card_at_position(player.hand[i], BOARD_DISPLAY_START + i);
-        }
+        display_card_at_position(player.hand[i], BOARD_DISPLAY_START + i);
     }
-#if __EMSCRIPTEN__
-    EM_ASM({ console.log('hand_rank: ' + $0); }, player.hand_rank);
-    EM_ASM({ console.log('hand           : [' + $0 + ', ' + $1 + ', ' + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
-            player.hand[0], player.hand[1], player.hand[2],
-            player.hand[3], player.hand[4]);
-    EM_ASM({ console.log('hand_rank_cards: [' + $0 + ', ' + $1 + ', ' + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
-            player.hand_rank_cards[0], player.hand_rank_cards[1], player.hand_rank_cards[2],
-            player.hand_rank_cards[3], player.hand_rank_cards[4]);
-    EM_ASM({ console.log('selected_pos: ' + $0); }, player.selected_pos);
-#endif
+}
+
+static void display_opponent_hand(void) {
+    for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
+        display_card_at_position(opponent.hand[i], BOARD_DISPLAY_START + i);
+    }
 }
 
 static void add_to_game_scores(bool add_to_wins) {
@@ -398,13 +410,12 @@ static void display_win_ratio(poker_face_state_t *state) {
 }
 
 static void begin_playing(void) {
-    watch_clear_display();
     game_state = PO_PLAYING;
     reset_hands();
     // Give player their first 2 cards
     give_hand(&player);
     give_hand(&opponent);
-    display_player_hand(true);
+    display_player_hand();
     display_rank(player.hand_rank);
 }
 
@@ -432,7 +443,7 @@ static void opponent_decisions(hand_info_t *hand_info) {
     }
 }
 
-static void swap_cards(hand_info_t *hand_info) {
+static bool swap_cards(hand_info_t *hand_info) {
     bool cards_swapped = false;
     for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
         if (hand_info->cards_to_swap[i]) {
@@ -444,6 +455,7 @@ static void swap_cards(hand_info_t *hand_info) {
         sort_cards(hand_info->hand);
         get_hand_rank(hand_info);
     }
+    return cards_swapped;
 }
 
 static inline void display_win(void) {
@@ -484,6 +496,25 @@ static void get_result(void) {
     } else {
         display_lose();
     }
+#if __EMSCRIPTEN__
+    EM_ASM({ console.log('player hand           : [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + '] = ' + $5); }, 
+            player.hand[0], player.hand[1], player.hand[2],
+            player.hand[3], player.hand[4], player.hand_rank);
+    EM_ASM({ console.log('player hand_rank_cards: [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            player.hand_rank_cards[0], player.hand_rank_cards[1], player.hand_rank_cards[2],
+            player.hand_rank_cards[3], player.hand_rank_cards[4]);
+
+    EM_ASM({ console.log('opponent hand           : [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + '] = ' + $5); }, 
+            opponent.hand[0], opponent.hand[1], opponent.hand[2],
+            opponent.hand[3], opponent.hand[4], opponent.hand_rank);
+    EM_ASM({ console.log('opponent hand_rank_cards: [' + $0 + ', ' + $1 + ', '
+            + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            opponent.hand_rank_cards[0], opponent.hand_rank_cards[1], opponent.hand_rank_cards[2],
+            opponent.hand_rank_cards[3], opponent.hand_rank_cards[4]);
+#endif
 }
 
 static inline void display_player_card_or_lifted(void) {
@@ -496,7 +527,8 @@ static inline void display_player_card_or_lifted(void) {
 
 static inline void underscore_selected(bool ignore_if_lifted) {
     if (ignore_if_lifted || player.cards_to_swap[player.selected_pos]) {
-        set_segment_at_position(D, BOARD_DISPLAY_START + player.selected_pos);
+        set_segment_at_position(watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC ? G : D,
+        BOARD_DISPLAY_START + player.selected_pos);
     }
 }
 
@@ -542,8 +574,9 @@ static void move_right(void) {
 
 static void make_decision(void) {
     if (player.selected_pos == POKER_HAND_SIZE) {
-        swap_cards(&player);
-        display_player_hand(true);
+        if (swap_cards(&player)) {
+            display_player_hand();
+        }
         display_rank(player.hand_rank);
         opponent_decisions(&opponent);
         swap_cards(&opponent);
@@ -656,8 +689,10 @@ bool poker_face_loop(movement_event_t event, void *context) {
                 state->games_played = 0;
                 watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
             } else if (game_state == PO_PLAYING) {
-                display_player_card_or_lifted();
-                player.selected_pos = POKER_HAND_SIZE;
+                if (player.selected_pos != POKER_HAND_SIZE) {
+                    display_player_card_or_lifted();
+                    player.selected_pos = POKER_HAND_SIZE;
+                }
                 handle_button_presses(PO_SELECT);
             }
             break;

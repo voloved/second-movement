@@ -39,15 +39,16 @@
 #define JACK   11
 
 #define MIN_CARD_VALUE 2
-#define MAX_CARD_VALUE ACE
+#define MAX_CARD_VALUE 9
 #define CARD_RANK_COUNT (MAX_CARD_VALUE - MIN_CARD_VALUE + 1)
 #define CARD_SUIT_COUNT 4
 #define DECK_SIZE (CARD_SUIT_COUNT * CARD_RANK_COUNT)
 
 #define POKER_HAND_SIZE 5
 #define BOARD_DISPLAY_START 4
-#define AI_MIN_CARD_KEEP QUEEN
-#define SORT_LOW_TO_HIGH true
+#define AI_MIN_CARD_KEEP 8
+#define BETTING_ROUNDS 1
+#define SORT_LOW_TO_HIGH false
 
 typedef enum {
     PO_HIGH_CARD,
@@ -89,6 +90,7 @@ typedef enum {
 
 static game_state_t game_state;
 static bool displaying_opponent;
+static uint8_t betting_round;
 static uint8_t deck[DECK_SIZE] = {0};
 static uint8_t current_card = 0;
 static poker_face_state_t *g_state = NULL;
@@ -461,10 +463,18 @@ static void display_win_ratio(poker_face_state_t *state) {
     watch_display_text(WATCH_POSITION_BOTTOM, buf);
 }
 
+static inline void display_betting_round(void) {
+    if (BETTING_ROUNDS <= 1) return;
+    watch_display_character(' ', 1);
+    watch_display_character(betting_round + '0', 0);
+}
+
 static void begin_playing(void) {
     movement_request_tick_frequency(2);
     game_state = PO_PLAYING;
     displaying_opponent = false;
+    betting_round = 1;
+    display_betting_round();
     reset_hands();
     // Give player their first 2 cards
     give_hand(&player);
@@ -629,13 +639,27 @@ static void move_right(void) {
 
 static void make_decision(void) {
     if (player.selected_pos == POKER_HAND_SIZE) {
-        if (swap_cards(&player)) {
+        bool player_swapped = swap_cards(&player);
+        if (player_swapped) {
             display_player_hand();
         }
         display_rank(player.hand_rank);
         opponent_decisions(&opponent);
-        swap_cards(&opponent);
-        get_result();
+        bool opponent_swapped = swap_cards(&opponent);
+        betting_round++;
+        if (betting_round > BETTING_ROUNDS) {
+            get_result();
+        } else if (!player_swapped) {
+            // Even though we're good with our cards, the opponent gets to keep swapping until they're out of rounds.
+            while (opponent_swapped && betting_round <= BETTING_ROUNDS) {
+                opponent_decisions(&opponent);
+                bool opponent_swapped = swap_cards(&opponent);
+                betting_round++;
+            }
+            get_result();
+        } else {
+            display_betting_round();
+        }
     } else {
         player.cards_to_swap[player.selected_pos] = !player.cards_to_swap[player.selected_pos];
         display_player_card_or_lifted();

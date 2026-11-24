@@ -777,7 +777,11 @@ bool poker_face_loop(movement_event_t event, void *context) {
             break;
 #ifdef FORCE_GSHOCK_LCD_TYPE
         case EVENT_START_BUTTON_UP:
-            handle_button_presses(PO_LEFT);
+            if (game_state == PO_PLAYING) {
+                handle_button_presses(PO_LEFT);
+            } else {
+                return movement_default_loop_handler(event);
+            }
             break;
         case EVENT_LIGHT_BUTTON_UP:
             handle_button_presses(PO_RIGHT);
@@ -786,14 +790,11 @@ bool poker_face_loop(movement_event_t event, void *context) {
             handle_button_presses(PO_SELECT);
             break;
 #else
-        case EVENT_MODE_LONG_PRESS:
-            movement_move_to_next_face();
-            break;
         case EVENT_MODE_BUTTON_UP:
-            if (game_state != PO_PLAYING) {
-                movement_move_to_next_face();
-            } else {
+            if (game_state == PO_PLAYING) {
                 handle_button_presses(PO_LEFT);
+            } else {
+                return movement_default_loop_handler(event);
             }
             break;
         case EVENT_ALARM_BUTTON_UP:

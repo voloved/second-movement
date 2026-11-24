@@ -149,11 +149,11 @@ static inline void set_hand_rank_cards(hand_info_t *hand_info, uint8_t card) {
 static void get_hand_rank(hand_info_t *hand_info) {
     // We first check if it's a straight
     bool is_straight = true;
-    uint8_t duplicate_counts[MAX_CARD_VALUE] = {0};
+    uint8_t duplicate_counts[MAX_CARD_VALUE + 1] = {0};
     duplicate_counts[hand_info->hand[0]]++;
     for (uint8_t i = 1; i < POKER_HAND_SIZE; i++) {
         duplicate_counts[hand_info->hand[i]]++;
-        if (hand_info->hand[i] != hand_info->hand[i-1] + 1) {
+        if (hand_info->hand[i] != hand_info->hand[i-1] - 1) {
             is_straight = false;
         }
     }
@@ -164,7 +164,7 @@ static void get_hand_rank(hand_info_t *hand_info) {
         }
         return;
     }
-    for (uint8_t i = 1; i < MAX_CARD_VALUE; i++) {
+    for (uint8_t i = MIN_CARD_VALUE; i <= MAX_CARD_VALUE; i++) {
         if (duplicate_counts[i] == 4) {
             hand_info->hand_rank = PO_FOUR_OF_A_KIND;
             set_hand_rank_cards(hand_info, i);
@@ -317,6 +317,16 @@ static void display_player_hand(bool display_all) {
             display_card_at_position(player.hand[i], BOARD_DISPLAY_START + i);
         }
     }
+#if __EMSCRIPTEN__
+    EM_ASM({ console.log('hand_rank: ' + $0); }, player.hand_rank);
+    EM_ASM({ console.log('hand           : [' + $0 + ', ' + $1 + ', ' + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            player.hand[0], player.hand[1], player.hand[2],
+            player.hand[3], player.hand[4]);
+    EM_ASM({ console.log('hand_rank_cards: [' + $0 + ', ' + $1 + ', ' + $2 + ', ' + $3 + ', ' + $4 + ']'); }, 
+            player.hand_rank_cards[0], player.hand_rank_cards[1], player.hand_rank_cards[2],
+            player.hand_rank_cards[3], player.hand_rank_cards[4]);
+    EM_ASM({ console.log('selected_pos: ' + $0); }, player.selected_pos);
+#endif
 }
 
 static void add_to_game_scores(bool add_to_wins) {
@@ -471,11 +481,6 @@ static inline void underscore_selected(bool ignore_if_lifted) {
 }
 
 static void blink_selected_card(uint8_t subsecond) {
-#if __EMSCRIPTEN__
-    EM_ASM({
-    console.log('selected_pos:' + $0);
-    }, player.selected_pos);
-#endif
     if (player.selected_pos == POKER_HAND_SIZE) return;
     if (subsecond % 2) {
         watch_display_character(' ', BOARD_DISPLAY_START + player.selected_pos);
@@ -518,9 +523,10 @@ static void move_right(void) {
 static void make_decision(void) {
     if (player.selected_pos == POKER_HAND_SIZE) {
         swap_cards(&player);
-        display_player_hand(false);
+        display_player_hand(true);
         display_rank(player.hand_rank);
         opponent_decisions(&opponent);
+        swap_cards(&opponent);
         get_result();
     } else {
         player.cards_to_swap[player.selected_pos] = !player.cards_to_swap[player.selected_pos];
@@ -629,6 +635,10 @@ bool poker_face_loop(movement_event_t event, void *context) {
                 state->games_won = 0;
                 state->games_played = 0;
                 watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
+            } else if (game_state == PO_PLAYING) {
+                display_player_card_or_lifted();
+                player.selected_pos = POKER_HAND_SIZE;
+                handle_button_presses(PO_SELECT);
             }
             break;
         case EVENT_TIMEOUT:

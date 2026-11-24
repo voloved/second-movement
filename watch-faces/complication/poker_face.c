@@ -500,6 +500,7 @@ static inline void display_betting_round(void) {
 static void begin_playing(void) {
     movement_request_tick_frequency(2);
     game_state = PO_PLAYING;
+    watch_display_text(WATCH_POSITION_BOTTOM, "      ");
     displaying_opponent = false;
     betting_round = 1;
     display_betting_round();
@@ -634,6 +635,7 @@ static void get_result(void) {
 }
 
 static inline void display_player_card_or_lifted(void) {
+    if (player.selected_pos == POKER_HAND_SIZE) return;
     if (player.cards_to_swap[player.selected_pos]) {
         display_lifted_card_at_position(player.hand[player.selected_pos], BOARD_DISPLAY_START + player.selected_pos);
     } else {

@@ -33,15 +33,20 @@
 #include "poker_face.h"
 #include "watch_common_display.h"
 
+#define ACE    14
+#define KING   13
+#define QUEEN  12
+#define JACK   11
+
 #define MIN_CARD_VALUE 2
-#define MAX_CARD_VALUE 9
+#define MAX_CARD_VALUE ACE
 #define CARD_RANK_COUNT (MAX_CARD_VALUE - MIN_CARD_VALUE + 1)
 #define CARD_SUIT_COUNT 4
 #define DECK_SIZE (CARD_SUIT_COUNT * CARD_RANK_COUNT)
 
 #define POKER_HAND_SIZE 5
 #define BOARD_DISPLAY_START 4
-#define AI_MIN_CARD_KEEP 8
+#define AI_MIN_CARD_KEEP QUEEN
 #define SORT_LOW_TO_HIGH true
 
 typedef enum {
@@ -314,6 +319,7 @@ static void display_opponent_rank(void) {
 
 static void display_lifted_card_at_position(uint8_t card, uint8_t display_position) {
     bool indicate_top = false;  // Only on G-Shock and Custom because Classic indicates top and bottom.
+    bool is_classic = watch_get_lcd_type() == WATCH_LCD_TYPE_CLASSIC;
     switch (card) {
         case 4:
             indicate_top = true;
@@ -332,11 +338,12 @@ static void display_lifted_card_at_position(uint8_t card, uint8_t display_positi
         case 5:
         case 9:
             indicate_top = true;
+            // fall-through
+        case JACK:
             watch_display_character(' ', display_position);
             set_segment_at_position(B, display_position);
             set_segment_at_position(G, display_position);
             break;
-
         case 6:
         case 8:
             indicate_top = true;
@@ -345,18 +352,55 @@ static void display_lifted_card_at_position(uint8_t card, uint8_t display_positi
             set_segment_at_position(F, display_position);
             set_segment_at_position(G, display_position);
             break;
+        case KING:
+            indicate_top = true;
+            set_segment_at_position(B, display_position);
+            set_segment_at_position(F, display_position);
+            break;
+        case QUEEN:
+            indicate_top = true;
+            watch_display_character(' ', display_position);
+            set_segment_at_position(B, display_position);
+            break;
+        case ACE:
+            watch_display_character(' ', display_position);
+            if (is_classic) {
+                set_segment_at_position(B, display_position);
+                set_segment_at_position(F, display_position);
+                set_segment_at_position(G, display_position);
+            } else {
+                indicate_top = true;
+                set_segment_at_position(B, display_position);
+                set_segment_at_position(F, display_position);
+            }
+            break;
         default: {
             watch_display_character(' ', display_position);
             break;
         }
     }
-    if (indicate_top && watch_get_lcd_type() != WATCH_LCD_TYPE_CLASSIC) {
+    if (indicate_top && !is_classic) {
         set_segment_at_position(A, display_position);
     }
 }
 
 static void display_card_at_position(uint8_t card, uint8_t display_position) {
     switch (card) {
+        case ACE:
+            watch_display_character(watch_get_lcd_type() != WATCH_LCD_TYPE_CLASSIC ? 'A' : 'a', display_position);
+            break;
+        case KING:
+            watch_display_character('K', display_position);
+            break;
+        case QUEEN:
+            watch_display_character('q', display_position);
+            break;
+        case JACK:
+            watch_display_character('J', display_position);
+            break;
+        case 10:
+            watch_display_character('0', display_position);
+            break;
         default: {
             const char display_char = card + '0';
             watch_display_character(display_char, display_position);

@@ -325,7 +325,7 @@ static void display_rank(hand_ranks_t rank) {
             watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "3K", " 3");
             break;
         case PO_STRAIGHT:
-            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "ST", " S", " S");
+            watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_RIGHT, "St", "St", " S");
             break;
         case PO_FULL_HOUSE:
             watch_display_text_with_fallback(WATCH_POSITION_TOP_RIGHT, "FH", " F");

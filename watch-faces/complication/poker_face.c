@@ -635,13 +635,17 @@ static void get_result(void) {
 #endif
 }
 
-static inline void display_player_card_or_lifted(void) {
-    if (player.selected_pos == POKER_HAND_SIZE) return;
-    if (player.cards_to_swap[player.selected_pos]) {
-        display_lifted_card_at_position(player.hand[player.selected_pos], BOARD_DISPLAY_START + player.selected_pos);
+static inline void display_player_card_or_lifted_at_position(uint8_t card_to_display) {
+    if (card_to_display == POKER_HAND_SIZE) return;
+    if (player.cards_to_swap[card_to_display]) {
+        display_lifted_card_at_position(player.hand[card_to_display], BOARD_DISPLAY_START + card_to_display);
     } else {
-        display_card_at_position(player.hand[player.selected_pos], BOARD_DISPLAY_START + player.selected_pos);
+        display_card_at_position(player.hand[card_to_display], BOARD_DISPLAY_START + card_to_display);
     }
+}
+
+static inline void display_player_card_or_lifted(void) {
+    display_player_card_or_lifted_at_position(player.selected_pos);
 }
 
 static inline void underscore_selected(bool ignore_if_lifted) {
@@ -651,6 +655,12 @@ static inline void underscore_selected(bool ignore_if_lifted) {
     }
 }
 
+static inline void invert_all_swap_card(void) {
+    for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
+        player.cards_to_swap[i] = !player.cards_to_swap[i];
+        display_player_card_or_lifted_at_position(i);
+    }
+}
 static void blink_selected_card(uint8_t subsecond) {
     if (player.selected_pos == POKER_HAND_SIZE) return;
     if (subsecond % 2) {
@@ -748,6 +758,43 @@ static void handle_button_presses(button_options_t option) {
     }
 }
 
+static inline void light_long_press_default(poker_face_state_t *state) {
+    if (game_state == PO_TITLE_SCREEN) {
+        display_win_ratio(state);
+    } else {
+        movement_illuminate_led();
+    }
+}
+
+static inline void alarm_long_press_default(poker_face_state_t *state) {
+    if (game_state == PO_WIN_RATIO) {
+        // Reset the win-lose ratio
+        state->games_won = 0;
+        state->games_played = 0;
+        watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
+    } else if (game_state == PO_PLAYING) {
+        if (player.selected_pos != POKER_HAND_SIZE) {
+            display_player_card_or_lifted();
+            player.selected_pos = POKER_HAND_SIZE;
+        }
+        handle_button_presses(PO_SELECT);
+    } else if (game_state == PO_TITLE_SCREEN) {
+        display_win_ratio(state);
+    } else if (game_state == PO_RESULT) {
+        if (displaying_opponent) {
+            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+            display_player_hand();
+            display_rank(player.hand_rank);
+        } else {
+            display_opponent_hand();
+            display_opponent_rank();
+        }
+        displaying_opponent = !displaying_opponent;
+    }
+}
+
 void poker_face_setup(uint8_t watch_face_index, void **context_ptr) {
     (void) watch_face_index;
 
@@ -790,6 +837,16 @@ bool poker_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_BUTTON_UP:
             handle_button_presses(PO_SELECT);
             break;
+        case EVENT_ALARM_LONG_PRESS:
+            if (game_state == PO_PLAYING) {
+                invert_all_swap_card();
+            } else {
+                alarm_long_press_default(state);
+            }
+            break;
+        case EVENT_LIGHT_LONG_PRESS:
+            light_long_press_default(state);
+            break;
 #else
         case EVENT_MODE_BUTTON_UP:
             if (game_state == PO_PLAYING) {
@@ -804,43 +861,18 @@ bool poker_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             handle_button_presses(PO_SELECT);
             break;
-#endif
-        case EVENT_LIGHT_BUTTON_DOWN:
+        case EVENT_ALARM_LONG_PRESS:
+            alarm_long_press_default(state);
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (game_state == PO_TITLE_SCREEN) {
-                display_win_ratio(state);
+           if (game_state == PO_PLAYING) {
+                invert_all_swap_card();
             } else {
-                movement_illuminate_led();
+                light_long_press_default(state);
             }
             break;
-        case EVENT_ALARM_LONG_PRESS:
-            if (game_state == PO_WIN_RATIO) {
-                // Reset the win-lose ratio
-                state->games_won = 0;
-                state->games_played = 0;
-                watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
-            } else if (game_state == PO_PLAYING) {
-                if (player.selected_pos != POKER_HAND_SIZE) {
-                    display_player_card_or_lifted();
-                    player.selected_pos = POKER_HAND_SIZE;
-                }
-                handle_button_presses(PO_SELECT);
-            } else if (game_state == PO_TITLE_SCREEN) {
-                display_win_ratio(state);
-            } else if (game_state == PO_RESULT) {
-                if (displaying_opponent) {
-                    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
-                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
-                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-                    display_player_hand();
-                    display_rank(player.hand_rank);
-                } else {
-                    display_opponent_hand();
-                    display_opponent_rank();
-                }
-                displaying_opponent = !displaying_opponent;
-            }
+#endif
+        case EVENT_LIGHT_BUTTON_DOWN:
             break;
         case EVENT_TIMEOUT:
         case EVENT_LOW_ENERGY_UPDATE:

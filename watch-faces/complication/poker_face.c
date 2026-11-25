@@ -655,9 +655,9 @@ static inline void underscore_selected(bool ignore_if_lifted) {
     }
 }
 
-static inline void invert_all_swap_card(void) {
+static inline void select_unrank_cards_to_swap(void) {
     for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
-        player.cards_to_swap[i] = !player.cards_to_swap[i];
+        player.cards_to_swap[i] = !player.hand_rank_cards[i];
         display_player_card_or_lifted_at_position(i);
     }
 }
@@ -839,7 +839,7 @@ bool poker_face_loop(movement_event_t event, void *context) {
             break;
         case EVENT_ALARM_LONG_PRESS:
             if (game_state == PO_PLAYING) {
-                invert_all_swap_card();
+                select_unrank_cards_to_swap();
             } else {
                 alarm_long_press_default(state);
             }

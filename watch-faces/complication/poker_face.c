@@ -82,6 +82,7 @@ typedef struct {
 typedef enum {
     PO_TITLE_SCREEN,
     PO_PLAYING,
+    PO_HAND_FINAL,
     PO_RESULT,
     PO_WIN_RATIO,
 } game_state_t;
@@ -97,7 +98,7 @@ typedef enum {
 } button_options_t;
 
 static game_state_t game_state;
-static bool displaying_opponent;
+static bool diplay_opponent_hand;
 static uint8_t betting_round;
 static uint8_t deck[DECK_SIZE] = {0};
 static uint8_t current_card = 0;
@@ -501,7 +502,7 @@ static void begin_playing(void) {
     movement_request_tick_frequency(2);
     game_state = PO_PLAYING;
     watch_display_text(WATCH_POSITION_BOTTOM, "      ");
-    displaying_opponent = false;
+    diplay_opponent_hand = false;
     betting_round = 1;
     display_betting_round();
     reset_hands();
@@ -552,22 +553,38 @@ static bool swap_cards(hand_info_t *hand_info) {
     return cards_swapped;
 }
 
+static inline void display_player_or_opponent_hand(void) {
+    if (diplay_opponent_hand) {
+        display_opponent_hand();
+        display_opponent_rank();
+    } else {
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        display_player_hand();
+        display_rank(player.hand_rank);
+    }
+}
+
 static inline void display_win(void) {
     add_to_game_scores(true);
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "W ", "WI", "WI");
-    display_opponent_rank();
+    diplay_opponent_hand = true;
+    display_player_or_opponent_hand();
 }
 
 static inline void display_lose(void) {
     add_to_game_scores(false);
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "L ", "LO", "LO");
-    display_opponent_rank();
+    diplay_opponent_hand = true;
+    display_player_or_opponent_hand();
 }
 
 static inline void display_tie(void) {
     // Don't record ties to the win ratio
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "T ", "TI", "TI");
-    display_opponent_rank();
+    diplay_opponent_hand = true;
+    display_player_or_opponent_hand();
 }
 
 static inline uint8_t get_top_rank_card(const hand_info_t *hand_info) {
@@ -657,8 +674,10 @@ static inline void underscore_selected(bool ignore_if_lifted) {
 
 static inline void select_unrank_cards_to_swap(void) {
     for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
-        player.cards_to_swap[i] = !player.hand_rank_cards[i];
-        display_player_card_or_lifted_at_position(i);
+        if (player.cards_to_swap[i] == player.hand_rank_cards[i]) {
+            player.cards_to_swap[i] = !player.hand_rank_cards[i];
+            display_player_card_or_lifted_at_position(i);
+        }
     }
 }
 static void blink_selected_card(uint8_t subsecond) {
@@ -712,7 +731,11 @@ static void make_decision(void) {
         bool opponent_swapped = swap_cards(&opponent);
         betting_round++;
         if (betting_round > BETTING_ROUNDS) {
-            get_result();
+            if (player_swapped) {
+                game_state = PO_HAND_FINAL;
+            } else {
+                get_result();
+            }
         } else if (!player_swapped) {
             // Even though we're good with our cards, the opponent gets to keep swapping until they're out of rounds.
             while (opponent_swapped && betting_round <= BETTING_ROUNDS) {
@@ -751,6 +774,9 @@ static void handle_button_presses(button_options_t option) {
             break;
         }
         break;
+    case PO_HAND_FINAL:
+        get_result();
+        break;
     case PO_RESULT:
     case PO_WIN_RATIO:
         display_title();
@@ -781,17 +807,8 @@ static inline void alarm_long_press_default(poker_face_state_t *state) {
     } else if (game_state == PO_TITLE_SCREEN) {
         display_win_ratio(state);
     } else if (game_state == PO_RESULT) {
-        if (displaying_opponent) {
-            watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
-            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
-            watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-            display_player_hand();
-            display_rank(player.hand_rank);
-        } else {
-            display_opponent_hand();
-            display_opponent_rank();
-        }
-        displaying_opponent = !displaying_opponent;
+        diplay_opponent_hand = !diplay_opponent_hand;
+        display_player_or_opponent_hand();
     }
 }
 
@@ -808,7 +825,7 @@ void poker_face_setup(uint8_t watch_face_index, void **context_ptr) {
 void poker_face_activate(void *context) {
     poker_face_state_t *state = (poker_face_state_t *) context;
     (void) state;
-    displaying_opponent = false;
+    diplay_opponent_hand = false;
     display_title();
     stack_deck();
 }

@@ -82,6 +82,7 @@ typedef struct {
 typedef enum {
     PO_TITLE_SCREEN,
     PO_PLAYING,
+    PO_HAND_FINAL,
     PO_RESULT,
     PO_WIN_RATIO,
 } game_state_t;
@@ -541,6 +542,7 @@ static bool swap_cards(hand_info_t *hand_info) {
     for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
         if (hand_info->cards_to_swap[i]) {
             hand_info->hand[i] = get_next_card();
+            hand_info->cards_to_swap[i] = false;
             cards_swapped = true;
         }
     }
@@ -551,22 +553,38 @@ static bool swap_cards(hand_info_t *hand_info) {
     return cards_swapped;
 }
 
+static inline void display_player_or_opponent_hand(void) {
+    if (displaying_opponent) {
+        display_opponent_hand();
+        display_opponent_rank();
+    } else {
+        watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
+        watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
+        display_player_hand();
+        display_rank(player.hand_rank);
+    }
+}
+
 static inline void display_win(void) {
     add_to_game_scores(true);
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "W ", "WI", "WI");
-    display_opponent_rank();
+    displaying_opponent = true;
+    display_player_or_opponent_hand();
 }
 
 static inline void display_lose(void) {
     add_to_game_scores(false);
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "L ", "LO", "LO");
-    display_opponent_rank();
+    displaying_opponent = true;
+    display_player_or_opponent_hand();
 }
 
 static inline void display_tie(void) {
     // Don't record ties to the win ratio
     watch_display_text_with_gshock_and_fallback(WATCH_POSITION_TOP_LEFT, "T ", "TI", "TI");
-    display_opponent_rank();
+    displaying_opponent = true;
+    display_player_or_opponent_hand();
 }
 
 static inline uint8_t get_top_rank_card(const hand_info_t *hand_info) {
@@ -634,13 +652,17 @@ static void get_result(void) {
 #endif
 }
 
-static inline void display_player_card_or_lifted(void) {
-    if (player.selected_pos == POKER_HAND_SIZE) return;
-    if (player.cards_to_swap[player.selected_pos]) {
-        display_lifted_card_at_position(player.hand[player.selected_pos], BOARD_DISPLAY_START + player.selected_pos);
+static inline void display_player_card_or_lifted_at_position(uint8_t card_to_display) {
+    if (card_to_display == POKER_HAND_SIZE) return;
+    if (player.cards_to_swap[card_to_display]) {
+        display_lifted_card_at_position(player.hand[card_to_display], BOARD_DISPLAY_START + card_to_display);
     } else {
-        display_card_at_position(player.hand[player.selected_pos], BOARD_DISPLAY_START + player.selected_pos);
+        display_card_at_position(player.hand[card_to_display], BOARD_DISPLAY_START + card_to_display);
     }
+}
+
+static inline void display_player_card_or_lifted(void) {
+    display_player_card_or_lifted_at_position(player.selected_pos);
 }
 
 static inline void underscore_selected(bool ignore_if_lifted) {
@@ -650,6 +672,14 @@ static inline void underscore_selected(bool ignore_if_lifted) {
     }
 }
 
+static inline void select_unrank_cards_to_swap(void) {
+    for (uint8_t i=0; i<POKER_HAND_SIZE; i++) {
+        if (player.cards_to_swap[i] == player.hand_rank_cards[i]) {
+            player.cards_to_swap[i] = !player.hand_rank_cards[i];
+            display_player_card_or_lifted_at_position(i);
+        }
+    }
+}
 static void blink_selected_card(uint8_t subsecond) {
     if (player.selected_pos == POKER_HAND_SIZE) return;
     if (subsecond % 2) {
@@ -701,7 +731,11 @@ static void make_decision(void) {
         bool opponent_swapped = swap_cards(&opponent);
         betting_round++;
         if (betting_round > BETTING_ROUNDS) {
-            get_result();
+            if (player_swapped) {
+                game_state = PO_HAND_FINAL;
+            } else {
+                get_result();
+            }
         } else if (!player_swapped) {
             // Even though we're good with our cards, the opponent gets to keep swapping until they're out of rounds.
             while (opponent_swapped && betting_round <= BETTING_ROUNDS) {
@@ -740,10 +774,41 @@ static void handle_button_presses(button_options_t option) {
             break;
         }
         break;
+    case PO_HAND_FINAL:
+        get_result();
+        break;
     case PO_RESULT:
     case PO_WIN_RATIO:
         display_title();
         break;
+    }
+}
+
+static inline void light_long_press_default(poker_face_state_t *state) {
+    if (game_state == PO_TITLE_SCREEN) {
+        display_win_ratio(state);
+    } else {
+        movement_illuminate_led();
+    }
+}
+
+static inline void alarm_long_press_default(poker_face_state_t *state) {
+    if (game_state == PO_WIN_RATIO) {
+        // Reset the win-lose ratio
+        state->games_won = 0;
+        state->games_played = 0;
+        watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
+    } else if (game_state == PO_PLAYING) {
+        if (player.selected_pos != POKER_HAND_SIZE) {
+            display_player_card_or_lifted();
+            player.selected_pos = POKER_HAND_SIZE;
+        }
+        handle_button_presses(PO_SELECT);
+    } else if (game_state == PO_TITLE_SCREEN) {
+        display_win_ratio(state);
+    } else if (game_state == PO_RESULT) {
+        displaying_opponent = !displaying_opponent;
+        display_player_or_opponent_hand();
     }
 }
 
@@ -789,6 +854,16 @@ bool poker_face_loop(movement_event_t event, void *context) {
         case EVENT_ALARM_BUTTON_UP:
             handle_button_presses(PO_SELECT);
             break;
+        case EVENT_ALARM_LONG_PRESS:
+            if (game_state == PO_PLAYING) {
+                select_unrank_cards_to_swap();
+            } else {
+                alarm_long_press_default(state);
+            }
+            break;
+        case EVENT_LIGHT_LONG_PRESS:
+            light_long_press_default(state);
+            break;
 #else
         case EVENT_MODE_BUTTON_UP:
             if (game_state == PO_PLAYING) {
@@ -803,43 +878,18 @@ bool poker_face_loop(movement_event_t event, void *context) {
         case EVENT_LIGHT_BUTTON_UP:
             handle_button_presses(PO_SELECT);
             break;
-#endif
-        case EVENT_LIGHT_BUTTON_DOWN:
+        case EVENT_ALARM_LONG_PRESS:
+            alarm_long_press_default(state);
             break;
         case EVENT_LIGHT_LONG_PRESS:
-            if (game_state == PO_TITLE_SCREEN) {
-                display_win_ratio(state);
+           if (game_state == PO_PLAYING) {
+                invert_all_swap_card();
             } else {
-                movement_illuminate_led();
+                light_long_press_default(state);
             }
             break;
-        case EVENT_ALARM_LONG_PRESS:
-            if (game_state == PO_WIN_RATIO) {
-                // Reset the win-lose ratio
-                state->games_won = 0;
-                state->games_played = 0;
-                watch_display_text(WATCH_POSITION_BOTTOM, "  0Pct");
-            } else if (game_state == PO_PLAYING) {
-                if (player.selected_pos != POKER_HAND_SIZE) {
-                    display_player_card_or_lifted();
-                    player.selected_pos = POKER_HAND_SIZE;
-                }
-                handle_button_presses(PO_SELECT);
-            } else if (game_state == PO_TITLE_SCREEN) {
-                display_win_ratio(state);
-            } else if (game_state == PO_RESULT) {
-                if (displaying_opponent) {
-                    watch_display_text(WATCH_POSITION_MONTH_GSHOCK, "  ");
-                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_TOP);
-                    watch_clear_indicator(WATCH_INDICATOR_BOX_COLON_BOTTOM);
-                    display_player_hand();
-                    display_rank(player.hand_rank);
-                } else {
-                    display_opponent_hand();
-                    display_opponent_rank();
-                }
-                displaying_opponent = !displaying_opponent;
-            }
+#endif
+        case EVENT_LIGHT_BUTTON_DOWN:
             break;
         case EVENT_TIMEOUT:
         case EVENT_LOW_ENERGY_UPDATE:
